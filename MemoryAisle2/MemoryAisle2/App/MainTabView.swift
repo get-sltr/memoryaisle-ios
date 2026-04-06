@@ -47,17 +47,38 @@ struct CustomTabBar: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        HStack(spacing: 0) {
-            tabButton(.home)
-            tabButton(.meals)
+        ZStack {
+            // Background
+            tabBarBackground
+                .frame(height: 56)
+
+            // Tab items
+            HStack(spacing: 0) {
+                tabButton(.home)
+                tabButton(.meals)
+
+                // Spacer for center button
+                Color.clear
+                    .frame(width: 72)
+
+                tabButton(.mira)
+                tabButton(.progress)
+            }
+            .padding(.horizontal, Theme.Spacing.xs)
+
+            // Center scan button (floating above)
             scanButton
-            tabButton(.mira)
-            tabButton(.progress)
+                .offset(y: -20)
         }
-        .padding(.horizontal, Theme.Spacing.sm)
-        .padding(.top, Theme.Spacing.sm)
-        .padding(.bottom, Theme.Spacing.xs)
+        .frame(height: 56)
+        .padding(.bottom, safeAreaBottom)
         .background(tabBarBackground)
+    }
+
+    private var safeAreaBottom: CGFloat {
+        let scenes = UIApplication.shared.connectedScenes
+        let windowScene = scenes.first as? UIWindowScene
+        return windowScene?.windows.first?.safeAreaInsets.bottom ?? 0
     }
 
     // MARK: Regular Tab Button
@@ -69,13 +90,13 @@ struct CustomTabBar: View {
                 selectedTab = tab
             }
         } label: {
-            VStack(spacing: 2) {
+            VStack(spacing: 3) {
                 Image(systemName: tab.icon)
-                    .font(.system(size: 20))
+                    .font(.system(size: 18))
                     .symbolRenderingMode(.hierarchical)
 
                 Text(tab.title)
-                    .font(Typography.caption)
+                    .font(.system(size: 10, weight: .medium))
             }
             .foregroundStyle(
                 selectedTab == tab
@@ -83,7 +104,6 @@ struct CustomTabBar: View {
                     : Theme.Text.tertiary(for: scheme)
             )
             .frame(maxWidth: .infinity)
-            .padding(.vertical, Theme.Spacing.xs)
         }
         .accessibilityLabel(tab.title)
     }
@@ -106,20 +126,19 @@ struct CustomTabBar: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 52, height: 52)
+                    .frame(width: 56, height: 56)
                     .shadow(
-                        color: Color.violetDeep.opacity(0.4),
-                        radius: 8,
+                        color: Color.violetDeep.opacity(0.35),
+                        radius: 12,
                         y: 4
                     )
 
-                Image(systemName: "barcode.viewfinder")
-                    .font(.system(size: 22, weight: .semibold))
+                Image(systemName: "viewfinder")
+                    .font(.system(size: 24, weight: .medium))
                     .foregroundStyle(.white)
             }
-            .offset(y: -12)
         }
-        .frame(maxWidth: .infinity)
+        .buttonStyle(GlassPressStyle())
         .accessibilityLabel("Scan")
     }
 
