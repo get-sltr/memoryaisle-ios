@@ -6,9 +6,7 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showProfile = false
     @Query private var profiles: [UserProfile]
-    @Query(filter: #Predicate<NutritionLog> { log in
-        log.date > Date.distantPast
-    }, sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
+    @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
 
     private var profile: UserProfile? { profiles.first }
     private var todayLog: NutritionLog? {
