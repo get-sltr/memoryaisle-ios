@@ -1,0 +1,42 @@
+# Xcode
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.hmap
+*.xcuserstate
+
+# Build
+build/
+*.o
+*.LinkFileList
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.pbxuser
+
+# Secrets
+*.xcconfig
+.env
+Secrets/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Figma state
+/tmp/dsb-state-*.json
+
+# Images (design reference, not app assets)
+*.jpg
+*.jpeg
+*.webp
+*.png
+!MemoryAisle/Resources/Assets.xcassets/**/*.png
+!MemoryAisle/Resources/Assets.xcassets/**/*.jpg

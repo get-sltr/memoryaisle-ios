@@ -1,0 +1,151 @@
+import SwiftUI
+import SwiftData
+
+struct OnboardingFlow: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
+    @State private var step: OnboardingStep = .intro
+    @State private var profile = OnboardingProfile()
+
+    var body: some View {
+        ZStack {
+            Color.indigoBlack.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Progress dots
+                if step != .intro && step != .ready {
+                    progressDots
+                        .padding(.top, Theme.Spacing.md)
+                }
+
+                // Content
+                Group {
+                    switch step {
+                    case .intro:
+                        MiraIntroScreen(onContinue: { step = .glp1Check })
+                    case .glp1Check:
+                        GLP1CheckScreen(
+                            onYes: { step = .medication },
+                            onNo: {
+                                profile.isOnGLP1 = false
+                                step = .worries
+                            }
+                        )
+                    case .medication:
+                        MedicationSelectScreen(
+                            selection: $profile.medication,
+                            onContinue: { step = .doseTiming }
+                        )
+                    case .doseTiming:
+                        DoseTimingScreen(
+                            profile: $profile,
+                            onContinue: { step = .worries }
+                        )
+                    case .worries:
+                        WorriesScreen(
+                            selected: $profile.worries,
+                            onContinue: { step = .training }
+                        )
+                    case .training:
+                        TrainingScreen(
+                            selection: $profile.trainingLevel,
+                            onContinue: { step = .dietary }
+                        )
+                    case .dietary:
+                        DietaryScreen(
+                            selected: $profile.dietaryRestrictions,
+                            onContinue: { step = .ready }
+                        )
+                    case .ready:
+                        MiraReadyScreen(
+                            profile: profile,
+                            onComplete: { completeOnboarding() }
+                        )
+                    }
+                }
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .leading).combined(with: .opacity)
+                ))
+                .animation(Theme.Motion.spring, value: step)
+            }
+        }
+    }
+
+    // MARK: - Progress Dots
+
+    private var progressDots: some View {
+        HStack(spacing: Theme.Spacing.sm) {
+            ForEach(OnboardingStep.allCases.filter { $0 != .intro && $0 != .ready }, id: \.self) { s in
+                Circle()
+                    .fill(s.rawValue <= step.rawValue ? Color.violet : Color.white.opacity(0.15))
+                    .frame(width: 8, height: 8)
+                    .scaleEffect(s == step ? 1.2 : 1.0)
+                    .animation(Theme.Motion.spring, value: step)
+            }
+        }
+    }
+
+    // MARK: - Complete
+
+    private func completeOnboarding() {
+        let user = UserProfile(
+            medication: profile.medication,
+            medicationModality: profile.modality,
+            productMode: deriveMode(),
+            proteinTargetGrams: deriveProteinTarget()
+        )
+        user.hasCompletedOnboarding = true
+        user.worries = profile.worries
+        user.trainingLevel = profile.trainingLevel
+        user.dietaryRestrictions = profile.dietaryRestrictions
+        user.doseAmount = profile.doseAmount
+        user.injectionDay = profile.injectionDay
+        user.pillTime = profile.pillTime
+
+        modelContext.insert(user)
+        appState.hasCompletedOnboarding = true
+    }
+
+    private func deriveMode() -> ProductMode {
+        if profile.worries.contains(.nausea) { return .sensitiveStomach }
+        if profile.trainingLevel == .lifts { return .musclePreservation }
+        return .everyday
+    }
+
+    private func deriveProteinTarget() -> Int {
+        switch profile.trainingLevel {
+        case .lifts: 140
+        case .cardio: 120
+        case .sometimes: 110
+        case .none: 100
+        }
+    }
+}
+
+// MARK: - Step Enum
+
+enum OnboardingStep: Int, CaseIterable {
+    case intro = 0
+    case glp1Check = 1
+    case medication = 2
+    case doseTiming = 3
+    case worries = 4
+    case training = 5
+    case dietary = 6
+    case ready = 7
+}
+
+// MARK: - Profile Accumulator
+
+struct OnboardingProfile {
+    var isOnGLP1 = true
+    var medication: Medication?
+    var modality: MedicationModality?
+    var doseAmount: String?
+    var injectionDay: Int?
+    var pillTime: Date?
+    var worries: [Worry] = []
+    var trainingLevel: TrainingLevel = .none
+    var dietaryRestrictions: [DietaryRestriction] = []
+}
