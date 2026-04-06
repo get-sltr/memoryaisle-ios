@@ -6,7 +6,9 @@ enum Theme {
 
     // MARK: Background
 
-    static let background = Color("bg/primary", bundle: nil)
+    static func background(for scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color.indigoBlack : Color.white
+    }
 
     // MARK: Surface (Glass)
 
