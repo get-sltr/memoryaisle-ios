@@ -370,9 +370,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8BD860E72F8463C900EEDDAF /* UserProfile.swift in Sources */,
-				8BD860E82F8463C900EEDDAF /* NutritionLog.swift in Sources */,
-				8BD860E92F8463C900EEDDAF /* SymptomLog.swift in Sources */,
 				8785423BB29E7E1CD9D24401 /* Typography.swift in Sources */,
 				724343C0916D4253312DD45D /* GhostButton.swift in Sources */,
 				AA494640BA532682E9690ADA /* HapticManager.swift in Sources */,
@@ -392,16 +389,8 @@
 				161E4891BEA873A25B0338BF /* MiraChatView.swift in Sources */,
 				173E4C99A4A0CDE52B4EDB19 /* ScanView.swift in Sources */,
 				29A1411E95F5333298515471 /* MealsView.swift in Sources */,
-				3C144D06845F10ACA445F2EF /* UserProfile.swift in Sources */,
-				F7B9407CBA29940F213D73CE /* NutritionLog.swift in Sources */,
-				BDF04CBDAE37F394142B104B /* SymptomLog.swift in Sources */,
-				A828433FBCA7D3D31EB9070C /* HomeView.swift in Sources */,
 				3E2A4FB2BB50C10F0F6CAAC2 /* SymptomQuickLog.swift in Sources */,
-				5A524F0BB361865FB31FBD81 /* ProgressDashboardView.swift in Sources */,
-				7DAA4ACF885DB42F939E4C9A /* MiraChatView.swift in Sources */,
-				045640B0958D237C8F8EB186 /* ScanView.swift in Sources */,
 				31184C42A40D2FB55E49622B /* ProfileView.swift in Sources */,
-				61454E89B2399E88BCDC7F97 /* MealsView.swift in Sources */,
 				CF1B40FCAF7E20DDD3D5B6FD /* MiraReadyScreen.swift in Sources */,
 				EADE462A879DF7A2DC537969 /* MedicationSelectScreen.swift in Sources */,
 				F8364E6BB9F999C643813D74 /* TrainingScreen.swift in Sources */,
