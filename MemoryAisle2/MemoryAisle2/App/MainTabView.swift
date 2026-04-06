@@ -8,7 +8,6 @@ struct MainTabView: View {
         @Bindable var state = appState
 
         ZStack(alignment: .bottom) {
-            // Tab content
             Group {
                 switch appState.selectedTab {
                 case .home:
@@ -33,7 +32,6 @@ struct MainTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Custom tab bar
             CustomTabBar(selectedTab: $state.selectedTab)
         }
         .ignoresSafeArea(.keyboard)
@@ -48,99 +46,50 @@ struct CustomTabBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            tabButton(.home)
-            tabButton(.meals)
-            scanButton
-            tabButton(.mira)
-            tabButton(.progress)
+            ForEach(AppState.Tab.allCases, id: \.self) { tab in
+                tabItem(tab)
+            }
         }
-        .padding(.top, 10)
+        .padding(.top, 8)
         .padding(.bottom, 2)
-        .padding(.horizontal, 4)
-        .background(tabBarBackground)
+        .background(
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    Rectangle()
+                        .fill(Theme.Surface.glass(for: scheme))
+                )
+                .overlay(alignment: .top) {
+                    Rectangle()
+                        .fill(Theme.Border.glass(for: scheme))
+                        .frame(height: Theme.glassBorderWidth)
+                }
+        )
     }
 
-    // MARK: Regular Tab Button
-
-    private func tabButton(_ tab: AppState.Tab) -> some View {
+    private func tabItem(_ tab: AppState.Tab) -> some View {
         Button {
             HapticManager.selection()
             withAnimation(Theme.Motion.press) {
                 selectedTab = tab
             }
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 3) {
                 Image(systemName: tab.icon)
-                    .font(.system(size: 17, weight: .light))
+                    .font(.system(size: 18, weight: selectedTab == tab ? .medium : .light))
 
                 Text(tab.title)
                     .font(.system(size: 9, weight: .medium))
-                    .tracking(0.3)
+                    .tracking(0.4)
             }
             .foregroundStyle(
                 selectedTab == tab
-                    ? Theme.Accent.primary(for: scheme)
+                    ? Color.violet
                     : Theme.Text.tertiary(for: scheme)
             )
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
+            .padding(.vertical, 4)
         }
         .accessibilityLabel(tab.title)
-    }
-
-    // MARK: Center Scan Button
-
-    private var scanButton: some View {
-        Button {
-            HapticManager.medium()
-            withAnimation(Theme.Motion.press) {
-                selectedTab = .scan
-            }
-        } label: {
-            VStack(spacing: 4) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(
-                            selectedTab == .scan
-                                ? Color.violetDeep
-                                : Color.violetDeep.opacity(0.6)
-                        )
-                        .frame(width: 36, height: 36)
-
-                    Image(systemName: "viewfinder")
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundStyle(.white)
-                }
-
-                Text("Scan")
-                    .font(.system(size: 9, weight: .medium))
-                    .tracking(0.3)
-                    .foregroundStyle(
-                        selectedTab == .scan
-                            ? Theme.Accent.primary(for: scheme)
-                            : Theme.Text.tertiary(for: scheme)
-                    )
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
-        }
-        .buttonStyle(GlassPressStyle())
-        .accessibilityLabel("Scan")
-    }
-
-    // MARK: Background
-
-    private var tabBarBackground: some View {
-        Rectangle()
-            .fill(.ultraThinMaterial)
-            .overlay(
-                Rectangle()
-                    .fill(Theme.Surface.glass(for: scheme))
-            )
-            .overlay(alignment: .top) {
-                Rectangle()
-                    .fill(Theme.Border.glass(for: scheme))
-                    .frame(height: Theme.glassBorderWidth)
-            }
     }
 }
