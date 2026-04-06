@@ -47,38 +47,17 @@ struct CustomTabBar: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        ZStack {
-            // Background
-            tabBarBackground
-                .frame(height: 56)
-
-            // Tab items
-            HStack(spacing: 0) {
-                tabButton(.home)
-                tabButton(.meals)
-
-                // Spacer for center button
-                Color.clear
-                    .frame(width: 72)
-
-                tabButton(.mira)
-                tabButton(.progress)
-            }
-            .padding(.horizontal, Theme.Spacing.xs)
-
-            // Center scan button (floating above)
+        HStack(spacing: 0) {
+            tabButton(.home)
+            tabButton(.meals)
             scanButton
-                .offset(y: -20)
+            tabButton(.mira)
+            tabButton(.progress)
         }
-        .frame(height: 56)
-        .padding(.bottom, safeAreaBottom)
+        .padding(.top, 10)
+        .padding(.bottom, 2)
+        .padding(.horizontal, 4)
         .background(tabBarBackground)
-    }
-
-    private var safeAreaBottom: CGFloat {
-        let scenes = UIApplication.shared.connectedScenes
-        let windowScene = scenes.first as? UIWindowScene
-        return windowScene?.windows.first?.safeAreaInsets.bottom ?? 0
     }
 
     // MARK: Regular Tab Button
@@ -90,13 +69,13 @@ struct CustomTabBar: View {
                 selectedTab = tab
             }
         } label: {
-            VStack(spacing: 3) {
+            VStack(spacing: 4) {
                 Image(systemName: tab.icon)
-                    .font(.system(size: 18))
-                    .symbolRenderingMode(.hierarchical)
+                    .font(.system(size: 17, weight: .light))
 
                 Text(tab.title)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 9, weight: .medium))
+                    .tracking(0.3)
             }
             .foregroundStyle(
                 selectedTab == tab
@@ -104,11 +83,12 @@ struct CustomTabBar: View {
                     : Theme.Text.tertiary(for: scheme)
             )
             .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
         }
         .accessibilityLabel(tab.title)
     }
 
-    // MARK: Center Scan Button (Elevated)
+    // MARK: Center Scan Button
 
     private var scanButton: some View {
         Button {
@@ -117,26 +97,32 @@ struct CustomTabBar: View {
                 selectedTab = .scan
             }
         } label: {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [.violetDeep, .violetMid],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+            VStack(spacing: 4) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(
+                            selectedTab == .scan
+                                ? Color.violetDeep
+                                : Color.violetDeep.opacity(0.6)
                         )
-                    )
-                    .frame(width: 56, height: 56)
-                    .shadow(
-                        color: Color.violetDeep.opacity(0.35),
-                        radius: 12,
-                        y: 4
-                    )
+                        .frame(width: 36, height: 36)
 
-                Image(systemName: "viewfinder")
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(.white)
+                    Image(systemName: "viewfinder")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(.white)
+                }
+
+                Text("Scan")
+                    .font(.system(size: 9, weight: .medium))
+                    .tracking(0.3)
+                    .foregroundStyle(
+                        selectedTab == .scan
+                            ? Theme.Accent.primary(for: scheme)
+                            : Theme.Text.tertiary(for: scheme)
+                    )
             }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
         }
         .buttonStyle(GlassPressStyle())
         .accessibilityLabel("Scan")

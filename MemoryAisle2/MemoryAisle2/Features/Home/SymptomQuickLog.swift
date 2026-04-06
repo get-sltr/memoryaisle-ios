@@ -22,18 +22,19 @@ struct SymptomQuickLog: View {
     private var logCard: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-                Text("How are you feeling?")
-                    .font(Typography.bodyMediumBold)
-                    .foregroundStyle(Theme.Text.primary)
-
-                symptomSlider("Nausea", value: $nauseaLevel, low: "None", high: "Severe", color: Theme.Semantic.warning(for: scheme))
-                symptomSlider("Appetite", value: $appetiteLevel, low: "Low", high: "Normal", color: Theme.Semantic.fiber(for: scheme))
-                symptomSlider("Energy", value: $energyLevel, low: "Low", high: "High", color: Theme.Semantic.onTrack(for: scheme))
-
-                VioletButtonCompact("Log symptoms") {
-                    saveSymptoms()
+                HStack {
+                    Text("How are you feeling?")
+                        .font(Typography.bodySmallBold)
+                        .foregroundStyle(Theme.Text.primary)
+                    Spacer()
+                    VioletButtonCompact("Log") {
+                        saveSymptoms()
+                    }
                 }
-                .frame(maxWidth: .infinity, alignment: .trailing)
+
+                symptomRow("Nausea", value: $nauseaLevel, low: "None", high: "Severe", color: Theme.Semantic.warning(for: scheme))
+                symptomRow("Appetite", value: $appetiteLevel, low: "Low", high: "Normal", color: Theme.Semantic.fiber(for: scheme))
+                symptomRow("Energy", value: $energyLevel, low: "Low", high: "High", color: Theme.Semantic.onTrack(for: scheme))
             }
             .padding(Theme.Spacing.md)
         }
@@ -44,62 +45,57 @@ struct SymptomQuickLog: View {
             HStack(spacing: Theme.Spacing.sm) {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(Theme.Semantic.onTrack(for: scheme))
-                    .font(.system(size: 20))
+                    .font(.system(size: 16))
 
-                Text("Symptoms logged for today")
+                Text("Symptoms logged")
                     .font(Typography.bodySmall)
                     .foregroundStyle(Theme.Text.secondary(for: scheme))
 
                 Spacer()
             }
-            .padding(Theme.Spacing.md)
+            .padding(Theme.Spacing.sm + 2)
         }
     }
 
-    // MARK: - Slider
+    // MARK: - Symptom Row
 
-    private func symptomSlider(
+    private func symptomRow(
         _ label: String,
         value: Binding<Int>,
         low: String,
         high: String,
         color: Color
     ) -> some View {
-        VStack(spacing: Theme.Spacing.xs) {
-            HStack {
-                Text(label)
-                    .font(Typography.bodySmall)
-                    .foregroundStyle(Theme.Text.secondary(for: scheme))
-                Spacer()
-                Text("\(value.wrappedValue)/5")
-                    .font(Typography.monoSmall)
-                    .foregroundStyle(color)
-            }
+        HStack(spacing: Theme.Spacing.sm) {
+            Text(label)
+                .font(Typography.caption)
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .frame(width: 52, alignment: .leading)
 
-            HStack(spacing: Theme.Spacing.xs) {
-                Text(low)
-                    .font(Typography.caption)
-                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                    .frame(width: 44, alignment: .leading)
-
-                HStack(spacing: Theme.Spacing.xs) {
-                    ForEach(0...5, id: \.self) { level in
-                        Button {
-                            HapticManager.selection()
+            // Segmented bar
+            HStack(spacing: 3) {
+                ForEach(0...5, id: \.self) { level in
+                    Button {
+                        HapticManager.selection()
+                        withAnimation(Theme.Motion.press) {
                             value.wrappedValue = level
-                        } label: {
-                            Circle()
-                                .fill(level <= value.wrappedValue ? color : color.opacity(0.15))
-                                .frame(width: 20, height: 20)
                         }
+                    } label: {
+                        RoundedRectangle(cornerRadius: 2, style: .continuous)
+                            .fill(
+                                level <= value.wrappedValue
+                                    ? color
+                                    : color.opacity(0.1)
+                            )
+                            .frame(height: 12)
                     }
                 }
-
-                Text(high)
-                    .font(Typography.caption)
-                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                    .frame(width: 44, alignment: .trailing)
             }
+
+            Text("\(value.wrappedValue)")
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .foregroundStyle(color)
+                .frame(width: 16, alignment: .trailing)
         }
     }
 
