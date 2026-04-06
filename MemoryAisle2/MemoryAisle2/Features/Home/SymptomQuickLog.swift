@@ -81,13 +81,13 @@ struct SymptomQuickLog: View {
                             value.wrappedValue = level
                         }
                     } label: {
-                        RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        RoundedRectangle(cornerRadius: 1.5, style: .continuous)
                             .fill(
                                 level <= value.wrappedValue
                                     ? color
                                     : color.opacity(0.1)
                             )
-                            .frame(height: 12)
+                            .frame(height: 6)
                     }
                 }
             }
