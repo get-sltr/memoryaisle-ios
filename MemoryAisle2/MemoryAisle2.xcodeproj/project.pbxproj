@@ -57,6 +57,7 @@
 		BD02417C8B6FA18051E37504 /* AuthFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8428783F05EDD67FF55C2 /* AuthFlowView.swift */; };
 		BDD84966AD845EB0ECC0BDE4 /* MiraAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557840D780BB0DF863C32C36 /* MiraAPIClient.swift */; };
 		BF744C58A8F22C3538A63B99 /* ProviderReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E94C5CA5E194DEFA7E5E23 /* ProviderReportView.swift */; };
+		C0774319B3E9AC99B5266310 /* OnboardingLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B94AFC807203D44BBAB8C9 /* OnboardingLogo.swift */; };
 		C5E64D3A845532E38BED40DE /* GLP1CheckScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F2445794B97475876C58CB /* GLP1CheckScreen.swift */; };
 		CB4F48C09299FD5A9FFC2870 /* InjectionCycleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C6489781332BE91C67639C /* InjectionCycleEngine.swift */; };
 		CFF94785A36A6FFACDF2D1A9 /* WeightTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DD84186B7F661DEAD7667B0 /* WeightTrendChart.swift */; };
@@ -160,6 +161,7 @@
 		AD54425B8FD9D8774489B4E9 /* DoseTimingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DoseTimingScreen.swift; path = MemoryAisle2/Features/Onboarding/DoseTimingScreen.swift; sourceTree = SOURCE_ROOT; };
 		B0994D298A46D57B88B3C237 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CalendarView.swift; path = MemoryAisle2/Features/Calendar/CalendarView.swift; sourceTree = SOURCE_ROOT; };
 		B2FE4DC69474384CFCD38097 /* PantryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PantryItem.swift; path = MemoryAisle2/Models/PantryItem.swift; sourceTree = SOURCE_ROOT; };
+		B6B94AFC807203D44BBAB8C9 /* OnboardingLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingLogo.swift; path = MemoryAisle2/DesignSystem/OnboardingLogo.swift; sourceTree = SOURCE_ROOT; };
 		C4564362A2F998248701E2AC /* GIToleranceRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GIToleranceRecord.swift; path = MemoryAisle2/Models/GIToleranceRecord.swift; sourceTree = SOURCE_ROOT; };
 		C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationScheduler.swift; path = MemoryAisle2/Services/System/NotificationScheduler.swift; sourceTree = SOURCE_ROOT; };
 		C892475BA9FF13903B47A6DC /* MealsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealsView.swift; path = MemoryAisle2/Features/Meals/MealsView.swift; sourceTree = SOURCE_ROOT; };
@@ -183,21 +185,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		8BD8608A2F84549700EEDDAF /* MemoryAisle2 */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MemoryAisle2;
-			sourceTree = "<group>";
-		};
-		8BD8609A2F84549900EEDDAF /* MemoryAisle2Tests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MemoryAisle2Tests;
-			sourceTree = "<group>";
-		};
-		8BD860A42F84549900EEDDAF /* MemoryAisle2UITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MemoryAisle2UITests;
-			sourceTree = "<group>";
-		};
+		8BD8608A2F84549700EEDDAF /* MemoryAisle2 */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2; sourceTree = "<group>"; };
+		8BD8609A2F84549900EEDDAF /* MemoryAisle2Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2Tests; sourceTree = "<group>"; };
+		8BD860A42F84549900EEDDAF /* MemoryAisle2UITests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2UITests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXGroup section */
@@ -285,6 +275,7 @@
 				4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */,
 				B0994D298A46D57B88B3C237 /* CalendarView.swift */,
 				4B1A425583690D2AC6328F2D /* HolidayCalendar.swift */,
+				B6B94AFC807203D44BBAB8C9 /* OnboardingLogo.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -490,6 +481,7 @@
 				3BDB4570BBD7D86AA103931C /* LegalView.swift in Sources */,
 				024B4A0F93C333D037F82D35 /* CalendarView.swift in Sources */,
 				28744E558C6F64F6765EC663 /* HolidayCalendar.swift in Sources */,
+				C0774319B3E9AC99B5266310 /* OnboardingLogo.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

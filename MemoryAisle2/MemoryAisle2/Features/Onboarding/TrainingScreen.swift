@@ -17,8 +17,7 @@ struct TrainingScreen: View {
         VStack(spacing: 0) {
             Spacer()
 
-            MiraWaveform(state: .idle, size: .hero)
-                .frame(height: 50)
+            OnboardingLogo()
                 .padding(.bottom, 28)
 
             Text("Do you train or\nexercise regularly?")

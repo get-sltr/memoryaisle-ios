@@ -145,16 +145,23 @@ struct OnboardingFlow: View {
     }
 
     private func deriveMode() -> ProductMode {
+        if !profile.isOnGLP1 {
+            if profile.trainingLevel == .lifts { return .musclePreservation }
+            if profile.trainingLevel == .cardio { return .trainingPerformance }
+            return .everyday
+        }
         if profile.worries.contains(.nausea) { return .sensitiveStomach }
         if profile.trainingLevel == .lifts { return .musclePreservation }
         return .everyday
     }
 
     private func deriveProteinTarget() -> Int {
+        // Based on average body weight estimates
+        // Users can adjust in Profile after onboarding
         switch profile.trainingLevel {
-        case .lifts: 140
-        case .cardio: 120
-        case .sometimes: 110
+        case .lifts: 150
+        case .cardio: 130
+        case .sometimes: 120
         case .none: 100
         }
     }

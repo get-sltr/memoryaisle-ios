@@ -10,9 +10,8 @@ struct GLP1CheckScreen: View {
                 Spacer()
                     .frame(height: geo.size.height * 0.25)
 
-                MiraWaveform(state: .speaking, size: .hero)
-                    .frame(height: 70)
-                    .padding(.bottom, 48)
+                OnboardingLogo(size: 64)
+                    .padding(.bottom, 40)
 
                 Text("Are you on\nGLP-1 medication?")
                     .font(.system(size: 28, weight: .light, design: .serif))

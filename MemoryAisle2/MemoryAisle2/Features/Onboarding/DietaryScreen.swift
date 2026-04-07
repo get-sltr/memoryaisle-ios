@@ -6,8 +6,7 @@ struct DietaryScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            MiraWaveform(state: .idle, size: .hero)
-                .frame(height: 50)
+            OnboardingLogo()
                 .padding(.top, 16)
                 .padding(.bottom, 20)
 
