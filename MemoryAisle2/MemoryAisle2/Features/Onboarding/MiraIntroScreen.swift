@@ -8,66 +8,92 @@ struct MiraIntroScreen: View {
     @State private var showButton = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-            Spacer()
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                // Top breathing space
+                Spacer()
+                    .frame(height: geo.size.height * 0.28)
 
-            // Mira waveform - generous space around it
-            MiraWaveform(state: miraState, size: .hero)
-                .frame(height: 60)
-                .padding(.bottom, 48)
+                // Mira waveform
+                MiraWaveform(state: miraState, size: .hero)
+                    .frame(height: 70)
 
-            // Greeting
-            Text("Hello. I'm Mira.")
-                .font(.system(size: 30, weight: .medium))
-                .foregroundStyle(.white)
-                .opacity(showGreeting ? 1 : 0)
-                .offset(y: showGreeting ? 0 : 16)
+                Spacer()
+                    .frame(height: 52)
 
-            Text("Your personal nutrition companion\nfor this journey.")
-                .font(.system(size: 17, weight: .regular))
-                .foregroundStyle(.white.opacity(0.5))
-                .multilineTextAlignment(.center)
-                .lineSpacing(4)
-                .padding(.top, 14)
-                .opacity(showSubtitle ? 1 : 0)
-                .offset(y: showSubtitle ? 0 : 12)
+                // Greeting
+                Text("Hello. I'm Mira.")
+                    .font(.system(size: 32, weight: .medium))
+                    .foregroundStyle(.white)
+                    .opacity(showGreeting ? 1 : 0)
+                    .offset(y: showGreeting ? 0 : 20)
 
-            Spacer()
-            Spacer()
-            Spacer()
+                Spacer()
+                    .frame(height: 16)
 
-            // CTA
-            VStack(spacing: 16) {
-                VioletButton("Let's get started") {
-                    onContinue()
+                // Subtitle
+                Text("Your personal nutrition companion\nfor this journey.")
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.45))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(5)
+                    .opacity(showSubtitle ? 1 : 0)
+                    .offset(y: showSubtitle ? 0 : 14)
+
+                Spacer()
+
+                // CTA - transparent glass with purple glow
+                VStack(spacing: 18) {
+                    Button(action: {
+                        HapticManager.medium()
+                        onContinue()
+                    }) {
+                        Text("Let's get started")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(.ultraThinMaterial.opacity(0.6))
+                            )
+                            .background(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.violet.opacity(0.12))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .stroke(Color.violet.opacity(0.3), lineWidth: 0.5)
+                            )
+                            .shadow(color: Color.violet.opacity(0.25), radius: 20, y: 4)
+                            .shadow(color: Color.violet.opacity(0.1), radius: 40, y: 8)
+                    }
+                    .buttonStyle(GlassPressStyle())
+
+                    Text("Takes about 2 minutes")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(.white.opacity(0.2))
                 }
                 .padding(.horizontal, 32)
+                .opacity(showButton ? 1 : 0)
+                .offset(y: showButton ? 0 : 10)
 
-                Text("Takes about 2 minutes")
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(.white.opacity(0.25))
+                Spacer()
+                    .frame(height: 50)
             }
-            .opacity(showButton ? 1 : 0)
-            .padding(.bottom, 56)
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.8).delay(0.4)) {
+            withAnimation(.easeOut(duration: 0.8).delay(0.5)) {
                 miraState = .speaking
             }
-            withAnimation(.easeOut(duration: 0.7).delay(0.9)) {
+            withAnimation(.easeOut(duration: 0.8).delay(1.0)) {
                 showGreeting = true
             }
-            withAnimation(.easeOut(duration: 0.7).delay(1.4)) {
+            withAnimation(.easeOut(duration: 0.8).delay(1.6)) {
                 showSubtitle = true
             }
-            withAnimation(.easeOut(duration: 0.6).delay(2.0)) {
+            withAnimation(.easeOut(duration: 0.7).delay(2.3)) {
                 showButton = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
-                withAnimation(.easeOut(duration: 0.6)) {
-                    miraState = .idle
-                }
             }
         }
     }
