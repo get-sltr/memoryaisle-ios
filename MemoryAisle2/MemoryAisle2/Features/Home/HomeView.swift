@@ -107,6 +107,7 @@ struct HomeView: View {
                 }
 
                 ProgressBar(
+                    
                     progress: proteinTarget > 0 ? protein / proteinTarget : 0,
                     category: .protein,
                     height: 8

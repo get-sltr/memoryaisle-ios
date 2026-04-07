@@ -75,13 +75,13 @@ struct MealPhotoView: View {
                 .padding(.vertical, 18)
                 .background(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.violet.opacity(0.12))
+                        .fill(Color(hex: 0xA78BFA).opacity(0.12))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.violet.opacity(0.3), lineWidth: 0.5)
+                        .stroke(Color(hex: 0xA78BFA).opacity(0.3), lineWidth: 0.5)
                 )
-                .shadow(color: Color.violet.opacity(0.25), radius: 20, y: 4)
+                .shadow(color: Color(hex: 0xA78BFA).opacity(0.25), radius: 20, y: 4)
             }
             .padding(.horizontal, 32)
             .onChange(of: selectedPhoto) { _, newValue in
@@ -113,7 +113,7 @@ struct MealPhotoView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(Color.violet.opacity(0.3), lineWidth: 0.5)
+                            .stroke(Color(hex: 0xA78BFA).opacity(0.3), lineWidth: 0.5)
                     )
             }
 
@@ -148,7 +148,7 @@ struct MealPhotoView: View {
 
                 // Macros
                 HStack(spacing: 16) {
-                    macroCell("Protein", "\(r.protein)g", Color.violet)
+                    macroCell("Protein", "\(r.protein)g", Color(hex: 0xA78BFA))
                     macroCell("Calories", "\(r.calories)", .white.opacity(0.4))
                     macroCell("Fat", "\(r.fat)g", .white.opacity(0.3))
                     macroCell("Carbs", "\(r.carbs)g", .white.opacity(0.3))
