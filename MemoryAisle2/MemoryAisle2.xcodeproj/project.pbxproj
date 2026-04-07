@@ -13,6 +13,7 @@
 		161E4891BEA873A25B0338BF /* MiraChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EC4F0883537C29DC32C1B2 /* MiraChatView.swift */; };
 		165843B493950DBC7100B93E /* TrainingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECA4F149FD027EFC35F2456 /* TrainingScreen.swift */; };
 		173E4C99A4A0CDE52B4EDB19 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299B49FB9621C6BB76354F28 /* ScanView.swift */; };
+		262D4C0187A0D307BC0D0F33 /* GlowButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC345C68315E39FD1CF0163 /* GlowButton.swift */; };
 		27E4487290A3AD8DEF382E27 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 305B45C49B37D2415184B6FD /* Theme.swift */; };
 		29A1411E95F5333298515471 /* MealsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C892475BA9FF13903B47A6DC /* MealsView.swift */; };
 		35A8469C9F00D674C4F6BA7B /* ProteinCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */; };
@@ -76,6 +77,7 @@
 		422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProteinCalculator.swift; path = MemoryAisle2/Services/Nutrition/ProteinCalculator.swift; sourceTree = SOURCE_ROOT; };
 		44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraWaveform.swift; path = MemoryAisle2/DesignSystem/MiraWaveform.swift; sourceTree = SOURCE_ROOT; };
 		4BAA4CB08A7717EE5D125AF1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeView.swift; path = MemoryAisle2/Features/Home/HomeView.swift; sourceTree = SOURCE_ROOT; };
+		4DC345C68315E39FD1CF0163 /* GlowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlowButton.swift; path = MemoryAisle2/DesignSystem/GlowButton.swift; sourceTree = SOURCE_ROOT; };
 		506240CE835185D510251C6C /* GlassCardStrong.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlassCardStrong.swift; path = MemoryAisle2/DesignSystem/GlassCardStrong.swift; sourceTree = SOURCE_ROOT; };
 		52C6489781332BE91C67639C /* InjectionCycleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InjectionCycleEngine.swift; path = MemoryAisle2/Services/Medication/InjectionCycleEngine.swift; sourceTree = SOURCE_ROOT; };
 		5B294492BE492FD71C0C6523 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserProfile.swift; path = MemoryAisle2/Models/UserProfile.swift; sourceTree = SOURCE_ROOT; };
@@ -181,6 +183,7 @@
 				5B294492BE492FD71C0C6523 /* UserProfile.swift */,
 				772C4DFAAFDE50412197536B /* NutritionLog.swift */,
 				855E4985B7567EEB6D505C70 /* SymptomLog.swift */,
+				4DC345C68315E39FD1CF0163 /* GlowButton.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -375,6 +378,7 @@
 				61FB408C8A563A5351768835 /* UserProfile.swift in Sources */,
 				DFEF4DE79F20482A798186B5 /* NutritionLog.swift in Sources */,
 				5A5941F2BF7AF5ABD2F6515E /* SymptomLog.swift in Sources */,
+				262D4C0187A0D307BC0D0F33 /* GlowButton.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

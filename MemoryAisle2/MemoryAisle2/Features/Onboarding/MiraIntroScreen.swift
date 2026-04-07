@@ -45,31 +45,10 @@ struct MiraIntroScreen: View {
 
                 // CTA - transparent glass with purple glow
                 VStack(spacing: 18) {
-                    Button(action: {
+                    GlowButton("Let's get started") {
                         HapticManager.medium()
                         onContinue()
-                    }) {
-                        Text("Let's get started")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                            .background(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(.ultraThinMaterial.opacity(0.6))
-                            )
-                            .background(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color.violet.opacity(0.12))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .stroke(Color.violet.opacity(0.3), lineWidth: 0.5)
-                            )
-                            .shadow(color: Color.violet.opacity(0.25), radius: 20, y: 4)
-                            .shadow(color: Color.violet.opacity(0.1), radius: 40, y: 8)
                     }
-                    .buttonStyle(GlassPressStyle())
 
                     Text("Takes about 2 minutes")
                         .font(.system(size: 12, weight: .regular))
