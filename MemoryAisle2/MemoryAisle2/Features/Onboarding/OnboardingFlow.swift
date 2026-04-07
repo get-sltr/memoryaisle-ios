@@ -181,7 +181,9 @@ struct OnboardingProfile {
     var modality: MedicationModality?
     var doseAmount: String?
     var injectionDay: Int?
+    var injectionsPerWeek: Int?
     var pillTime: Date?
+    var pillTimesPerDay: Int?
     var worries: [Worry] = []
     var trainingLevel: TrainingLevel = .none
     var dietaryRestrictions: [DietaryRestriction] = []
