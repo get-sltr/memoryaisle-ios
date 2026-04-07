@@ -124,6 +124,7 @@ struct ProfileView: View {
                         legalLink(.privacy)
                         legalLink(.medical)
                         legalLink(.community)
+                        legalLink(.dataPolicy)
                     }
 
                     // Sign out
