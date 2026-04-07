@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		024B4A0F93C333D037F82D35 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0994D298A46D57B88B3C237 /* CalendarView.swift */; };
 		07D948479853B38C01937871 /* MemoryAisleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123744ECA42A55A09346F5E1 /* MemoryAisleApp.swift */; };
 		0D46401AA263700B907CB13D /* DoseTimingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD54425B8FD9D8774489B4E9 /* DoseTimingScreen.swift */; };
 		12E741F193DFCB2A948D654F /* MemoryAisle2.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = E40641D89BFFF7D09BE9FEF8 /* MemoryAisle2.entitlements */; };
@@ -17,12 +18,12 @@
 		1F954129BB47E10F320E12BF /* UpgradePrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 216B48748807B1685CA46DEF /* UpgradePrompt.swift */; };
 		262D4C0187A0D307BC0D0F33 /* GlowButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC345C68315E39FD1CF0163 /* GlowButton.swift */; };
 		27E4487290A3AD8DEF382E27 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 305B45C49B37D2415184B6FD /* Theme.swift */; };
+		28744E558C6F64F6765EC663 /* HolidayCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B1A425583690D2AC6328F2D /* HolidayCalendar.swift */; };
 		29A1411E95F5333298515471 /* MealsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C892475BA9FF13903B47A6DC /* MealsView.swift */; };
 		359B4DFBB5154B349218012A /* CognitoAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA6E4DE8933E6B52543866FD /* CognitoAuthManager.swift */; };
 		35A8469C9F00D674C4F6BA7B /* ProteinCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */; };
 		38E64D72A546975168D6065C /* MiraWaveform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */; };
 		3BDB4570BBD7D86AA103931C /* LegalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */; };
-		3FA44A5F974B983F7BF61001 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302947C38AA103672A77000F /* CalendarView.swift */; };
 		41D94F87A2556F72C519A426 /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5640B3BABC0F505637F2FC /* ProgressBar.swift */; };
 		4BBC465A88A6826533BD009C /* GIToleranceRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4564362A2F998248701E2AC /* GIToleranceRecord.swift */; };
 		50874713BECF1D22DA220658 /* MiraIntroScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */; };
@@ -53,7 +54,6 @@
 		A8E34207AC7802EDC23F5C3C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B4411BA2BB7A820A97EA91 /* MainTabView.swift */; };
 		AA494640BA532682E9690ADA /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E3147B3BF898D3DDDB5B8C0 /* HapticManager.swift */; };
 		AA8E46EA8D863E63CA3F9F5C /* NutritionAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7C4FC2AFDCB63D2433FDE1 /* NutritionAPIClient.swift */; };
-		AEB54F40939DA98DBEF94A9E /* HolidayCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1642288E6A9C96AAF20DC9 /* HolidayCalendar.swift */; };
 		B55B4F0DA22D52DE7EEF5FF6 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */; };
 		BB2D4E6FBCACF3C119FB7E42 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26E44ADA86F30E9569F1575 /* AppState.swift */; };
 		BCF24B22B8770A883AD5E916 /* GIToleranceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E84B36BB085F228FF0EDE8 /* GIToleranceEngine.swift */; };
@@ -123,18 +123,17 @@
 		10F44569B68AC65A05C9817B /* MiraReadyScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraReadyScreen.swift; path = MemoryAisle2/Features/Onboarding/MiraReadyScreen.swift; sourceTree = SOURCE_ROOT; };
 		123744ECA42A55A09346F5E1 /* MemoryAisleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MemoryAisleApp.swift; path = MemoryAisle2/App/MemoryAisleApp.swift; sourceTree = SOURCE_ROOT; };
 		14B84BCDB1ED542FDE2C9CAE /* DietaryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DietaryScreen.swift; path = MemoryAisle2/Features/Onboarding/DietaryScreen.swift; sourceTree = SOURCE_ROOT; };
-		1A1642288E6A9C96AAF20DC9 /* HolidayCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HolidayCalendar.swift; path = MemoryAisle2/Features/Calendar/HolidayCalendar.swift; sourceTree = SOURCE_ROOT; };
 		1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraIntroScreen.swift; path = MemoryAisle2/Features/Onboarding/MiraIntroScreen.swift; sourceTree = SOURCE_ROOT; };
 		1EB043AD8D83C14C5C0E20BD /* ProviderReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProviderReportGenerator.swift; path = MemoryAisle2/Services/System/ProviderReportGenerator.swift; sourceTree = SOURCE_ROOT; };
 		216B48748807B1685CA46DEF /* UpgradePrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UpgradePrompt.swift; path = MemoryAisle2/Features/Subscription/UpgradePrompt.swift; sourceTree = SOURCE_ROOT; };
 		299B49FB9621C6BB76354F28 /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ScanView.swift; path = MemoryAisle2/Features/Scan/ScanView.swift; sourceTree = SOURCE_ROOT; };
 		2D3E416CBF0A88F494A4F026 /* SymptomQuickLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SymptomQuickLog.swift; path = MemoryAisle2/Features/Home/SymptomQuickLog.swift; sourceTree = SOURCE_ROOT; };
 		2E3147B3BF898D3DDDB5B8C0 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HapticManager.swift; path = MemoryAisle2/DesignSystem/HapticManager.swift; sourceTree = SOURCE_ROOT; };
-		302947C38AA103672A77000F /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CalendarView.swift; path = MemoryAisle2/Features/Calendar/CalendarView.swift; sourceTree = SOURCE_ROOT; };
 		305B45C49B37D2415184B6FD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Theme.swift; path = MemoryAisle2/DesignSystem/Theme.swift; sourceTree = SOURCE_ROOT; };
 		36544B5B9A7CC184FBF5AEE7 /* GIToleranceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GIToleranceView.swift; path = MemoryAisle2/Features/Progress/GIToleranceView.swift; sourceTree = SOURCE_ROOT; };
 		422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProteinCalculator.swift; path = MemoryAisle2/Services/Nutrition/ProteinCalculator.swift; sourceTree = SOURCE_ROOT; };
 		44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraWaveform.swift; path = MemoryAisle2/DesignSystem/MiraWaveform.swift; sourceTree = SOURCE_ROOT; };
+		4B1A425583690D2AC6328F2D /* HolidayCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HolidayCalendar.swift; path = MemoryAisle2/Features/Calendar/HolidayCalendar.swift; sourceTree = SOURCE_ROOT; };
 		4BAA4CB08A7717EE5D125AF1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeView.swift; path = MemoryAisle2/Features/Home/HomeView.swift; sourceTree = SOURCE_ROOT; };
 		4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LegalView.swift; path = MemoryAisle2/Features/Auth/LegalView.swift; sourceTree = SOURCE_ROOT; };
 		4CE8428783F05EDD67FF55C2 /* AuthFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AuthFlowView.swift; path = MemoryAisle2/Features/Auth/AuthFlowView.swift; sourceTree = SOURCE_ROOT; };
@@ -170,6 +169,7 @@
 		A1B848AC9825476CBEEC85AC /* GroceryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GroceryListView.swift; path = MemoryAisle2/Features/Scan/GroceryListView.swift; sourceTree = SOURCE_ROOT; };
 		AB4B4328BA122E1C6F872308 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SubscriptionManager.swift; path = MemoryAisle2/Services/Subscription/SubscriptionManager.swift; sourceTree = SOURCE_ROOT; };
 		AD54425B8FD9D8774489B4E9 /* DoseTimingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DoseTimingScreen.swift; path = MemoryAisle2/Features/Onboarding/DoseTimingScreen.swift; sourceTree = SOURCE_ROOT; };
+		B0994D298A46D57B88B3C237 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CalendarView.swift; path = MemoryAisle2/Features/Calendar/CalendarView.swift; sourceTree = SOURCE_ROOT; };
 		B2FE4DC69474384CFCD38097 /* PantryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PantryItem.swift; path = MemoryAisle2/Models/PantryItem.swift; sourceTree = SOURCE_ROOT; };
 		C4564362A2F998248701E2AC /* GIToleranceRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GIToleranceRecord.swift; path = MemoryAisle2/Models/GIToleranceRecord.swift; sourceTree = SOURCE_ROOT; };
 		C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationScheduler.swift; path = MemoryAisle2/Services/System/NotificationScheduler.swift; sourceTree = SOURCE_ROOT; };
@@ -217,27 +217,6 @@
 			files = (
 				8B3F98FE2F849BA000710E33 /* SwiftUI.framework in Frameworks */,
 				8B3F98FC2F849BA000710E33 /* WidgetKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8BD860852F84549700EEDDAF /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8BD860942F84549900EEDDAF /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8BD8609E2F84549900EEDDAF /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,8 +306,8 @@
 				D98A4837B665CBC33CB5BA99 /* RecipeDetailView.swift */,
 				F43741A583EA394EE6FC0C28 /* ReceiptScannerView.swift */,
 				4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */,
-				1A1642288E6A9C96AAF20DC9 /* HolidayCalendar.swift */,
-				302947C38AA103672A77000F /* CalendarView.swift */,
+				B0994D298A46D57B88B3C237 /* CalendarView.swift */,
+				4B1A425583690D2AC6328F2D /* HolidayCalendar.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -350,9 +329,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8B3F99142F849BA100710E33 /* Build configuration list for PBXNativeTarget "MemoryAisleWidgetsExtension" */;
 			buildPhases = (
-				8B3F98F52F849BA000710E33 /* Sources */,
 				8B3F98F62F849BA000710E33 /* Frameworks */,
-				8B3F98F72F849BA000710E33 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -373,7 +350,6 @@
 			buildConfigurationList = 8BD860AB2F84549900EEDDAF /* Build configuration list for PBXNativeTarget "MemoryAisle2" */;
 			buildPhases = (
 				8BD860842F84549700EEDDAF /* Sources */,
-				8BD860852F84549700EEDDAF /* Frameworks */,
 				8BD860862F84549700EEDDAF /* Resources */,
 				8B3F99102F849BA100710E33 /* Embed Foundation Extensions */,
 			);
@@ -396,9 +372,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8BD860AE2F84549900EEDDAF /* Build configuration list for PBXNativeTarget "MemoryAisle2Tests" */;
 			buildPhases = (
-				8BD860932F84549900EEDDAF /* Sources */,
-				8BD860942F84549900EEDDAF /* Frameworks */,
-				8BD860952F84549900EEDDAF /* Resources */,
 			);
 			buildRules = (
 			);
@@ -419,9 +392,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8BD860B12F84549900EEDDAF /* Build configuration list for PBXNativeTarget "MemoryAisle2UITests" */;
 			buildPhases = (
-				8BD8609D2F84549900EEDDAF /* Sources */,
-				8BD8609E2F84549900EEDDAF /* Frameworks */,
-				8BD8609F2F84549900EEDDAF /* Resources */,
 			);
 			buildRules = (
 			);
@@ -487,13 +457,6 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		8B3F98F72F849BA000710E33 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		8BD860862F84549700EEDDAF /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -502,30 +465,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		8BD860952F84549900EEDDAF /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8BD8609F2F84549900EEDDAF /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		8B3F98F52F849BA000710E33 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		8BD860842F84549700EEDDAF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -594,22 +536,8 @@
 				EDED46E8A0834B1A471D14D1 /* RecipeDetailView.swift in Sources */,
 				DF984CDAB17532BDAD2256CC /* ReceiptScannerView.swift in Sources */,
 				3BDB4570BBD7D86AA103931C /* LegalView.swift in Sources */,
-				AEB54F40939DA98DBEF94A9E /* HolidayCalendar.swift in Sources */,
-				3FA44A5F974B983F7BF61001 /* CalendarView.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8BD860932F84549900EEDDAF /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8BD8609D2F84549900EEDDAF /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
+				024B4A0F93C333D037F82D35 /* CalendarView.swift in Sources */,
+				28744E558C6F64F6765EC663 /* HolidayCalendar.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
