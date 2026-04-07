@@ -17,13 +17,13 @@ final class SubscriptionManager {
 
     private var updateTask: Task<Void, Never>?
 
-    init() {
-        updateTask = Task { [weak self] in
-            await self?.listenForTransactions()
+    func startListening() {
+        updateTask = Task {
+            await listenForTransactions()
         }
     }
 
-    deinit {
+    func stopListening() {
         updateTask?.cancel()
     }
 

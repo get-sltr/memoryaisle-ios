@@ -104,16 +104,16 @@ actor NutritionAPIClient {
 
 // MARK: - OpenFoodFacts API Models
 
-private struct OpenFoodFactsProduct: Codable {
+private struct OpenFoodFactsProduct: Codable, Sendable {
     let status: Int
     let product: OFFProduct?
 }
 
-private struct OpenFoodFactsSearch: Codable {
+private struct OpenFoodFactsSearch: Codable, Sendable {
     let products: [OFFProduct]?
 }
 
-private struct OFFProduct: Codable {
+private struct OFFProduct: Codable, Sendable {
     let code: String?
     let productName: String?
     let brands: String?
@@ -129,7 +129,7 @@ private struct OFFProduct: Codable {
     }
 }
 
-private struct OFFNutriments: Codable {
+private struct OFFNutriments: Codable, Sendable {
     let energyKcal100g: Double?
     let proteins100g: Double?
     let fat100g: Double?

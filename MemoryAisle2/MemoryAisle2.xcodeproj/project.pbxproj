@@ -160,7 +160,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		8B3F99132F849BA100710E33 = {
+		8B3F99132F849BA100710E33 /* Exceptions for "MemoryAisleWidgets" folder in "MemoryAisleWidgetsExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -170,10 +170,29 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		8B3F98FF2F849BA000710E33 /* MemoryAisleWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (8B3F99132F849BA100710E33, ); path = MemoryAisleWidgets; sourceTree = "<group>"; };
-		8BD8608A2F84549700EEDDAF /* MemoryAisle2 */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2; sourceTree = "<group>"; };
-		8BD8609A2F84549900EEDDAF /* MemoryAisle2Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2Tests; sourceTree = "<group>"; };
-		8BD860A42F84549900EEDDAF /* MemoryAisle2UITests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2UITests; sourceTree = "<group>"; };
+		8B3F98FF2F849BA000710E33 /* MemoryAisleWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8B3F99132F849BA100710E33 /* Exceptions for "MemoryAisleWidgets" folder in "MemoryAisleWidgetsExtension" target */,
+			);
+			path = MemoryAisleWidgets;
+			sourceTree = "<group>";
+		};
+		8BD8608A2F84549700EEDDAF /* MemoryAisle2 */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MemoryAisle2;
+			sourceTree = "<group>";
+		};
+		8BD8609A2F84549900EEDDAF /* MemoryAisle2Tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MemoryAisle2Tests;
+			sourceTree = "<group>";
+		};
+		8BD860A42F84549900EEDDAF /* MemoryAisle2UITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MemoryAisle2UITests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
