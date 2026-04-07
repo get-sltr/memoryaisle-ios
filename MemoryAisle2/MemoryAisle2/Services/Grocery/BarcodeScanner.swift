@@ -21,8 +21,8 @@ final class BarcodeScannerController: UIViewController {
     private var previewLayer: AVCaptureVideoPreviewLayer?
     private let videoOutput = AVCaptureVideoDataOutput()
     private let processingQueue = DispatchQueue(label: "com.sltrdigital.barcode", qos: .userInitiated)
-    private var lastDetectedBarcode: String?
-    private var lastDetectionTime: Date = .distantPast
+    private nonisolated(unsafe) var lastDetectedBarcode: String?
+    private nonisolated(unsafe) var lastDetectionTime: Date = .distantPast
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,12 +36,18 @@ final class BarcodeScannerController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        startSession()
+        let session = captureSession
+        processingQueue.async {
+            session.startRunning()
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        stopSession()
+        let session = captureSession
+        processingQueue.async {
+            session.stopRunning()
+        }
     }
 
     private func setupCamera() {
@@ -70,23 +76,10 @@ final class BarcodeScannerController: UIViewController {
         view.layer.addSublayer(layer)
         previewLayer = layer
     }
-
-    private func startSession() {
-        processingQueue.async { [weak self] in
-            self?.captureSession.startRunning()
-        }
-    }
-
-    private func stopSession() {
-        processingQueue.async { [weak self] in
-            self?.captureSession.stopRunning()
-        }
-    }
 }
 
 extension BarcodeScannerController: AVCaptureVideoDataOutputSampleBufferDelegate {
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        // Throttle: only process every 0.5 seconds
+    nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard Date().timeIntervalSince(lastDetectionTime) > 0.5 else { return }
 
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
@@ -97,7 +90,6 @@ extension BarcodeScannerController: AVCaptureVideoDataOutputSampleBufferDelegate
                   let barcode = results.first,
                   let payload = barcode.payloadStringValue else { return }
 
-            // Avoid duplicate consecutive detections
             guard payload != self?.lastDetectedBarcode else { return }
 
             self?.lastDetectedBarcode = payload
