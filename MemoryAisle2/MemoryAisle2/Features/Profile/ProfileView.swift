@@ -117,6 +117,19 @@ struct ProfileView: View {
                         infoRow("Built by", value: "SLTR Digital LLC")
                     }
 
+                    // Sign out
+                    Button {
+                        HapticManager.warning()
+                        CognitoAuthManager().signOut()
+                        appState.authStatus = .signedOut
+                        dismiss()
+                    } label: {
+                        Text("Sign Out")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.5))
+                    }
+                    .padding(.top, 12)
+
                     // Reset
                     Button {
                         HapticManager.warning()
@@ -124,9 +137,9 @@ struct ProfileView: View {
                     } label: {
                         Text("Reset Onboarding")
                             .font(.system(size: 13))
-                            .foregroundStyle(Color(hex: 0xF87171).opacity(0.6))
+                            .foregroundStyle(Color(hex: 0xF87171).opacity(0.4))
                     }
-                    .padding(.top, 8)
+                    .padding(.top, 4)
 
                     Spacer(minLength: 40)
                 }

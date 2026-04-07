@@ -30,16 +30,38 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if isOnboarded {
-                MainTabView()
-            } else {
-                OnboardingFlow()
+            switch appState.authStatus {
+            case .unknown:
+                // Splash / loading
+                ZStack {
+                    Color.indigoBlack.ignoresSafeArea()
+                    MiraWaveform(state: .thinking, size: .hero)
+                        .frame(height: 60)
+                }
+            case .signedOut:
+                AuthFlowView()
+            case .signedIn:
+                if isOnboarded {
+                    MainTabView()
+                } else {
+                    OnboardingFlow()
+                }
             }
         }
         .preferredColorScheme(.dark)
         .onAppear {
             if profiles.first?.hasCompletedOnboarding == true {
                 appState.hasCompletedOnboarding = true
+            }
+            // Check for existing session
+            Task {
+                let auth = CognitoAuthManager()
+                await auth.restoreSession()
+                if auth.isSignedIn {
+                    appState.authStatus = .signedIn
+                } else {
+                    appState.authStatus = .signedOut
+                }
             }
         }
     }
