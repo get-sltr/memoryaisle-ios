@@ -60,8 +60,9 @@ struct PhotoCheckInView: View {
                         .foregroundStyle(.white.opacity(0.25))
                         .tracking(1.2)
 
+                    let currentPhotoData = photoData
                     PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                        if let photoData, let uiImage = UIImage(data: photoData) {
+                        if let currentPhotoData, let uiImage = UIImage(data: currentPhotoData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
