@@ -5,6 +5,7 @@ struct GroceryCategory: Identifiable {
     let id = UUID()
     let name: String
     let icon: String
+    let color: UInt
     var items: [GroceryItem]
 }
 
@@ -17,134 +18,282 @@ struct GroceryItem: Identifiable {
 }
 
 struct GroceryListView: View {
-    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
-    @Query private var profiles: [UserProfile]
-
     @State private var categories: [GroceryCategory]
-
-    private var profile: UserProfile? { profiles.first }
+    @State private var inputText = ""
+    @State private var micActive = false
+    @FocusState private var inputFocused: Bool
 
     init() {
         _categories = State(initialValue: Self.defaultList())
+    }
+
+    private var checkedCount: Int {
+        categories.flatMap(\.items).filter(\.isChecked).count
+    }
+
+    private var totalCount: Int {
+        categories.flatMap(\.items).count
     }
 
     var body: some View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Text("Grocery List")
-                    .font(Typography.displaySmall)
-                    .foregroundStyle(Theme.Text.primary)
-                Spacer()
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.4))
+                        .frame(width: 32, height: 32)
+                        .background(Circle().fill(.white.opacity(0.05)))
                 }
+
+                Spacer()
+
+                Text("Grocery List")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.white)
+
+                Spacer()
+
+                Text("\(checkedCount)/\(totalCount)")
+                    .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.6))
             }
-            .padding(.horizontal, Theme.Spacing.md)
-            .padding(.top, Theme.Spacing.md)
-            .padding(.bottom, Theme.Spacing.sm)
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
 
-            ScrollView {
-                VStack(spacing: Theme.Spacing.md) {
+            // List
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 12) {
                     ForEach(Array(categories.enumerated()), id: \.element.id) { catIndex, category in
-                        GlassCard {
-                            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                                HStack(spacing: Theme.Spacing.sm) {
-                                    Image(systemName: category.icon)
-                                        .font(Typography.bodyMedium)
-                                        .foregroundStyle(Theme.Accent.primary(for: scheme))
-                                    Text(category.name)
-                                        .font(Typography.bodyMediumBold)
-                                        .foregroundStyle(Theme.Text.primary)
-                                }
+                        categorySection(catIndex: catIndex, category: category)
+                    }
+                    Spacer(minLength: 80)
+                }
+                .padding(.top, 8)
+            }
 
-                                ForEach(Array(category.items.enumerated()), id: \.element.id) { itemIndex, item in
-                                    Button {
-                                        HapticManager.selection()
-                                        categories[catIndex].items[itemIndex].isChecked.toggle()
-                                    } label: {
-                                        HStack {
-                                            Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
-                                                .foregroundStyle(
-                                                    item.isChecked
-                                                        ? Theme.Semantic.onTrack(for: scheme)
-                                                        : Theme.Text.tertiary(for: scheme)
-                                                )
-                                                .font(.system(size: 20))
+            // Bottom input bar
+            inputBar
+        }
+        .themeBackground()
+    }
 
-                                            Text(item.name)
-                                                .font(Typography.bodyMedium)
-                                                .foregroundStyle(
-                                                    item.isChecked
-                                                        ? Theme.Text.tertiary(for: scheme)
-                                                        : Theme.Text.primary
-                                                )
-                                                .strikethrough(item.isChecked)
+    // MARK: - Category Section
 
-                                            Spacer()
+    private func categorySection(catIndex: Int, category: GroceryCategory) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Category header
+            HStack(spacing: 8) {
+                Image(systemName: category.icon)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color(hex: category.color))
+                Text(category.name.uppercased())
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(Color(hex: category.color).opacity(0.7))
+                    .tracking(1)
 
-                                            VStack(alignment: .trailing, spacing: 2) {
-                                                Text(item.quantity)
-                                                    .font(Typography.caption)
-                                                    .foregroundStyle(Theme.Text.secondary(for: scheme))
-                                                if let protein = item.proteinPer {
-                                                    Text(protein)
-                                                        .font(Typography.caption)
-                                                        .foregroundStyle(Theme.Semantic.protein(for: scheme))
-                                                }
-                                            }
-                                        }
-                                        .padding(.vertical, Theme.Spacing.xs)
-                                    }
+                Rectangle()
+                    .fill(Color(hex: category.color).opacity(0.1))
+                    .frame(height: 0.5)
+
+                Text("\(category.items.filter { !$0.isChecked }.count)")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color(hex: category.color).opacity(0.4))
+            }
+            .padding(.horizontal, 20)
+
+            // Items
+            ForEach(Array(category.items.enumerated()), id: \.element.id) { itemIndex, item in
+                Button {
+                    HapticManager.selection()
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        categories[catIndex].items[itemIndex].isChecked.toggle()
+                    }
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
+                            .font(.system(size: 18))
+                            .foregroundStyle(
+                                item.isChecked
+                                    ? Color(hex: 0x34D399)
+                                    : .white.opacity(0.15)
+                            )
+
+                        Text(item.name)
+                            .font(.system(size: 15, weight: item.isChecked ? .regular : .medium))
+                            .foregroundStyle(.white.opacity(item.isChecked ? 0.3 : 0.8))
+                            .strikethrough(item.isChecked, color: .white.opacity(0.15))
+
+                        Spacer()
+
+                        if !item.isChecked {
+                            VStack(alignment: .trailing, spacing: 1) {
+                                Text(item.quantity)
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.white.opacity(0.25))
+                                if let protein = item.proteinPer {
+                                    Text(protein)
+                                        .font(.system(size: 10, design: .monospaced))
+                                        .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.4))
                                 }
                             }
-                            .padding(Theme.Spacing.md)
                         }
-                        .padding(.horizontal, Theme.Spacing.md)
                     }
-
-                    Spacer(minLength: 40)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 8)
+                }
+                .buttonStyle(.plain)
+                .contextMenu {
+                    Button(role: .destructive) {
+                        withAnimation {
+                            categories[catIndex].items.remove(at: itemIndex)
+                        }
+                        HapticManager.light()
+                    } label: {
+                        Label("Remove", systemImage: "trash")
+                    }
                 }
             }
         }
-        .themeBackground()
+    }
+
+    // MARK: - Input Bar
+
+    private var inputBar: some View {
+        HStack(spacing: 10) {
+            // Mic button
+            Button {
+                HapticManager.medium()
+                withAnimation(.easeOut(duration: 0.2)) {
+                    micActive.toggle()
+                }
+                if micActive {
+                    // Simulate voice input
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        withAnimation { micActive = false }
+                        addItem("Almond milk")
+                    }
+                }
+            } label: {
+                Image(systemName: micActive ? "waveform" : "mic.fill")
+                    .font(.system(size: 17))
+                    .foregroundStyle(
+                        micActive
+                            ? Color(hex: 0xA78BFA)
+                            : .white.opacity(0.4)
+                    )
+                    .frame(width: 36, height: 36)
+                    .background(
+                        Circle().fill(
+                            micActive
+                                ? Color(hex: 0xA78BFA).opacity(0.15)
+                                : .white.opacity(0.04)
+                        )
+                    )
+            }
+
+            // Text field
+            TextField("Add item...", text: $inputText)
+                .font(.system(size: 16))
+                .foregroundStyle(.white)
+                .focused($inputFocused)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(.white.opacity(0.04))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(.white.opacity(0.08), lineWidth: 0.5)
+                )
+                .onSubmit {
+                    addItem(inputText)
+                    inputText = ""
+                }
+
+            // Add button
+            Button {
+                guard !inputText.isEmpty else { return }
+                HapticManager.light()
+                addItem(inputText)
+                inputText = ""
+            } label: {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(
+                        inputText.isEmpty
+                            ? .white.opacity(0.15)
+                            : Color(hex: 0xA78BFA)
+                    )
+            }
+            .disabled(inputText.isEmpty)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(.white.opacity(0.04))
+                .frame(height: 0.5)
+        }
+    }
+
+    // MARK: - Add Item
+
+    private func addItem(_ name: String) {
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        let item = GroceryItem(name: name.trimmingCharacters(in: .whitespaces), quantity: "", proteinPer: nil)
+
+        // Add to first category (or "Other" if we had one)
+        if categories.indices.contains(0) {
+            categories[0].items.insert(item, at: 0)
+        }
+        HapticManager.success()
     }
 
     // MARK: - Default Grocery List
 
     private static func defaultList() -> [GroceryCategory] {
         [
-            GroceryCategory(name: "Protein", icon: "flame.fill", items: [
+            GroceryCategory(name: "Protein", icon: "flame.fill", color: 0xA78BFA, items: [
                 GroceryItem(name: "Chicken breast", quantity: "2 lbs", proteinPer: "31g/4oz"),
                 GroceryItem(name: "Salmon fillets", quantity: "1 lb", proteinPer: "23g/4oz"),
                 GroceryItem(name: "Eggs (dozen)", quantity: "1", proteinPer: "6g each"),
                 GroceryItem(name: "Greek yogurt", quantity: "32 oz", proteinPer: "15g/cup"),
                 GroceryItem(name: "Whey protein", quantity: "1 tub", proteinPer: "25g/scoop"),
             ]),
-            GroceryCategory(name: "Grains & Carbs", icon: "leaf.fill", items: [
-                GroceryItem(name: "Brown rice", quantity: "2 lbs", proteinPer: nil),
-                GroceryItem(name: "Quinoa", quantity: "1 lb", proteinPer: "8g/cup"),
-                GroceryItem(name: "Oats", quantity: "18 oz", proteinPer: "5g/cup"),
-                GroceryItem(name: "Sweet potatoes", quantity: "3", proteinPer: nil),
+            GroceryCategory(name: "Dairy", icon: "cup.and.saucer.fill", color: 0x38BDF8, items: [
+                GroceryItem(name: "Cottage cheese", quantity: "16 oz", proteinPer: "14g/cup"),
+                GroceryItem(name: "Almond milk", quantity: "1/2 gal", proteinPer: nil),
+                GroceryItem(name: "Parmesan", quantity: "4 oz", proteinPer: nil),
             ]),
-            GroceryCategory(name: "Produce", icon: "carrot.fill", items: [
+            GroceryCategory(name: "Produce", icon: "carrot.fill", color: 0x34D399, items: [
                 GroceryItem(name: "Broccoli", quantity: "2 heads", proteinPer: nil),
                 GroceryItem(name: "Spinach", quantity: "1 bag", proteinPer: nil),
                 GroceryItem(name: "Bananas", quantity: "6", proteinPer: nil),
                 GroceryItem(name: "Berries (mixed)", quantity: "1 pint", proteinPer: nil),
                 GroceryItem(name: "Avocados", quantity: "3", proteinPer: nil),
-                GroceryItem(name: "Ginger root", quantity: "1", proteinPer: nil),
+                GroceryItem(name: "Sweet potatoes", quantity: "3", proteinPer: nil),
             ]),
-            GroceryCategory(name: "Pantry", icon: "bag.fill", items: [
+            GroceryCategory(name: "Grains", icon: "leaf.fill", color: 0xFBBF24, items: [
+                GroceryItem(name: "Brown rice", quantity: "2 lbs", proteinPer: nil),
+                GroceryItem(name: "Quinoa", quantity: "1 lb", proteinPer: "8g/cup"),
+                GroceryItem(name: "Oats", quantity: "18 oz", proteinPer: "5g/cup"),
+            ]),
+            GroceryCategory(name: "Pantry", icon: "bag.fill", color: 0xFCA5A5, items: [
                 GroceryItem(name: "Hemp seeds", quantity: "8 oz", proteinPer: "10g/3tbsp"),
                 GroceryItem(name: "Almond butter", quantity: "1 jar", proteinPer: "7g/2tbsp"),
                 GroceryItem(name: "Chia seeds", quantity: "6 oz", proteinPer: "5g/2tbsp"),
-                GroceryItem(name: "Ginger tea bags", quantity: "1 box", proteinPer: nil),
+                GroceryItem(name: "Ginger tea", quantity: "1 box", proteinPer: nil),
+            ]),
+            GroceryCategory(name: "Frozen", icon: "snowflake", color: 0x67E8F9, items: [
+                GroceryItem(name: "Frozen berries", quantity: "1 bag", proteinPer: nil),
+                GroceryItem(name: "Frozen broccoli", quantity: "1 bag", proteinPer: nil),
+                GroceryItem(name: "Frozen chicken", quantity: "2 lbs", proteinPer: "31g/4oz"),
             ]),
         ]
     }
