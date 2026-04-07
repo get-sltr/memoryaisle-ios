@@ -39,9 +39,7 @@
 		82B744599DD7DCD3009C02FE /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D674F82B74DB0A621E6447D /* HealthKitManager.swift */; };
 		870243C8847C703B75F5AC77 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 849648448FD61E9F718CA956 /* PaywallView.swift */; };
 		8785423BB29E7E1CD9D24401 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4914431A658D0E83910C515 /* Typography.swift */; };
-		8B3F98FC2F849BA000710E33 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B3F98FB2F849BA000710E33 /* WidgetKit.framework */; };
 		8B3F98FE2F849BA000710E33 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B3F98FD2F849BA000710E33 /* SwiftUI.framework */; };
-		8B3F990F2F849BA100710E33 /* MemoryAisleWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8B3F98F92F849BA000710E33 /* MemoryAisleWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8E6443079E0C541D56131F79 /* WorriesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C874F039772E554343A8C35 /* WorriesScreen.swift */; };
 		91034E69BBEDEF052E9BA6E2 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788343C2BD56EA9C54361D80 /* ProfileView.swift */; };
 		92B34E16AE21D861A267061A /* VoiceWaveform.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE54345A69DA4E5A1CD11D4 /* VoiceWaveform.swift */; };
@@ -85,7 +83,6 @@
 			containerPortal = 8BD860802F84549700EEDDAF /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 8B3F98F82F849BA000710E33;
-			remoteInfo = MemoryAisleWidgetsExtension;
 		};
 		8BD860982F84549900EEDDAF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -110,7 +107,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				8B3F990F2F849BA100710E33 /* MemoryAisleWidgetsExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -157,7 +153,6 @@
 		849648448FD61E9F718CA956 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PaywallView.swift; path = MemoryAisle2/Features/Subscription/PaywallView.swift; sourceTree = SOURCE_ROOT; };
 		84EA4FEE91F2155DF5DDDF5B /* RecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RecipesView.swift; path = MemoryAisle2/Features/Recipes/RecipesView.swift; sourceTree = SOURCE_ROOT; };
 		855E4985B7567EEB6D505C70 /* SymptomLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SymptomLog.swift; path = MemoryAisle2/Models/SymptomLog.swift; sourceTree = SOURCE_ROOT; };
-		8B3F98F92F849BA000710E33 /* MemoryAisleWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MemoryAisleWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B3F98FB2F849BA000710E33 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		8B3F98FD2F849BA000710E33 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		8BD860882F84549700EEDDAF /* MemoryAisle2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemoryAisle2.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -199,12 +194,10 @@
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 8B3F98F82F849BA000710E33 /* MemoryAisleWidgetsExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		8B3F98FF2F849BA000710E33 /* MemoryAisleWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (8B3F99132F849BA100710E33, ); path = MemoryAisleWidgets; sourceTree = "<group>"; };
 		8BD8608A2F84549700EEDDAF /* MemoryAisle2 */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2; sourceTree = "<group>"; };
 		8BD8609A2F84549900EEDDAF /* MemoryAisle2Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2Tests; sourceTree = "<group>"; };
 		8BD860A42F84549900EEDDAF /* MemoryAisle2UITests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2UITests; sourceTree = "<group>"; };
@@ -216,7 +209,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				8B3F98FE2F849BA000710E33 /* SwiftUI.framework in Frameworks */,
-				8B3F98FC2F849BA000710E33 /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,7 +230,6 @@
 				8BD8608A2F84549700EEDDAF /* MemoryAisle2 */,
 				8BD8609A2F84549900EEDDAF /* MemoryAisle2Tests */,
 				8BD860A42F84549900EEDDAF /* MemoryAisle2UITests */,
-				8B3F98FF2F849BA000710E33 /* MemoryAisleWidgets */,
 				8B3F98FA2F849BA000710E33 /* Frameworks */,
 				8BD860892F84549700EEDDAF /* Products */,
 				E4914431A658D0E83910C515 /* Typography.swift */,
@@ -317,7 +308,6 @@
 				8BD860882F84549700EEDDAF /* MemoryAisle2.app */,
 				8BD860972F84549900EEDDAF /* MemoryAisle2Tests.xctest */,
 				8BD860A12F84549900EEDDAF /* MemoryAisle2UITests.xctest */,
-				8B3F98F92F849BA000710E33 /* MemoryAisleWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -325,9 +315,7 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8B3F98F82F849BA000710E33 /* MemoryAisleWidgetsExtension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8B3F99142F849BA100710E33 /* Build configuration list for PBXNativeTarget "MemoryAisleWidgetsExtension" */;
 			buildPhases = (
 				8B3F98F62F849BA000710E33 /* Frameworks */,
 			);
@@ -336,13 +324,9 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				8B3F98FF2F849BA000710E33 /* MemoryAisleWidgets */,
 			);
-			name = MemoryAisleWidgetsExtension;
 			packageProductDependencies = (
 			);
-			productName = MemoryAisleWidgetsExtension;
-			productReference = 8B3F98F92F849BA000710E33 /* MemoryAisleWidgetsExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		8BD860872F84549700EEDDAF /* MemoryAisle2 */ = {
@@ -451,7 +435,6 @@
 				8BD860872F84549700EEDDAF /* MemoryAisle2 */,
 				8BD860962F84549900EEDDAF /* MemoryAisle2Tests */,
 				8BD860A02F84549900EEDDAF /* MemoryAisle2UITests */,
-				8B3F98F82F849BA000710E33 /* MemoryAisleWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -546,7 +529,6 @@
 /* Begin PBXTargetDependency section */
 		8B3F990E2F849BA100710E33 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 8B3F98F82F849BA000710E33 /* MemoryAisleWidgetsExtension */;
 			targetProxy = 8B3F990D2F849BA100710E33 /* PBXContainerItemProxy */;
 		};
 		8BD860992F84549900EEDDAF /* PBXTargetDependency */ = {
@@ -571,8 +553,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = A2RL4W62BR;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MemoryAisleWidgets/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = MemoryAisleWidgets;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -591,7 +571,6 @@
 					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2.MemoryAisleWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -612,8 +591,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = A2RL4W62BR;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MemoryAisleWidgets/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = MemoryAisleWidgets;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -632,7 +609,6 @@
 					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2.MemoryAisleWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1132,7 +1108,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8B3F99142F849BA100710E33 /* Build configuration list for PBXNativeTarget "MemoryAisleWidgetsExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8B3F99112F849BA100710E33 /* Debug */,
