@@ -5,7 +5,9 @@ struct HomeView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.modelContext) private var modelContext
     @State private var showProfile = false
+    @State private var showFullGrocery = false
     @Query private var profiles: [UserProfile]
+    @Query(sort: \PantryItem.addedDate, order: .reverse) private var pantryItems: [PantryItem]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
 
     private var profile: UserProfile? { profiles.first }
@@ -30,11 +32,12 @@ struct HomeView: View {
         ScrollView {
             VStack(spacing: Theme.Spacing.md) {
                 header
-                InjectionCycleBar()
-                    .padding(.horizontal, Theme.Spacing.md)
                 proteinHeroCard
                 macroTiles
                 quickLogButtons
+                grocerySection
+                InjectionCycleBar()
+                    .padding(.horizontal, Theme.Spacing.md)
                 miraSuggestion
                 symptomQuickLog
                 Spacer(minLength: 80)
@@ -196,6 +199,95 @@ struct HomeView: View {
             )
         }
         .buttonStyle(GlassPressStyle())
+    }
+
+    // MARK: - Grocery Section
+
+    private var grocerySection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("GROCERY LIST")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.25))
+                    .tracking(1.2)
+                Spacer()
+                Button {
+                    showFullGrocery = true
+                } label: {
+                    Text("View all")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color.violet.opacity(0.6))
+                }
+            }
+
+            // Color-coded category cards
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8)
+            ], spacing: 8) {
+                groceryCategory("Protein", icon: "flame.fill", count: 5, color: Color(hex: 0xA78BFA), items: ["Chicken breast", "Greek yogurt", "Eggs", "Salmon", "Whey protein"])
+                groceryCategory("Produce", icon: "carrot.fill", count: 6, color: Color(hex: 0x34D399), items: ["Broccoli", "Spinach", "Bananas", "Berries", "Avocados"])
+                groceryCategory("Grains", icon: "leaf.fill", count: 3, color: Color(hex: 0xFBBF24), items: ["Brown rice", "Oats", "Sweet potatoes"])
+                groceryCategory("Pantry", icon: "bag.fill", count: 4, color: Color(hex: 0x38BDF8), items: ["Hemp seeds", "Almond butter", "Chia seeds", "Ginger tea"])
+            }
+
+            // Quick add from pantry
+            if !pantryItems.isEmpty {
+                HStack(spacing: 6) {
+                    Image(systemName: "refrigerator.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.white.opacity(0.2))
+                    Text("\(pantryItems.count) items in pantry")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.white.opacity(0.25))
+                }
+                .padding(.top, 4)
+            }
+        }
+        .padding(.horizontal, Theme.Spacing.md)
+        .sheet(isPresented: $showFullGrocery) {
+            GroceryListView()
+        }
+    }
+
+    private func groceryCategory(_ name: String, icon: String, count: Int, color: Color, items: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                    .foregroundStyle(color)
+                Text(name)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.8))
+                Spacer()
+                Text("\(count)")
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(color.opacity(0.6))
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                ForEach(items.prefix(3), id: \.self) { item in
+                    Text(item)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.4))
+                        .lineLimit(1)
+                }
+                if items.count > 3 {
+                    Text("+\(items.count - 3) more")
+                        .font(.system(size: 11))
+                        .foregroundStyle(color.opacity(0.4))
+                }
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(color.opacity(0.04))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(color.opacity(0.1), lineWidth: 0.5)
+        )
     }
 
     // MARK: - Mira Suggestion
