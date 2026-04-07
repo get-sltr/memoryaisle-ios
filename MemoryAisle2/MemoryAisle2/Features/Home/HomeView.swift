@@ -102,31 +102,8 @@ struct HomeView: View {
             VStack(spacing: Theme.Spacing.md) {
                 HStack {
                     Text("Protein")
-                        .font(Typography.bodyMediumBold)
-                        .foregroundStyle(Theme.Semantic.protein(for: scheme))
-                    Spacer()
-                    if proteinDeficit > 0 {
-                        PillBadge(.behind, label: "\(proteinDeficit)g behind")
-                    } else {
-                        PillBadge(.onTrack)
-                    }
-                }
-
-                HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.xs) {
-                    Text("\(Int(protein))")
-                        .font(Typography.monoLarge)
-                        .foregroundStyle(Theme.Text.primary)
-                    Text("/ \(Int(proteinTarget))g")
-                        .font(Typography.monoMedium)
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                }
-
-                ProgressBar(
-                    progress: proteinTarget > 0 ? protein / proteinTarget : 0,
-                    category: .protein,
-                    height: 8
-                )
-            }
+          
+                    
             .padding(Theme.Spacing.md)
         }
         .padding(.horizontal, Theme.Spacing.md)

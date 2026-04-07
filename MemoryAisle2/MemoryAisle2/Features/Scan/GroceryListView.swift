@@ -287,7 +287,7 @@ struct GroceryListView: View {
             Color.black.opacity(0.5)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    withAnimation { showConfetti = false }
+                    showConfetti = false
                     dismiss()
                 }
 
