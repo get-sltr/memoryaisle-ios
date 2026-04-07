@@ -37,6 +37,7 @@ struct MiraChatView: View {
                     VStack(spacing: Theme.Spacing.md) {
                         if messages.isEmpty {
                             emptyState
+                                .padding(.bottom, 60)
                         } else {
                             ForEach(messages) { message in
                                 messageBubble(message)
@@ -62,6 +63,7 @@ struct MiraChatView: View {
                 }
             }
 
+            // Always show input bar
             inputBar
         }
         .themeBackground()
@@ -352,9 +354,10 @@ struct MiraChatView: View {
                 }
                 HapticManager.light()
             } catch {
+                print("Mira API error: \(error)")
                 withAnimation(Theme.Motion.spring) {
                     isTyping = false
-                    messages.append(MiraMessage("I'm having trouble connecting right now. Check your internet and try again."))
+                    messages.append(MiraMessage("I'm having trouble connecting right now. \(error.localizedDescription)"))
                 }
             }
         }
