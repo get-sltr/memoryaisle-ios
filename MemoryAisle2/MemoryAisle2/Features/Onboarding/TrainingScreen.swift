@@ -24,7 +24,7 @@ struct TrainingScreen: View {
                 .lineSpacing(4)
                 .padding(.bottom, 36)
 
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 ForEach(TrainingLevel.allCases, id: \.self) { level in
                     let isSelected = selection == level
 
@@ -36,56 +36,44 @@ struct TrainingScreen: View {
                     } label: {
                         HStack(spacing: 14) {
                             Image(systemName: iconFor(level))
-                                .font(.system(size: 16))
-                                .foregroundStyle(isSelected ? Color.violet : .white.opacity(0.35))
-                                .frame(width: 24)
+                                .font(.system(size: 15))
+                                .foregroundStyle(isSelected ? Color.violet : .white.opacity(0.3))
+                                .frame(width: 22)
 
                             Text(level.rawValue)
-                                .font(.system(size: 15, weight: .regular))
-                                .foregroundStyle(.white)
+                                .font(.system(size: 15, weight: isSelected ? .medium : .regular))
+                                .foregroundStyle(.white.opacity(isSelected ? 1 : 0.6))
 
                             Spacer()
-
-                            Circle()
-                                .strokeBorder(
-                                    isSelected ? Color.violet : .white.opacity(0.15),
-                                    lineWidth: isSelected ? 0 : 1.5
-                                )
-                                .background(Circle().fill(isSelected ? Color.violet : .clear))
-                                .overlay(
-                                    isSelected
-                                        ? Image(systemName: "checkmark")
-                                            .font(.system(size: 10, weight: .bold))
-                                            .foregroundStyle(.white)
-                                        : nil
-                                )
-                                .frame(width: 22, height: 22)
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, 18)
                         .padding(.vertical, 14)
-                        .background(.ultraThinMaterial.opacity(0.4))
                         .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(isSelected ? Color.violet.opacity(0.08) : .white.opacity(0.02))
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(isSelected ? Color.violet.opacity(0.18) : .white.opacity(0.03))
                         )
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
                                 .stroke(
-                                    isSelected ? Color.violet.opacity(0.25) : .white.opacity(0.06),
+                                    isSelected ? Color.violet.opacity(0.4) : .clear,
                                     lineWidth: 0.5
                                 )
+                        )
+                        .shadow(
+                            color: isSelected ? Color.violet.opacity(0.2) : .clear,
+                            radius: 12,
+                            y: 2
                         )
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 28)
 
             Spacer()
             Spacer()
 
-            VioletButton("Continue") {
+            GlowButton("Continue") {
                 onContinue()
             }
             .padding(.horizontal, 32)

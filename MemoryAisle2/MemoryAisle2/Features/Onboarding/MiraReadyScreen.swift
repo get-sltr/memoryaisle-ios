@@ -8,68 +8,72 @@ struct MiraReadyScreen: View {
     @State private var showButton = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                Spacer()
+                    .frame(height: geo.size.height * 0.22)
 
-            MiraWaveform(state: miraState, size: .hero)
-                .frame(height: 60)
-                .padding(.bottom, 40)
+                MiraWaveform(state: miraState, size: .hero)
+                    .frame(height: 70)
+                    .padding(.bottom, 44)
 
-            if showSummary {
-                VStack(spacing: 24) {
-                    Text("You're all set.")
-                        .font(.system(size: 28, weight: .medium))
-                        .foregroundStyle(.white)
+                if showSummary {
+                    VStack(spacing: 28) {
+                        Text("You're all set.")
+                            .font(.system(size: 30, weight: .light, design: .serif))
+                            .foregroundStyle(.white)
+                            .tracking(0.5)
 
-                    // Summary
-                    VStack(spacing: 12) {
-                        if let med = profile.medication {
-                            summaryRow("Medication", value: med.rawValue)
+                        // Summary
+                        VStack(spacing: 10) {
+                            if let med = profile.medication {
+                                summaryRow("Medication", value: med.rawValue)
+                            }
+                            if let modality = profile.modality {
+                                summaryRow("Type", value: modality.displayName)
+                            }
+                            summaryRow("Training", value: profile.trainingLevel.rawValue)
+                            summaryRow("Mode", value: derivedMode)
                         }
-                        if let modality = profile.modality {
-                            summaryRow("Type", value: modality.displayName)
-                        }
-                        summaryRow("Training", value: profile.trainingLevel.rawValue)
-                        summaryRow("Mode", value: derivedMode)
+                        .padding(20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(.white.opacity(0.03))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                        )
+                        .padding(.horizontal, 36)
+
+                        Text("I'll plan your meals around your cycle\nand make sure every bite counts.")
+                            .font(.system(size: 15, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.4))
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(4)
                     }
-                    .padding(20)
-                    .background(.ultraThinMaterial.opacity(0.3))
-                    .background(Color.violet.opacity(0.04))
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(.white.opacity(0.06), lineWidth: 0.5)
-                    )
+                    .transition(.opacity.combined(with: .offset(y: 24)))
+                }
+
+                Spacer()
+
+                if showButton {
+                    GlowButton("Take me home") {
+                        HapticManager.success()
+                        onComplete()
+                    }
                     .padding(.horizontal, 32)
-
-                    Text("I'll plan your meals around your cycle\nand make sure every bite counts.")
-                        .font(.system(size: 15, weight: .regular))
-                        .foregroundStyle(.white.opacity(0.45))
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
+                    .padding(.bottom, 56)
+                    .transition(.opacity)
                 }
-                .transition(.opacity.combined(with: .offset(y: 20)))
-            }
-
-            Spacer()
-            Spacer()
-
-            if showButton {
-                VioletButton("Take me home") {
-                    HapticManager.success()
-                    onComplete()
-                }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 56)
-                .transition(.opacity)
             }
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.8).delay(1.2)) {
+            withAnimation(.easeOut(duration: 0.9).delay(1.0)) {
                 miraState = .speaking
                 showSummary = true
             }
-            withAnimation(.easeOut(duration: 0.6).delay(2.2)) {
+            withAnimation(.easeOut(duration: 0.6).delay(2.0)) {
                 showButton = true
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
@@ -83,12 +87,12 @@ struct MiraReadyScreen: View {
     private func summaryRow(_ label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(.white.opacity(0.4))
+                .font(.system(size: 12, weight: .regular))
+                .foregroundStyle(.white.opacity(0.35))
             Spacer()
             Text(value)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.white.opacity(0.85))
+                .foregroundStyle(.white.opacity(0.8))
                 .lineLimit(1)
         }
     }
