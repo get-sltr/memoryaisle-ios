@@ -21,6 +21,7 @@
 		35A8469C9F00D674C4F6BA7B /* ProteinCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */; };
 		38E64D72A546975168D6065C /* MiraWaveform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */; };
 		41D94F87A2556F72C519A426 /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5640B3BABC0F505637F2FC /* ProgressBar.swift */; };
+		4BBC465A88A6826533BD009C /* GIToleranceRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4564362A2F998248701E2AC /* GIToleranceRecord.swift */; };
 		50874713BECF1D22DA220658 /* MiraIntroScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */; };
 		5A5941F2BF7AF5ABD2F6515E /* SymptomLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 855E4985B7567EEB6D505C70 /* SymptomLog.swift */; };
 		5E304051B9F328B7C8F4769C /* InjectionCycleBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08684086A4EF69ABBFB80CB1 /* InjectionCycleBar.swift */; };
@@ -29,6 +30,8 @@
 		6D194C999E23207924748B5A /* GlassCardStrong.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506240CE835185D510251C6C /* GlassCardStrong.swift */; };
 		724343C0916D4253312DD45D /* GhostButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FC74B4D8A9E864DC85E9D66 /* GhostButton.swift */; };
 		787D402E97B2B3B6C485E349 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BAA4CB08A7717EE5D125AF1 /* HomeView.swift */; };
+		7B714A059CBF9AB2976C2747 /* PantryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF5140E8882E1CFB23214AEF /* PantryView.swift */; };
+		7BB242F786A0701BDC06DF21 /* MealPhotoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E2245E3BD259944113A0C57 /* MealPhotoView.swift */; };
 		82B744599DD7DCD3009C02FE /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D674F82B74DB0A621E6447D /* HealthKitManager.swift */; };
 		870243C8847C703B75F5AC77 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 849648448FD61E9F718CA956 /* PaywallView.swift */; };
 		8785423BB29E7E1CD9D24401 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4914431A658D0E83910C515 /* Typography.swift */; };
@@ -38,6 +41,7 @@
 		8E6443079E0C541D56131F79 /* WorriesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C874F039772E554343A8C35 /* WorriesScreen.swift */; };
 		91034E69BBEDEF052E9BA6E2 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788343C2BD56EA9C54361D80 /* ProfileView.swift */; };
 		92B34E16AE21D861A267061A /* VoiceWaveform.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE54345A69DA4E5A1CD11D4 /* VoiceWaveform.swift */; };
+		95EF42A1B7A644AC7283345F /* GIToleranceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36544B5B9A7CC184FBF5AEE7 /* GIToleranceView.swift */; };
 		978043A6B06385D88FBBAF21 /* ProgressDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1B4AE9B7C6E1D574206398 /* ProgressDashboardView.swift */; };
 		97C04ED9A6D7423AEC24030B /* FoodSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52964A289E2145EB658EBD2A /* FoodSearchView.swift */; };
 		990B4593A0784906091DFC78 /* PillBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF045FC987D6FB0515F538B /* PillBadge.swift */; };
@@ -48,8 +52,11 @@
 		AA8E46EA8D863E63CA3F9F5C /* NutritionAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7C4FC2AFDCB63D2433FDE1 /* NutritionAPIClient.swift */; };
 		B55B4F0DA22D52DE7EEF5FF6 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */; };
 		BB2D4E6FBCACF3C119FB7E42 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26E44ADA86F30E9569F1575 /* AppState.swift */; };
+		BCF24B22B8770A883AD5E916 /* GIToleranceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E84B36BB085F228FF0EDE8 /* GIToleranceEngine.swift */; };
+		BF744C58A8F22C3538A63B99 /* ProviderReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E94C5CA5E194DEFA7E5E23 /* ProviderReportView.swift */; };
 		C5E64D3A845532E38BED40DE /* GLP1CheckScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F2445794B97475876C58CB /* GLP1CheckScreen.swift */; };
 		CB4F48C09299FD5A9FFC2870 /* InjectionCycleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C6489781332BE91C67639C /* InjectionCycleEngine.swift */; };
+		CFF94785A36A6FFACDF2D1A9 /* WeightTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DD84186B7F661DEAD7667B0 /* WeightTrendChart.swift */; };
 		D65C4971B6322037A02C0A25 /* GroceryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B848AC9825476CBEEC85AC /* GroceryListView.swift */; };
 		DCCC4A29A9894D6ADD219F3B /* BarcodeScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1743618E8AE833EBE26DFD /* BarcodeScanner.swift */; };
 		DFEF4DE79F20482A798186B5 /* NutritionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772C4DFAAFDE50412197536B /* NutritionLog.swift */; };
@@ -59,6 +66,7 @@
 		E7CF4CFB948DD698D6D6E2BB /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F48444BD84D42196D0CC3E22 /* OnboardingFlow.swift */; };
 		EB0D4806AF46797110EB5DD5 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F98A435BA82A219DA009067F /* GlassCard.swift */; };
 		EB7D40AABDD0FBD8D93EFD6C /* MiraReadyScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10F44569B68AC65A05C9817B /* MiraReadyScreen.swift */; };
+		EF4747C4B0D93092979B5258 /* PantryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FE4DC69474384CFCD38097 /* PantryItem.swift */; };
 		FD9440E7AD9FB5A14E8FF442 /* BarcodeInterpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BD1487F95C863AF21AE7D88 /* BarcodeInterpreter.swift */; };
 /* End PBXBuildFile section */
 
@@ -102,6 +110,7 @@
 
 /* Begin PBXFileReference section */
 		08684086A4EF69ABBFB80CB1 /* InjectionCycleBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InjectionCycleBar.swift; path = MemoryAisle2/Features/Home/InjectionCycleBar.swift; sourceTree = SOURCE_ROOT; };
+		0DD84186B7F661DEAD7667B0 /* WeightTrendChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WeightTrendChart.swift; path = MemoryAisle2/Features/Progress/WeightTrendChart.swift; sourceTree = SOURCE_ROOT; };
 		10F44569B68AC65A05C9817B /* MiraReadyScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraReadyScreen.swift; path = MemoryAisle2/Features/Onboarding/MiraReadyScreen.swift; sourceTree = SOURCE_ROOT; };
 		123744ECA42A55A09346F5E1 /* MemoryAisleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MemoryAisleApp.swift; path = MemoryAisle2/App/MemoryAisleApp.swift; sourceTree = SOURCE_ROOT; };
 		14B84BCDB1ED542FDE2C9CAE /* DietaryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DietaryScreen.swift; path = MemoryAisle2/Features/Onboarding/DietaryScreen.swift; sourceTree = SOURCE_ROOT; };
@@ -112,11 +121,13 @@
 		2D3E416CBF0A88F494A4F026 /* SymptomQuickLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SymptomQuickLog.swift; path = MemoryAisle2/Features/Home/SymptomQuickLog.swift; sourceTree = SOURCE_ROOT; };
 		2E3147B3BF898D3DDDB5B8C0 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HapticManager.swift; path = MemoryAisle2/DesignSystem/HapticManager.swift; sourceTree = SOURCE_ROOT; };
 		305B45C49B37D2415184B6FD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Theme.swift; path = MemoryAisle2/DesignSystem/Theme.swift; sourceTree = SOURCE_ROOT; };
+		36544B5B9A7CC184FBF5AEE7 /* GIToleranceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GIToleranceView.swift; path = MemoryAisle2/Features/Progress/GIToleranceView.swift; sourceTree = SOURCE_ROOT; };
 		422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProteinCalculator.swift; path = MemoryAisle2/Services/Nutrition/ProteinCalculator.swift; sourceTree = SOURCE_ROOT; };
 		44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraWaveform.swift; path = MemoryAisle2/DesignSystem/MiraWaveform.swift; sourceTree = SOURCE_ROOT; };
 		4BAA4CB08A7717EE5D125AF1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeView.swift; path = MemoryAisle2/Features/Home/HomeView.swift; sourceTree = SOURCE_ROOT; };
 		4D674F82B74DB0A621E6447D /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HealthKitManager.swift; path = MemoryAisle2/Services/Health/HealthKitManager.swift; sourceTree = SOURCE_ROOT; };
 		4DC345C68315E39FD1CF0163 /* GlowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlowButton.swift; path = MemoryAisle2/DesignSystem/GlowButton.swift; sourceTree = SOURCE_ROOT; };
+		4E2245E3BD259944113A0C57 /* MealPhotoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealPhotoView.swift; path = MemoryAisle2/Features/Scan/MealPhotoView.swift; sourceTree = SOURCE_ROOT; };
 		506240CE835185D510251C6C /* GlassCardStrong.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlassCardStrong.swift; path = MemoryAisle2/DesignSystem/GlassCardStrong.swift; sourceTree = SOURCE_ROOT; };
 		52964A289E2145EB658EBD2A /* FoodSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FoodSearchView.swift; path = MemoryAisle2/Features/Scan/FoodSearchView.swift; sourceTree = SOURCE_ROOT; };
 		52C6489781332BE91C67639C /* InjectionCycleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InjectionCycleEngine.swift; path = MemoryAisle2/Services/Medication/InjectionCycleEngine.swift; sourceTree = SOURCE_ROOT; };
@@ -138,13 +149,17 @@
 		8BD860882F84549700EEDDAF /* MemoryAisle2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemoryAisle2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BD860972F84549900EEDDAF /* MemoryAisle2Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoryAisle2Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BD860A12F84549900EEDDAF /* MemoryAisle2UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoryAisle2UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		92E84B36BB085F228FF0EDE8 /* GIToleranceEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GIToleranceEngine.swift; path = MemoryAisle2/Services/Nutrition/GIToleranceEngine.swift; sourceTree = SOURCE_ROOT; };
 		9AF045FC987D6FB0515F538B /* PillBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PillBadge.swift; path = MemoryAisle2/DesignSystem/PillBadge.swift; sourceTree = SOURCE_ROOT; };
 		A1B4411BA2BB7A820A97EA91 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MainTabView.swift; path = MemoryAisle2/App/MainTabView.swift; sourceTree = SOURCE_ROOT; };
 		A1B848AC9825476CBEEC85AC /* GroceryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GroceryListView.swift; path = MemoryAisle2/Features/Scan/GroceryListView.swift; sourceTree = SOURCE_ROOT; };
 		AB4B4328BA122E1C6F872308 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SubscriptionManager.swift; path = MemoryAisle2/Services/Subscription/SubscriptionManager.swift; sourceTree = SOURCE_ROOT; };
 		AD54425B8FD9D8774489B4E9 /* DoseTimingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DoseTimingScreen.swift; path = MemoryAisle2/Features/Onboarding/DoseTimingScreen.swift; sourceTree = SOURCE_ROOT; };
+		B2FE4DC69474384CFCD38097 /* PantryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PantryItem.swift; path = MemoryAisle2/Models/PantryItem.swift; sourceTree = SOURCE_ROOT; };
+		C4564362A2F998248701E2AC /* GIToleranceRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GIToleranceRecord.swift; path = MemoryAisle2/Models/GIToleranceRecord.swift; sourceTree = SOURCE_ROOT; };
 		C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationScheduler.swift; path = MemoryAisle2/Services/System/NotificationScheduler.swift; sourceTree = SOURCE_ROOT; };
 		C892475BA9FF13903B47A6DC /* MealsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealsView.swift; path = MemoryAisle2/Features/Meals/MealsView.swift; sourceTree = SOURCE_ROOT; };
+		D2E94C5CA5E194DEFA7E5E23 /* ProviderReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProviderReportView.swift; path = MemoryAisle2/Features/Progress/ProviderReportView.swift; sourceTree = SOURCE_ROOT; };
 		D4F2445794B97475876C58CB /* GLP1CheckScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GLP1CheckScreen.swift; path = MemoryAisle2/Features/Onboarding/GLP1CheckScreen.swift; sourceTree = SOURCE_ROOT; };
 		DA1743618E8AE833EBE26DFD /* BarcodeScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BarcodeScanner.swift; path = MemoryAisle2/Services/Grocery/BarcodeScanner.swift; sourceTree = SOURCE_ROOT; };
 		DECA4F149FD027EFC35F2456 /* TrainingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TrainingScreen.swift; path = MemoryAisle2/Features/Onboarding/TrainingScreen.swift; sourceTree = SOURCE_ROOT; };
@@ -153,6 +168,7 @@
 		E6EC4F0883537C29DC32C1B2 /* MiraChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraChatView.swift; path = MemoryAisle2/Features/Mira/MiraChatView.swift; sourceTree = SOURCE_ROOT; };
 		EB5640B3BABC0F505637F2FC /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProgressBar.swift; path = MemoryAisle2/DesignSystem/ProgressBar.swift; sourceTree = SOURCE_ROOT; };
 		EF1B4AE9B7C6E1D574206398 /* ProgressDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProgressDashboardView.swift; path = MemoryAisle2/Features/Progress/ProgressDashboardView.swift; sourceTree = SOURCE_ROOT; };
+		EF5140E8882E1CFB23214AEF /* PantryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PantryView.swift; path = MemoryAisle2/Features/Scan/PantryView.swift; sourceTree = SOURCE_ROOT; };
 		EFE54345A69DA4E5A1CD11D4 /* VoiceWaveform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VoiceWaveform.swift; path = MemoryAisle2/DesignSystem/VoiceWaveform.swift; sourceTree = SOURCE_ROOT; };
 		F26E44ADA86F30E9569F1575 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppState.swift; path = MemoryAisle2/App/AppState.swift; sourceTree = SOURCE_ROOT; };
 		F48444BD84D42196D0CC3E22 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingFlow.swift; path = MemoryAisle2/Features/Onboarding/OnboardingFlow.swift; sourceTree = SOURCE_ROOT; };
@@ -160,7 +176,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		8B3F99132F849BA100710E33 /* Exceptions for "MemoryAisleWidgets" folder in "MemoryAisleWidgetsExtension" target */ = {
+		8B3F99132F849BA100710E33 = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -170,29 +186,10 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		8B3F98FF2F849BA000710E33 /* MemoryAisleWidgets */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				8B3F99132F849BA100710E33 /* Exceptions for "MemoryAisleWidgets" folder in "MemoryAisleWidgetsExtension" target */,
-			);
-			path = MemoryAisleWidgets;
-			sourceTree = "<group>";
-		};
-		8BD8608A2F84549700EEDDAF /* MemoryAisle2 */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MemoryAisle2;
-			sourceTree = "<group>";
-		};
-		8BD8609A2F84549900EEDDAF /* MemoryAisle2Tests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MemoryAisle2Tests;
-			sourceTree = "<group>";
-		};
-		8BD860A42F84549900EEDDAF /* MemoryAisle2UITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MemoryAisle2UITests;
-			sourceTree = "<group>";
-		};
+		8B3F98FF2F849BA000710E33 /* MemoryAisleWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (8B3F99132F849BA100710E33, ); path = MemoryAisleWidgets; sourceTree = "<group>"; };
+		8BD8608A2F84549700EEDDAF /* MemoryAisle2 */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2; sourceTree = "<group>"; };
+		8BD8609A2F84549900EEDDAF /* MemoryAisle2Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2Tests; sourceTree = "<group>"; };
+		8BD860A42F84549900EEDDAF /* MemoryAisle2UITests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MemoryAisle2UITests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -297,6 +294,14 @@
 				6D7C4FC2AFDCB63D2433FDE1 /* NutritionAPIClient.swift */,
 				6BD1487F95C863AF21AE7D88 /* BarcodeInterpreter.swift */,
 				52964A289E2145EB658EBD2A /* FoodSearchView.swift */,
+				B2FE4DC69474384CFCD38097 /* PantryItem.swift */,
+				C4564362A2F998248701E2AC /* GIToleranceRecord.swift */,
+				EF5140E8882E1CFB23214AEF /* PantryView.swift */,
+				4E2245E3BD259944113A0C57 /* MealPhotoView.swift */,
+				0DD84186B7F661DEAD7667B0 /* WeightTrendChart.swift */,
+				36544B5B9A7CC184FBF5AEE7 /* GIToleranceView.swift */,
+				D2E94C5CA5E194DEFA7E5E23 /* ProviderReportView.swift */,
+				92E84B36BB085F228FF0EDE8 /* GIToleranceEngine.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -547,6 +552,14 @@
 				AA8E46EA8D863E63CA3F9F5C /* NutritionAPIClient.swift in Sources */,
 				FD9440E7AD9FB5A14E8FF442 /* BarcodeInterpreter.swift in Sources */,
 				97C04ED9A6D7423AEC24030B /* FoodSearchView.swift in Sources */,
+				EF4747C4B0D93092979B5258 /* PantryItem.swift in Sources */,
+				4BBC465A88A6826533BD009C /* GIToleranceRecord.swift in Sources */,
+				7B714A059CBF9AB2976C2747 /* PantryView.swift in Sources */,
+				7BB242F786A0701BDC06DF21 /* MealPhotoView.swift in Sources */,
+				CFF94785A36A6FFACDF2D1A9 /* WeightTrendChart.swift in Sources */,
+				95EF42A1B7A644AC7283345F /* GIToleranceView.swift in Sources */,
+				BF744C58A8F22C3538A63B99 /* ProviderReportView.swift in Sources */,
+				BCF24B22B8770A883AD5E916 /* GIToleranceEngine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -605,6 +618,8 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/MemoryAisle2/Services/Nutrition",
 					"$(SRCROOT)/MemoryAisle2/Features/Scan",
+					"$(SRCROOT)/MemoryAisle2/Models",
+					"$(SRCROOT)/MemoryAisle2/Features/Progress",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2.MemoryAisleWidgets;
@@ -639,6 +654,8 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/MemoryAisle2/Services/Nutrition",
 					"$(SRCROOT)/MemoryAisle2/Features/Scan",
+					"$(SRCROOT)/MemoryAisle2/Models",
+					"$(SRCROOT)/MemoryAisle2/Features/Progress",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2.MemoryAisleWidgets;

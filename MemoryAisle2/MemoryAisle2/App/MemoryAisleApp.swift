@@ -12,7 +12,9 @@ struct MemoryAisleApp: App {
                 .modelContainer(for: [
                     UserProfile.self,
                     NutritionLog.self,
-                    SymptomLog.self
+                    SymptomLog.self,
+                    PantryItem.self,
+                    GIToleranceRecord.self
                 ])
         }
     }
