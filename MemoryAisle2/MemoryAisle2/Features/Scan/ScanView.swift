@@ -2,88 +2,99 @@ import SwiftUI
 
 struct ScanView: View {
     @Environment(\.colorScheme) private var scheme
-    @State private var scanLineOffset: CGFloat = -120
+    @State private var scanLineOffset: CGFloat = -100
     @State private var showGroceryList = false
+    @State private var selectedMode = 0
 
     var body: some View {
         ZStack {
             Color.indigoBlack.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Top bar
+                // Header
                 HStack {
                     Text("Scan")
-                        .font(Typography.displaySmall)
-                        .foregroundStyle(Theme.Text.primary)
+                        .font(.system(size: 26, weight: .light, design: .serif))
+                        .foregroundStyle(.white)
+                        .tracking(0.3)
+
                     Spacer()
+
                     Button {
                         showGroceryList = true
                     } label: {
-                        Image(systemName: "cart.fill")
-                            .font(Typography.bodyLarge)
-                            .foregroundStyle(Theme.Accent.primary(for: scheme))
+                        HStack(spacing: 6) {
+                            Image(systemName: "cart")
+                                .font(.system(size: 14))
+                            Text("List")
+                                .font(.system(size: 13, weight: .medium))
+                        }
+                        .foregroundStyle(Color.violet.opacity(0.7))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Color.violet.opacity(0.08))
+                        .clipShape(Capsule())
                     }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
                 .sheet(isPresented: $showGroceryList) {
                     GroceryListView()
                 }
-                .padding(.horizontal, Theme.Spacing.md)
-                .padding(.top, Theme.Spacing.md)
 
                 Spacer()
 
-                // Viewfinder with corner brackets
+                // Viewfinder
                 ZStack {
-                    // Corner brackets
                     ScannerCorners()
-                        .stroke(Color.violet, lineWidth: 3)
-                        .frame(width: 260, height: 260)
+                        .stroke(Color.violet.opacity(0.5), lineWidth: 2)
+                        .frame(width: 240, height: 240)
 
-                    // Animated scan line
+                    // Scan line
                     RoundedRectangle(cornerRadius: 1)
                         .fill(
                             LinearGradient(
-                                colors: [
-                                    Color.violet.opacity(0),
-                                    Color.violet.opacity(0.6),
-                                    Color.violet.opacity(0)
-                                ],
+                                colors: [.clear, Color.violet.opacity(0.5), .clear],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
-                        .frame(width: 220, height: 2)
+                        .frame(width: 200, height: 2)
                         .offset(y: scanLineOffset)
                         .onAppear {
                             withAnimation(
-                                .easeInOut(duration: 2.0)
+                                .easeInOut(duration: 2.2)
                                 .repeatForever(autoreverses: true)
                             ) {
-                                scanLineOffset = 120
+                                scanLineOffset = 100
                             }
                         }
 
-                    // Center prompt
-                    VStack(spacing: Theme.Spacing.sm) {
+                    VStack(spacing: 10) {
                         Image(systemName: "barcode.viewfinder")
-                            .font(.system(size: 36, weight: .light))
-                            .foregroundStyle(Color.violet.opacity(0.3))
+                            .font(.system(size: 32, weight: .ultraLight))
+                            .foregroundStyle(Color.violet.opacity(0.25))
 
-                        Text("Point at a barcode or food label")
-                            .font(Typography.bodySmall)
-                            .foregroundStyle(Theme.Text.secondary(for: scheme))
+                        Text("Point at a barcode")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.white.opacity(0.3))
                     }
                 }
 
                 Spacer()
 
                 // Mode selector
-                HStack(spacing: Theme.Spacing.md) {
-                    scanModeButton("Barcode", icon: "barcode", isSelected: true)
-                    scanModeButton("Photo", icon: "camera.fill", isSelected: false)
-                    scanModeButton("Search", icon: "magnifyingglass", isSelected: false)
+                HStack(spacing: 0) {
+                    modeTab("Barcode", icon: "barcode", index: 0)
+                    modeTab("Photo", icon: "camera", index: 1)
+                    modeTab("Search", icon: "magnifyingglass", index: 2)
                 }
-                .padding(.horizontal, Theme.Spacing.xl)
+                .padding(3)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(.white.opacity(0.04))
+                )
+                .padding(.horizontal, 40)
 
                 // Capture button
                 Button {
@@ -91,50 +102,54 @@ struct ScanView: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .stroke(Color.violet.opacity(0.4), lineWidth: 3)
-                            .frame(width: 72, height: 72)
+                            .stroke(Color.violet.opacity(0.3), lineWidth: 2)
+                            .frame(width: 68, height: 68)
 
                         Circle()
-                            .fill(Color.violet.opacity(0.15))
-                            .frame(width: 60, height: 60)
+                            .fill(Color.violet.opacity(0.1))
+                            .frame(width: 56, height: 56)
 
                         Image(systemName: "viewfinder")
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundStyle(Color.violet)
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundStyle(Color.violet.opacity(0.8))
                     }
+                    .shadow(color: Color.violet.opacity(0.15), radius: 16, y: 4)
                 }
-                .padding(.top, Theme.Spacing.lg)
-                .padding(.bottom, Theme.Spacing.xxl)
+                .buttonStyle(GlassPressStyle())
+                .padding(.top, 24)
+                .padding(.bottom, 16)
 
                 Spacer(minLength: 80)
             }
         }
     }
 
-    private func scanModeButton(_ title: String, icon: String, isSelected: Bool) -> some View {
-        Button {
+    private func modeTab(_ title: String, icon: String, index: Int) -> some View {
+        let isSelected = selectedMode == index
+
+        return Button {
             HapticManager.selection()
-        } label: {
-            VStack(spacing: Theme.Spacing.xs) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                Text(title)
-                    .font(Typography.caption)
+            withAnimation(.easeOut(duration: 0.15)) {
+                selectedMode = index
             }
-            .foregroundStyle(
-                isSelected
-                    ? Theme.Accent.primary(for: scheme)
-                    : Theme.Text.tertiary(for: scheme)
-            )
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 13))
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .foregroundStyle(isSelected ? .white : .white.opacity(0.35))
             .frame(maxWidth: .infinity)
-            .padding(.vertical, Theme.Spacing.sm)
+            .padding(.vertical, 9)
             .background(
                 isSelected
-                    ? Theme.Surface.strong(for: scheme)
-                    : Color.clear
+                    ? RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.violet.opacity(0.2))
+                    : nil
             )
-            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous))
         }
+        .buttonStyle(.plain)
     }
 }
 
@@ -142,47 +157,34 @@ struct ScanView: View {
 
 struct ScannerCorners: Shape {
     func path(in rect: CGRect) -> Path {
-        let cornerLength: CGFloat = 30
+        let l: CGFloat = 28
         let r: CGFloat = 8
-
-        var path = Path()
+        var p = Path()
 
         // Top-left
-        path.move(to: CGPoint(x: rect.minX, y: rect.minY + cornerLength))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + r))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.minX + r, y: rect.minY),
-            control: CGPoint(x: rect.minX, y: rect.minY)
-        )
-        path.addLine(to: CGPoint(x: rect.minX + cornerLength, y: rect.minY))
+        p.move(to: CGPoint(x: rect.minX, y: rect.minY + l))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.minY + r))
+        p.addQuadCurve(to: CGPoint(x: rect.minX + r, y: rect.minY), control: CGPoint(x: rect.minX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.minX + l, y: rect.minY))
 
         // Top-right
-        path.move(to: CGPoint(x: rect.maxX - cornerLength, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX - r, y: rect.minY))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.maxX, y: rect.minY + r),
-            control: CGPoint(x: rect.maxX, y: rect.minY)
-        )
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + cornerLength))
+        p.move(to: CGPoint(x: rect.maxX - l, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.maxX - r, y: rect.minY))
+        p.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.minY + r), control: CGPoint(x: rect.maxX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + l))
 
         // Bottom-right
-        path.move(to: CGPoint(x: rect.maxX, y: rect.maxY - cornerLength))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - r))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.maxX - r, y: rect.maxY),
-            control: CGPoint(x: rect.maxX, y: rect.maxY)
-        )
-        path.addLine(to: CGPoint(x: rect.maxX - cornerLength, y: rect.maxY))
+        p.move(to: CGPoint(x: rect.maxX, y: rect.maxY - l))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - r))
+        p.addQuadCurve(to: CGPoint(x: rect.maxX - r, y: rect.maxY), control: CGPoint(x: rect.maxX, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.maxX - l, y: rect.maxY))
 
         // Bottom-left
-        path.move(to: CGPoint(x: rect.minX + cornerLength, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX + r, y: rect.maxY))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.minX, y: rect.maxY - r),
-            control: CGPoint(x: rect.minX, y: rect.maxY)
-        )
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY - cornerLength))
+        p.move(to: CGPoint(x: rect.minX + l, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.minX + r, y: rect.maxY))
+        p.addQuadCurve(to: CGPoint(x: rect.minX, y: rect.maxY - r), control: CGPoint(x: rect.minX, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY - l))
 
-        return path
+        return p
     }
 }

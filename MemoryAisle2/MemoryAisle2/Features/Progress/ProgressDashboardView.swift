@@ -19,13 +19,12 @@ struct ProgressDashboardView: View {
     private var proteinHitRate: Int {
         guard !weekLogs.isEmpty, let target = profile?.proteinTargetGrams else { return 0 }
         let hits = weekLogs.filter { $0.proteinGrams >= Double(target) * 0.9 }.count
-        return weekLogs.count > 0 ? (hits * 100) / weekLogs.count : 0
+        return (hits * 100) / weekLogs.count
     }
 
     private var avgProtein: Int {
         guard !weekLogs.isEmpty else { return 0 }
-        let total = weekLogs.reduce(0.0) { $0 + $1.proteinGrams }
-        return Int(total / Double(weekLogs.count))
+        return Int(weekLogs.reduce(0.0) { $0 + $1.proteinGrams } / Double(weekLogs.count))
     }
 
     private var avgHydration: Int {
@@ -35,126 +34,111 @@ struct ProgressDashboardView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: Theme.Spacing.md) {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 16) {
+                // Header
                 HStack {
                     Text("Progress")
-                        .font(Typography.displaySmall)
-                        .foregroundStyle(Theme.Text.primary)
+                        .font(.system(size: 26, weight: .light, design: .serif))
+                        .foregroundStyle(.white)
+                        .tracking(0.3)
                     Spacer()
                 }
-                .padding(.horizontal, Theme.Spacing.md)
-                .padding(.top, Theme.Spacing.sm)
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
 
-                // Weekly summary
-                GlassCardStrong {
-                    VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-                        Text("This Week")
-                            .font(Typography.bodyMediumBold)
-                            .foregroundStyle(Theme.Text.primary)
-
-                        HStack(spacing: Theme.Spacing.lg) {
-                            statItem(
-                                "Protein Hit Rate",
-                                value: "\(proteinHitRate)%",
-                                trend: proteinHitRate >= 70 ? .onTrack : .behind
-                            )
-                            statItem(
-                                "Avg Daily Protein",
-                                value: "\(avgProtein)g",
-                                trend: avgProtein >= (profile?.proteinTargetGrams ?? 100) ? .onTrack : .behind
-                            )
-                            statItem(
-                                "Hydration",
-                                value: "\(avgHydration)%",
-                                trend: avgHydration >= 70 ? .onTrack : .behind
-                            )
-                        }
-                    }
-                    .padding(Theme.Spacing.md)
+                // Weekly stats
+                HStack(spacing: 10) {
+                    statCard("Protein\nHit Rate", value: "\(proteinHitRate)%", color: Color.violet)
+                    statCard("Avg Daily\nProtein", value: "\(avgProtein)g", color: Color.violet)
+                    statCard("Hydration", value: "\(avgHydration)%", color: Color(hex: 0x38BDF8))
                 }
-                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.horizontal, 20)
 
-                // Today's progress
-                GlassCard {
-                    VStack(spacing: Theme.Spacing.md) {
-                        HStack {
-                            Text("Today")
-                                .font(Typography.bodyMediumBold)
-                                .foregroundStyle(Theme.Text.primary)
-                            Spacer()
-                        }
+                // Today's macros
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("TODAY")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.25))
+                        .tracking(1.2)
 
-                        LabeledProgressBar(
-                            title: "Protein",
-                            current: todayLog?.proteinGrams ?? 0,
-                            target: Double(profile?.proteinTargetGrams ?? 140),
-                            unit: "g",
-                            category: .protein
-                        )
-                        LabeledProgressBar(
-                            title: "Water",
-                            current: todayLog?.waterLiters ?? 0,
-                            target: profile?.waterTargetLiters ?? 2.5,
-                            unit: "L",
-                            category: .water
-                        )
-                        LabeledProgressBar(
-                            title: "Fiber",
-                            current: todayLog?.fiberGrams ?? 0,
-                            target: Double(profile?.fiberTargetGrams ?? 25),
-                            unit: "g",
-                            category: .fiber
-                        )
-                        LabeledProgressBar(
-                            title: "Calories",
-                            current: todayLog?.caloriesConsumed ?? 0,
-                            target: Double(profile?.calorieTarget ?? 1800),
-                            unit: "",
-                            category: .calories
-                        )
-                    }
-                    .padding(Theme.Spacing.md)
+                    macroRow("Protein", current: todayLog?.proteinGrams ?? 0, target: Double(profile?.proteinTargetGrams ?? 140), unit: "g", color: Color.violet)
+                    macroRow("Water", current: todayLog?.waterLiters ?? 0, target: profile?.waterTargetLiters ?? 2.5, unit: "L", color: Color(hex: 0x38BDF8))
+                    macroRow("Fiber", current: todayLog?.fiberGrams ?? 0, target: Double(profile?.fiberTargetGrams ?? 25), unit: "g", color: Color(hex: 0xFBBF24))
+                    macroRow("Calories", current: todayLog?.caloriesConsumed ?? 0, target: Double(profile?.calorieTarget ?? 1800), unit: "", color: .white.opacity(0.4))
                 }
-                .padding(.horizontal, Theme.Spacing.md)
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(.white.opacity(0.03))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                )
+                .padding(.horizontal, 20)
 
-                // Week history
+                // 7-day chart
                 if !weekLogs.isEmpty {
-                    GlassCard {
-                        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-                            Text("7-Day Protein")
-                                .font(Typography.bodyMediumBold)
-                                .foregroundStyle(Theme.Text.primary)
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("7-DAY PROTEIN")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.25))
+                            .tracking(1.2)
 
-                            HStack(alignment: .bottom, spacing: Theme.Spacing.xs) {
-                                ForEach(Array(weekLogs.suffix(7).reversed().enumerated()), id: \.offset) { _, log in
-                                    let target = Double(profile?.proteinTargetGrams ?? 140)
-                                    let pct = target > 0 ? min(log.proteinGrams / target, 1.0) : 0
+                        HStack(alignment: .bottom, spacing: 6) {
+                            ForEach(Array(weekLogs.suffix(7).reversed().enumerated()), id: \.offset) { _, log in
+                                let target = Double(profile?.proteinTargetGrams ?? 140)
+                                let pct = target > 0 ? min(log.proteinGrams / target, 1.0) : 0
 
-                                    VStack(spacing: Theme.Spacing.xs) {
-                                        RoundedRectangle(cornerRadius: 3, style: .continuous)
-                                            .fill(
-                                                pct >= 0.9
-                                                    ? Theme.Semantic.onTrack(for: scheme)
-                                                    : pct >= 0.7
-                                                        ? Theme.Semantic.behind(for: scheme)
-                                                        : Theme.Semantic.warning(for: scheme)
-                                            )
-                                            .frame(height: max(8, 80 * pct))
+                                VStack(spacing: 4) {
+                                    RoundedRectangle(cornerRadius: 3, style: .continuous)
+                                        .fill(
+                                            pct >= 0.9
+                                                ? Color(hex: 0x34D399)
+                                                : pct >= 0.7
+                                                    ? Color(hex: 0xFBBF24)
+                                                    : Color(hex: 0xF87171)
+                                        )
+                                        .frame(height: max(6, 70 * pct))
 
-                                        Text(dayLabel(log.date))
-                                            .font(Typography.caption)
-                                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                                    }
-                                    .frame(maxWidth: .infinity)
+                                    Text(dayLabel(log.date))
+                                        .font(.system(size: 9))
+                                        .foregroundStyle(.white.opacity(0.2))
                                 }
+                                .frame(maxWidth: .infinity)
                             }
-                            .frame(height: 100, alignment: .bottom)
                         }
-                        .padding(Theme.Spacing.md)
+                        .frame(height: 90, alignment: .bottom)
                     }
-                    .padding(.horizontal, Theme.Spacing.md)
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(.white.opacity(0.03))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                    )
+                    .padding(.horizontal, 20)
                 }
+
+                // HealthKit CTA
+                VStack(spacing: 12) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(Color(hex: 0xF87171).opacity(0.5))
+
+                    Text("Connect HealthKit for weight\nand body composition trends")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.white.opacity(0.35))
+                        .multilineTextAlignment(.center)
+
+                    GlowButton("Connect HealthKit") {}
+                        .padding(.horizontal, 20)
+                }
+                .padding(.vertical, 20)
+                .padding(.horizontal, 20)
 
                 Spacer(minLength: 80)
             }
@@ -163,23 +147,61 @@ struct ProgressDashboardView: View {
         .navigationBarHidden(true)
     }
 
-    private func statItem(_ label: String, value: String, trend: PillStatus) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+    // MARK: - Components
+
+    private func statCard(_ label: String, value: String, color: Color) -> some View {
+        VStack(spacing: 8) {
             Text(value)
-                .font(Typography.monoMediumBold)
-                .foregroundStyle(Theme.Text.primary)
+                .font(.system(size: 22, weight: .medium, design: .monospaced))
+                .foregroundStyle(.white)
+
             Text(label)
-                .font(Typography.caption)
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                .font(.system(size: 10))
+                .foregroundStyle(.white.opacity(0.3))
+                .multilineTextAlignment(.center)
                 .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(color.opacity(0.06))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(color.opacity(0.12), lineWidth: 0.5)
+        )
+    }
+
+    private func macroRow(_ label: String, current: Double, target: Double, unit: String, color: Color) -> some View {
+        VStack(spacing: 6) {
+            HStack {
+                Text(label)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.white.opacity(0.5))
+                Spacer()
+                Text("\(Int(current))/\(Int(target))\(unit)")
+                    .font(.system(size: 12, design: .monospaced))
+                    .foregroundStyle(color)
+            }
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(color.opacity(0.1))
+
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(color)
+                        .frame(width: geo.size.width * (target > 0 ? min(current / target, 1) : 0))
+                }
+            }
+            .frame(height: 4)
+        }
     }
 
     private func dayLabel(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "E"
-        return String(formatter.string(from: date).prefix(1))
+        let f = DateFormatter()
+        f.dateFormat = "E"
+        return String(f.string(from: date).prefix(1))
     }
 }

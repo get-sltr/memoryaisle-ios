@@ -8,14 +8,14 @@ struct MealItem: Identifiable {
     let protein: Int
     let calories: Int
     let prepTime: String
-    let status: PillStatus
     let description: String
+    let nauseaSafe: Bool
 }
 
 struct MealsView: View {
     @Environment(\.colorScheme) private var scheme
-    @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
+    @State private var selectedMeal: MealItem?
 
     private var profile: UserProfile? { profiles.first }
 
@@ -25,24 +25,24 @@ struct MealsView: View {
         switch mode {
         case .sensitiveStomach:
             return [
-                MealItem(time: "8:30 AM", name: "Banana Oat Smoothie", protein: 18, calories: 280, prepTime: "3 min", status: .nauseaSafe, description: "Gentle on the stomach, easy to sip"),
-                MealItem(time: "12:00 PM", name: "Plain Rice with Soft-Boiled Egg", protein: 14, calories: 320, prepTime: "10 min", status: .nauseaSafe, description: "Bland, easy to digest, high protein"),
-                MealItem(time: "3:00 PM", name: "Greek Yogurt + Honey", protein: 20, calories: 180, prepTime: "1 min", status: .nauseaSafe, description: "Cool, smooth, probiotic boost"),
-                MealItem(time: "6:30 PM", name: "Chicken Broth with Toast", protein: 12, calories: 200, prepTime: "5 min", status: .nauseaSafe, description: "Warm, hydrating, settles the stomach"),
+                MealItem(time: "8:30 AM", name: "Banana Oat Smoothie", protein: 18, calories: 280, prepTime: "3 min", description: "Gentle on the stomach, easy to sip", nauseaSafe: true),
+                MealItem(time: "12:00 PM", name: "Plain Rice with Soft-Boiled Egg", protein: 14, calories: 320, prepTime: "10 min", description: "Bland, easy to digest", nauseaSafe: true),
+                MealItem(time: "3:00 PM", name: "Greek Yogurt + Honey", protein: 20, calories: 180, prepTime: "1 min", description: "Cool, smooth, probiotic boost", nauseaSafe: true),
+                MealItem(time: "6:30 PM", name: "Chicken Broth with Toast", protein: 12, calories: 200, prepTime: "5 min", description: "Warm, hydrating, settles the stomach", nauseaSafe: true),
             ]
         case .musclePreservation, .trainingPerformance:
             return [
-                MealItem(time: "7:30 AM", name: "Protein Overnight Oats", protein: 35, calories: 420, prepTime: "5 min prep", status: .onTrack, description: "Greek yogurt base, hemp seeds, berries"),
-                MealItem(time: "12:00 PM", name: "Grilled Chicken Power Bowl", protein: 45, calories: 580, prepTime: "15 min", status: .neutral, description: "Rice, chicken breast, avocado, greens"),
-                MealItem(time: "3:30 PM", name: "Post-Workout Shake", protein: 30, calories: 280, prepTime: "2 min", status: .neutral, description: "Whey protein, banana, almond milk"),
-                MealItem(time: "7:00 PM", name: "Salmon with Sweet Potato", protein: 38, calories: 520, prepTime: "25 min", status: .neutral, description: "Omega-3 rich, complex carbs for recovery"),
+                MealItem(time: "7:30 AM", name: "Protein Overnight Oats", protein: 35, calories: 420, prepTime: "5 min prep", description: "Greek yogurt base, hemp seeds, berries", nauseaSafe: false),
+                MealItem(time: "12:00 PM", name: "Grilled Chicken Power Bowl", protein: 45, calories: 580, prepTime: "15 min", description: "Rice, chicken breast, avocado, greens", nauseaSafe: false),
+                MealItem(time: "3:30 PM", name: "Post-Workout Shake", protein: 30, calories: 280, prepTime: "2 min", description: "Whey protein, banana, almond milk", nauseaSafe: true),
+                MealItem(time: "7:00 PM", name: "Salmon with Sweet Potato", protein: 38, calories: 520, prepTime: "25 min", description: "Omega-3 rich, complex carbs for recovery", nauseaSafe: false),
             ]
         default:
             return [
-                MealItem(time: "8:30 AM", name: "Protein Overnight Oats", protein: 32, calories: 380, prepTime: "5 min prep", status: .onTrack, description: "Greek yogurt, chia seeds, berries"),
-                MealItem(time: "12:30 PM", name: "Grilled Chicken Bowl", protein: 42, calories: 520, prepTime: "15 min", status: .neutral, description: "Quinoa, roasted vegetables, lemon tahini"),
-                MealItem(time: "6:00 PM", name: "Salmon with Vegetables", protein: 38, calories: 480, prepTime: "25 min", status: .neutral, description: "Roasted broccoli, brown rice"),
-                MealItem(time: "Snack", name: "Greek Yogurt + Hemp Seeds", protein: 28, calories: 240, prepTime: "2 min", status: .nauseaSafe, description: "Quick protein boost, nausea-friendly"),
+                MealItem(time: "8:30 AM", name: "Protein Overnight Oats", protein: 32, calories: 380, prepTime: "5 min prep", description: "Greek yogurt, chia seeds, berries", nauseaSafe: true),
+                MealItem(time: "12:30 PM", name: "Grilled Chicken Bowl", protein: 42, calories: 520, prepTime: "15 min", description: "Quinoa, roasted vegetables, lemon tahini", nauseaSafe: false),
+                MealItem(time: "6:00 PM", name: "Salmon with Vegetables", protein: 38, calories: 480, prepTime: "25 min", description: "Roasted broccoli, brown rice", nauseaSafe: false),
+                MealItem(time: "Snack", name: "Greek Yogurt + Hemp Seeds", protein: 28, calories: 240, prepTime: "2 min", description: "Quick protein boost", nauseaSafe: true),
             ]
         }
     }
@@ -51,30 +51,44 @@ struct MealsView: View {
     private var totalCal: Int { meals.reduce(0) { $0 + $1.calories } }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: Theme.Spacing.md) {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 16) {
                 // Header
                 HStack {
-                    VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("Today's Meals")
-                            .font(Typography.displaySmall)
-                            .foregroundStyle(Theme.Text.primary)
+                            .font(.system(size: 26, weight: .light, design: .serif))
+                            .foregroundStyle(.white)
+                            .tracking(0.3)
+
                         Text("\(totalProtein)g protein  ·  \(totalCal) cal")
-                            .font(Typography.monoSmall)
-                            .foregroundStyle(Theme.Text.secondary(for: scheme))
+                            .font(.system(size: 13, weight: .regular, design: .monospaced))
+                            .foregroundStyle(.white.opacity(0.35))
                     }
                     Spacer()
+
+                    MiraWaveform(state: .idle, size: .hero)
+                        .frame(height: 28)
+                        .scaleEffect(0.5, anchor: .trailing)
                 }
-                .padding(.horizontal, Theme.Spacing.md)
-                .padding(.top, Theme.Spacing.sm)
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
 
                 // Mode badge
                 if let mode = profile?.productMode {
                     HStack {
-                        PillBadge(.neutral, label: mode.rawValue)
+                        Text(mode.rawValue.uppercased())
+                            .font(.system(size: 10, weight: .medium))
+                            .tracking(1)
+                            .foregroundStyle(Color.violet.opacity(0.6))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                Capsule().fill(Color.violet.opacity(0.08))
+                            )
                         Spacer()
                     }
-                    .padding(.horizontal, Theme.Spacing.md)
+                    .padding(.horizontal, 20)
                 }
 
                 // Meal cards
@@ -90,46 +104,75 @@ struct MealsView: View {
     }
 
     private func mealCard(_ meal: MealItem) -> some View {
-        InteractiveGlassCard(action: {}) {
-            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+        Button {
+            HapticManager.light()
+            selectedMeal = meal
+        } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                // Time + nausea badge
                 HStack {
                     Text(meal.time)
-                        .font(Typography.caption)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.3))
+                        .tracking(0.5)
+
                     Spacer()
-                    PillBadge(meal.status)
+
+                    if meal.nauseaSafe {
+                        HStack(spacing: 4) {
+                            Image(systemName: "leaf.fill")
+                                .font(.system(size: 9))
+                            Text("Nausea-safe")
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .foregroundStyle(Color(hex: 0x34D399).opacity(0.7))
+                    }
                 }
 
+                // Name
                 Text(meal.name)
-                    .font(Typography.bodyLargeBold)
-                    .foregroundStyle(Theme.Text.primary)
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.white)
 
+                // Description
                 Text(meal.description)
-                    .font(Typography.bodySmall)
-                    .foregroundStyle(Theme.Text.secondary(for: scheme))
+                    .font(.system(size: 13))
+                    .foregroundStyle(.white.opacity(0.4))
 
-                HStack(spacing: Theme.Spacing.md) {
-                    macroLabel("Protein", value: "\(meal.protein)g", category: .protein)
-                    macroLabel("Cal", value: "\(meal.calories)", category: .calories)
+                // Macros + prep
+                HStack(spacing: 16) {
+                    macroTag(Color.violet, "\(meal.protein)g protein")
+                    macroTag(.white.opacity(0.3), "\(meal.calories) cal")
+
                     Spacer()
+
                     Text(meal.prepTime)
-                        .font(Typography.caption)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                        .font(.system(size: 11))
+                        .foregroundStyle(.white.opacity(0.25))
                 }
             }
-            .padding(Theme.Spacing.md)
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(.white.opacity(0.03))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(.white.opacity(0.06), lineWidth: 0.5)
+            )
         }
-        .padding(.horizontal, Theme.Spacing.md)
+        .buttonStyle(.plain)
+        .padding(.horizontal, 20)
     }
 
-    private func macroLabel(_ label: String, value: String, category: ProgressCategory) -> some View {
-        HStack(spacing: Theme.Spacing.xs) {
+    private func macroTag(_ color: Color, _ text: String) -> some View {
+        HStack(spacing: 4) {
             Circle()
-                .fill(category.color(for: scheme))
-                .frame(width: 6, height: 6)
-            Text(value)
-                .font(Typography.monoSmall)
-                .foregroundStyle(Theme.Text.primary)
+                .fill(color)
+                .frame(width: 5, height: 5)
+            Text(text)
+                .font(.system(size: 12, weight: .regular, design: .monospaced))
+                .foregroundStyle(.white.opacity(0.6))
         }
     }
 }

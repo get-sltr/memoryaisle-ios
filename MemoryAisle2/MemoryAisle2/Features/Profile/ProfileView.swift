@@ -5,35 +5,59 @@ struct ProfileView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @Query private var profiles: [UserProfile]
 
     private var profile: UserProfile? { profiles.first }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: Theme.Spacing.md) {
-                // Header
-                HStack {
-                    Text("Profile")
-                        .font(Typography.displaySmall)
-                        .foregroundStyle(Theme.Text.primary)
-                    Spacer()
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 28))
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                    }
+        VStack(spacing: 0) {
+            // Header with close
+            HStack {
+                Button {
+                    HapticManager.light()
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.4))
+                        .frame(width: 36, height: 36)
+                        .background(
+                            Circle().fill(.white.opacity(0.05))
+                        )
                 }
-                .padding(.horizontal, Theme.Spacing.md)
-                .padding(.top, Theme.Spacing.md)
 
-                // Medication
-                GlassCard {
-                    VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-                        sectionTitle("Medication")
+                Spacer()
 
+                Text("Profile")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.white)
+
+                Spacer()
+
+                Color.clear.frame(width: 36, height: 36)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 16) {
+                    // Mira + greeting
+                    VStack(spacing: 12) {
+                        MiraWaveform(state: .idle, size: .hero)
+                            .frame(height: 40)
+
+                        if let med = profile?.medication {
+                            Text(med.rawValue)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(Color.violet.opacity(0.7))
+                        }
+                    }
+                    .padding(.top, 20)
+                    .padding(.bottom, 8)
+
+                    // Medication section
+                    section("Medication") {
                         if let med = profile?.medication {
                             infoRow("Medication", value: med.rawValue)
                         }
@@ -47,63 +71,66 @@ struct ProfileView: View {
                             infoRow("Injection Day", value: dayName(day))
                         }
                     }
-                    .padding(Theme.Spacing.md)
-                }
-                .padding(.horizontal, Theme.Spacing.md)
 
-                // Mode
-                GlassCard {
-                    VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-                        sectionTitle("Product Mode")
-
+                    // Mode section
+                    section("Product Mode") {
                         if let profile {
                             ForEach(ProductMode.allCases, id: \.self) { mode in
-                                modeOption(mode, isSelected: profile.productMode == mode)
+                                let isSelected = profile.productMode == mode
+
+                                Button {
+                                    HapticManager.selection()
+                                    profile.productMode = mode
+                                } label: {
+                                    Text(mode.rawValue)
+                                        .font(.system(size: 14, weight: isSelected ? .medium : .regular))
+                                        .foregroundStyle(.white.opacity(isSelected ? 1 : 0.5))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 10)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                .fill(isSelected ? Color.violet.opacity(0.15) : .clear)
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                .stroke(isSelected ? Color.violet.opacity(0.3) : .clear, lineWidth: 0.5)
+                                        )
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
-                    .padding(Theme.Spacing.md)
-                }
-                .padding(.horizontal, Theme.Spacing.md)
 
-                // Targets
-                GlassCard {
-                    VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-                        sectionTitle("Daily Targets")
-
+                    // Targets section
+                    section("Daily Targets") {
                         if let profile {
-                            targetRow("Protein", value: "\(profile.proteinTargetGrams)g", category: .protein)
-                            targetRow("Calories", value: "\(profile.calorieTarget)", category: .calories)
-                            targetRow("Water", value: String(format: "%.1fL", profile.waterTargetLiters), category: .water)
-                            targetRow("Fiber", value: "\(profile.fiberTargetGrams)g", category: .fiber)
+                            targetRow("Protein", value: "\(profile.proteinTargetGrams)g", color: Color.violet)
+                            targetRow("Calories", value: "\(profile.calorieTarget)", color: .white.opacity(0.4))
+                            targetRow("Water", value: String(format: "%.1fL", profile.waterTargetLiters), color: Color(hex: 0x38BDF8))
+                            targetRow("Fiber", value: "\(profile.fiberTargetGrams)g", color: Color(hex: 0xFBBF24))
                         }
                     }
-                    .padding(Theme.Spacing.md)
-                }
-                .padding(.horizontal, Theme.Spacing.md)
 
-                // App info
-                GlassCard {
-                    VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                        sectionTitle("About")
+                    // About
+                    section("About") {
                         infoRow("Version", value: "1.0.0")
                         infoRow("Built by", value: "SLTR Digital LLC")
                     }
-                    .padding(Theme.Spacing.md)
-                }
-                .padding(.horizontal, Theme.Spacing.md)
 
-                // Reset onboarding (dev)
-                Button {
-                    resetOnboarding()
-                } label: {
-                    Text("Reset Onboarding")
-                        .font(Typography.bodySmall)
-                        .foregroundStyle(Theme.Semantic.warning(for: scheme))
-                }
-                .padding(.top, Theme.Spacing.md)
+                    // Reset
+                    Button {
+                        HapticManager.warning()
+                        resetOnboarding()
+                    } label: {
+                        Text("Reset Onboarding")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color(hex: 0xF87171).opacity(0.6))
+                    }
+                    .padding(.top, 8)
 
-                Spacer(minLength: 40)
+                    Spacer(minLength: 40)
+                }
+                .padding(.horizontal, 20)
             }
         }
         .themeBackground()
@@ -111,56 +138,56 @@ struct ProfileView: View {
 
     // MARK: - Components
 
-    private func sectionTitle(_ text: String) -> some View {
-        Text(text)
-            .font(Typography.bodyMediumBold)
-            .foregroundStyle(Theme.Accent.primary(for: scheme))
+    @ViewBuilder
+    private func section(_ title: String, @ViewBuilder content: () -> some View) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title.uppercased())
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.white.opacity(0.25))
+                .tracking(1.2)
+
+            VStack(spacing: 6) {
+                content()
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(.white.opacity(0.03))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(.white.opacity(0.06), lineWidth: 0.5)
+        )
     }
 
     private func infoRow(_ label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .font(Typography.bodySmall)
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .font(.system(size: 13))
+                .foregroundStyle(.white.opacity(0.4))
             Spacer()
             Text(value)
-                .font(Typography.bodyMedium)
-                .foregroundStyle(Theme.Text.primary)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.white.opacity(0.8))
         }
+        .padding(.vertical, 2)
     }
 
-    private func targetRow(_ label: String, value: String, category: ProgressCategory) -> some View {
+    private func targetRow(_ label: String, value: String, color: Color) -> some View {
         HStack {
             Circle()
-                .fill(category.color(for: scheme))
-                .frame(width: 8, height: 8)
+                .fill(color)
+                .frame(width: 6, height: 6)
             Text(label)
-                .font(Typography.bodySmall)
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .font(.system(size: 13))
+                .foregroundStyle(.white.opacity(0.4))
             Spacer()
             Text(value)
-                .font(Typography.monoMedium)
-                .foregroundStyle(Theme.Text.primary)
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .foregroundStyle(.white.opacity(0.8))
         }
-    }
-
-    private func modeOption(_ mode: ProductMode, isSelected: Bool) -> some View {
-        Button {
-            HapticManager.selection()
-            profile?.productMode = mode
-        } label: {
-            HStack {
-                Text(mode.rawValue)
-                    .font(Typography.bodyMedium)
-                    .foregroundStyle(.white)
-                Spacer()
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color.violet)
-                }
-            }
-            .padding(.vertical, Theme.Spacing.xs)
-        }
+        .padding(.vertical, 2)
     }
 
     private func dayName(_ day: Int) -> String {
@@ -172,5 +199,6 @@ struct ProfileView: View {
         if let profile {
             modelContext.delete(profile)
         }
+        appState.hasCompletedOnboarding = false
     }
 }
