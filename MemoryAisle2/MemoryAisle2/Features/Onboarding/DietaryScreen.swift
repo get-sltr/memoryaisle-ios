@@ -34,10 +34,10 @@ struct DietaryScreen: View {
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
-                                .background(.ultraThinMaterial.opacity(0.3))
+                                .background(.ultraThinMaterial.opacity(0.5))
                                 .background(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .fill(isSelected ? Color.violet.opacity(0.1) : .white.opacity(0.02))
+                                        .fill(isSelected ? Color.violet.opacity(0.15) : Color.violet.opacity(0.04))
                                 )
                                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                                 .overlay(
