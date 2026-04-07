@@ -23,6 +23,7 @@ struct MiraChatView: View {
     @State private var inputText = ""
     @State private var messages: [MiraMessage] = []
     @State private var isTyping = false
+    @State private var voice = VoiceManager()
     @FocusState private var isInputFocused: Bool
 
     private var profile: UserProfile? { profiles.first }
@@ -116,17 +117,21 @@ struct MiraChatView: View {
     private var micButton: some View {
         Button {
             HapticManager.medium()
-            withAnimation(.easeOut(duration: 0.2)) {
-                micPressed.toggle()
-            }
-            // Future: start/stop AVAudioSession recording
-            if micPressed {
-                // Voice input (AVAudioSession in Phase 2)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        micPressed = false
+            if voice.isListening {
+                // Stop listening and send
+                voice.stopListening()
+                withAnimation(.easeOut(duration: 0.2)) { micPressed = false }
+                if !voice.transcribedText.isEmpty {
+                    sendMessage(voice.transcribedText)
+                }
+            } else {
+                // Start listening
+                Task {
+                    let granted = await voice.requestPermissions()
+                    if granted {
+                        withAnimation(.easeOut(duration: 0.2)) { micPressed = true }
+                        voice.startListening()
                     }
-                    sendMessage("What should I eat right now?")
                 }
             }
         } label: {
@@ -353,6 +358,8 @@ struct MiraChatView: View {
                     messages.append(MiraMessage(reply))
                 }
                 HapticManager.light()
+                // Mira speaks the response
+                voice.speak(reply)
             } catch {
                 print("Mira API error: \(error)")
                 withAnimation(Theme.Motion.spring) {

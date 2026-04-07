@@ -26,6 +26,7 @@
 		35A8469C9F00D674C4F6BA7B /* ProteinCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */; };
 		38E64D72A546975168D6065C /* MiraWaveform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */; };
 		3BDB4570BBD7D86AA103931C /* LegalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */; };
+		3BF24D54AE6060C4539D8A73 /* VoiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 122A423F9B5950624E792205 /* VoiceManager.swift */; };
 		41D94F87A2556F72C519A426 /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5640B3BABC0F505637F2FC /* ProgressBar.swift */; };
 		4BBC465A88A6826533BD009C /* GIToleranceRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4564362A2F998248701E2AC /* GIToleranceRecord.swift */; };
 		50874713BECF1D22DA220658 /* MiraIntroScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */; };
@@ -115,6 +116,7 @@
 		08684086A4EF69ABBFB80CB1 /* InjectionCycleBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InjectionCycleBar.swift; path = MemoryAisle2/Features/Home/InjectionCycleBar.swift; sourceTree = SOURCE_ROOT; };
 		0DD84186B7F661DEAD7667B0 /* WeightTrendChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WeightTrendChart.swift; path = MemoryAisle2/Features/Progress/WeightTrendChart.swift; sourceTree = SOURCE_ROOT; };
 		10F44569B68AC65A05C9817B /* MiraReadyScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraReadyScreen.swift; path = MemoryAisle2/Features/Onboarding/MiraReadyScreen.swift; sourceTree = SOURCE_ROOT; };
+		122A423F9B5950624E792205 /* VoiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VoiceManager.swift; path = MemoryAisle2/Services/System/VoiceManager.swift; sourceTree = SOURCE_ROOT; };
 		123744ECA42A55A09346F5E1 /* MemoryAisleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MemoryAisleApp.swift; path = MemoryAisle2/App/MemoryAisleApp.swift; sourceTree = SOURCE_ROOT; };
 		14B84BCDB1ED542FDE2C9CAE /* DietaryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DietaryScreen.swift; path = MemoryAisle2/Features/Onboarding/DietaryScreen.swift; sourceTree = SOURCE_ROOT; };
 		1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraIntroScreen.swift; path = MemoryAisle2/Features/Onboarding/MiraIntroScreen.swift; sourceTree = SOURCE_ROOT; };
@@ -288,6 +290,7 @@
 				52CB487285A6D146939E19E6 /* PhotoCheckInView.swift */,
 				809B46D18E3D24E08209537C /* OnboardingLogo.swift */,
 				B04246C4A0721EB9C05CA6FF /* CloudSyncManager.swift */,
+				122A423F9B5950624E792205 /* VoiceManager.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -498,6 +501,7 @@
 				166C4B35ADC7F2411924F361 /* PhotoCheckInView.swift in Sources */,
 				C0DB47E199B5E0377DF45AF1 /* OnboardingLogo.swift in Sources */,
 				2A05425CB0033B8C3B9AF6A4 /* CloudSyncManager.swift in Sources */,
+				3BF24D54AE6060C4539D8A73 /* VoiceManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

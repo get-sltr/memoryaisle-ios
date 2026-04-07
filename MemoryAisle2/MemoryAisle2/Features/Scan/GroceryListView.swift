@@ -174,6 +174,9 @@ struct GroceryListView: View {
         }
     }
 
+    @State private var voiceManager =
+    VoiceManager()
+
     // MARK: - Input Bar
 
     private var inputBar: some View {
@@ -181,14 +184,20 @@ struct GroceryListView: View {
             // Mic button
             Button {
                 HapticManager.medium()
-                withAnimation(.easeOut(duration: 0.2)) {
-                    micActive.toggle()
-                }
-                if micActive {
-                    // Voice input (Phase 2)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        withAnimation { micActive = false }
-                        addItem("Almond milk")
+                if voiceManager.isListening {
+                    voiceManager.stopListening()
+                    withAnimation { micActive = false }
+                    if !voiceManager.transcribedText.isEmpty {
+                        addItem(voiceManager.transcribedText)
+                        voiceManager.transcribedText = ""
+                    }
+                } else {
+                    Task {
+                        let granted = await voiceManager.requestPermissions()
+                        if granted {
+                            withAnimation { micActive = true }
+                            voiceManager.startListening()
+                        }
                     }
                 }
             } label: {
