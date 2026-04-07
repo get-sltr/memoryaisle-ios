@@ -23,8 +23,9 @@ struct MiraIntroScreen: View {
 
                 // Greeting
                 Text("Hello. I'm Mira.")
-                    .font(.system(size: 32, weight: .medium))
+                    .font(.system(size: 34, weight: .light, design: .serif))
                     .foregroundStyle(.white)
+                    .tracking(0.5)
                     .opacity(showGreeting ? 1 : 0)
                     .offset(y: showGreeting ? 0 : 20)
 
