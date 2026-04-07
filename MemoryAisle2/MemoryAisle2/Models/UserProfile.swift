@@ -7,6 +7,14 @@ final class UserProfile {
     var createdAt: Date
     var hasCompletedOnboarding: Bool
 
+    // Body stats
+    var age: Int?
+    var sex: BiologicalSex?
+    var ethnicity: Ethnicity?
+    var weightLbs: Double?
+    var heightInches: Int?
+    var goalWeightLbs: Double?
+
     // Medication
     var medication: Medication?
     var medicationModality: MedicationModality?
@@ -87,6 +95,28 @@ enum ProductMode: String, Codable, CaseIterable {
     case musclePreservation = "Muscle Preservation"
     case trainingPerformance = "Training Performance"
     case maintenanceTaper = "Maintenance / Taper"
+}
+
+enum BiologicalSex: String, Codable, CaseIterable {
+    case male = "Male"
+    case female = "Female"
+    case nonBinary = "Non-binary"
+    case preferNotToSay = "Prefer not to say"
+}
+
+enum Ethnicity: String, Codable, CaseIterable {
+    case white = "White / Caucasian"
+    case black = "Black / African American"
+    case hispanic = "Hispanic / Latino"
+    case eastAsian = "East Asian"
+    case southAsian = "South Asian"
+    case southeastAsian = "Southeast Asian"
+    case middleEastern = "Middle Eastern"
+    case nativeAmerican = "Native American"
+    case pacificIslander = "Pacific Islander"
+    case mixed = "Mixed / Multiracial"
+    case other = "Other"
+    case preferNotToSay = "Prefer not to say"
 }
 
 enum Worry: String, Codable, CaseIterable {

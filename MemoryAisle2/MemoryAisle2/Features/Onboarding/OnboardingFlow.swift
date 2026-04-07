@@ -51,7 +51,7 @@ struct OnboardingFlow: View {
                             onYes: { step = .medication },
                             onNo: {
                                 profile.isOnGLP1 = false
-                                step = .worries
+                                step = .bodyStats
                             }
                         )
                     case .medication:
@@ -61,6 +61,11 @@ struct OnboardingFlow: View {
                         )
                     case .doseTiming:
                         DoseTimingScreen(
+                            profile: $profile,
+                            onContinue: { step = .bodyStats }
+                        )
+                    case .bodyStats:
+                        BodyStatsScreen(
                             profile: $profile,
                             onContinue: { step = .worries }
                         )
@@ -116,7 +121,8 @@ struct OnboardingFlow: View {
         case .glp1Check: step = .intro
         case .medication: step = .glp1Check
         case .doseTiming: step = .medication
-        case .worries: step = profile.isOnGLP1 ? .doseTiming : .glp1Check
+        case .bodyStats: step = profile.isOnGLP1 ? .doseTiming : .glp1Check
+        case .worries: step = .bodyStats
         case .training: step = .worries
         case .dietary: step = .training
         case .ready: step = .dietary
@@ -139,6 +145,12 @@ struct OnboardingFlow: View {
         user.doseAmount = profile.doseAmount
         user.injectionDay = profile.injectionDay
         user.pillTime = profile.pillTime
+        user.age = profile.age
+        user.sex = profile.sex
+        user.ethnicity = profile.ethnicity
+        user.weightLbs = profile.weightLbs
+        user.heightInches = profile.heightInches
+        user.goalWeightLbs = profile.goalWeightLbs
 
         modelContext.insert(user)
         appState.hasCompletedOnboarding = true
@@ -156,13 +168,25 @@ struct OnboardingFlow: View {
     }
 
     private func deriveProteinTarget() -> Int {
-        // Based on average body weight estimates
-        // Users can adjust in Profile after onboarding
+        // If we have actual weight, calculate from lean mass estimate
+        if let weight = profile.weightLbs {
+            let leanMassRatio: Double = profile.sex == .female ? 0.72 : 0.78
+            let leanMass = weight * leanMassRatio
+            let gramsPerLb: Double = switch profile.trainingLevel {
+            case .lifts: 1.2
+            case .cardio: 1.0
+            case .sometimes: 0.9
+            case .none: 0.8
+            }
+            return Int(leanMass * gramsPerLb)
+        }
+
+        // Fallback defaults if no weight provided
         switch profile.trainingLevel {
-        case .lifts: 150
-        case .cardio: 130
-        case .sometimes: 120
-        case .none: 100
+        case .lifts: return 150
+        case .cardio: return 130
+        case .sometimes: return 120
+        case .none: return 100
         }
     }
 }
@@ -174,10 +198,11 @@ enum OnboardingStep: Int, CaseIterable {
     case glp1Check = 1
     case medication = 2
     case doseTiming = 3
-    case worries = 4
-    case training = 5
-    case dietary = 6
-    case ready = 7
+    case bodyStats = 4
+    case worries = 5
+    case training = 6
+    case dietary = 7
+    case ready = 8
 }
 
 // MARK: - Profile Accumulator
@@ -191,6 +216,12 @@ struct OnboardingProfile {
     var injectionsPerWeek: Int?
     var pillTime: Date?
     var pillTimesPerDay: Int?
+    var age: Int?
+    var sex: BiologicalSex?
+    var ethnicity: Ethnicity?
+    var weightLbs: Double?
+    var heightInches: Int?
+    var goalWeightLbs: Double?
     var worries: [Worry] = []
     var trainingLevel: TrainingLevel = .none
     var dietaryRestrictions: [DietaryRestriction] = []

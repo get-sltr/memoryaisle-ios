@@ -8,6 +8,7 @@ struct ProfileView: View {
     @Environment(AppState.self) private var appState
     @Query private var profiles: [UserProfile]
     @State private var showLegal: LegalPage?
+    @State private var showDeleteConfirm = false
 
     private var profile: UserProfile? { profiles.first }
 
@@ -149,6 +150,16 @@ struct ProfileView: View {
                     }
                     .padding(.top, 4)
 
+                    // Delete account
+                    Button {
+                        showDeleteConfirm = true
+                    } label: {
+                        Text("Delete Account & All Data")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color(hex: 0xF87171).opacity(0.6))
+                    }
+                    .padding(.top, 4)
+
                     Spacer(minLength: 40)
                 }
                 .padding(.horizontal, 20)
@@ -157,6 +168,14 @@ struct ProfileView: View {
         .themeBackground()
         .sheet(item: $showLegal) { page in
             LegalView(page: page)
+        }
+        .alert("Delete everything?", isPresented: $showDeleteConfirm) {
+            Button("Delete All Data", role: .destructive) {
+                deleteAllData()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will permanently delete your account, all logs, photos, and preferences. This cannot be undone.")
         }
     }
 
@@ -241,5 +260,34 @@ struct ProfileView: View {
             modelContext.delete(profile)
         }
         appState.hasCompletedOnboarding = false
+    }
+
+    private func deleteAllData() {
+        // 1. Delete all SwiftData records
+        try? modelContext.delete(model: UserProfile.self)
+        try? modelContext.delete(model: NutritionLog.self)
+        try? modelContext.delete(model: SymptomLog.self)
+        try? modelContext.delete(model: PantryItem.self)
+        try? modelContext.delete(model: GIToleranceRecord.self)
+
+        // 2. Delete local progress photos
+        let fileManager = FileManager.default
+        let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let photosDir = documentsPath.appendingPathComponent("ProgressPhotos")
+        try? fileManager.removeItem(at: photosDir)
+
+        // 3. Clear UserDefaults (session data)
+        UserDefaults.standard.removeObject(forKey: "ma_email")
+        UserDefaults.standard.removeObject(forKey: "ma_token")
+
+        // 4. Sign out
+        CognitoAuthManager().signOut()
+
+        // 5. Reset app state
+        appState.hasCompletedOnboarding = false
+        appState.authStatus = .signedOut
+
+        HapticManager.heavy()
+        dismiss()
     }
 }

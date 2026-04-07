@@ -14,6 +14,7 @@
 		15D24033A54B0142D21998D0 /* VioletButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68424357A33FA4E35A837E5F /* VioletButton.swift */; };
 		161E4891BEA873A25B0338BF /* MiraChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EC4F0883537C29DC32C1B2 /* MiraChatView.swift */; };
 		165843B493950DBC7100B93E /* TrainingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECA4F149FD027EFC35F2456 /* TrainingScreen.swift */; };
+		166C4B35ADC7F2411924F361 /* PhotoCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52CB487285A6D146939E19E6 /* PhotoCheckInView.swift */; };
 		173E4C99A4A0CDE52B4EDB19 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299B49FB9621C6BB76354F28 /* ScanView.swift */; };
 		1F954129BB47E10F320E12BF /* UpgradePrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 216B48748807B1685CA46DEF /* UpgradePrompt.swift */; };
 		262D4C0187A0D307BC0D0F33 /* GlowButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC345C68315E39FD1CF0163 /* GlowButton.swift */; };
@@ -58,10 +59,12 @@
 		BDD84966AD845EB0ECC0BDE4 /* MiraAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557840D780BB0DF863C32C36 /* MiraAPIClient.swift */; };
 		BF744C58A8F22C3538A63B99 /* ProviderReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E94C5CA5E194DEFA7E5E23 /* ProviderReportView.swift */; };
 		C0774319B3E9AC99B5266310 /* OnboardingLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B94AFC807203D44BBAB8C9 /* OnboardingLogo.swift */; };
+		C0DB47E199B5E0377DF45AF1 /* OnboardingLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 809B46D18E3D24E08209537C /* OnboardingLogo.swift */; };
 		C5E64D3A845532E38BED40DE /* GLP1CheckScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F2445794B97475876C58CB /* GLP1CheckScreen.swift */; };
 		CB4F48C09299FD5A9FFC2870 /* InjectionCycleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C6489781332BE91C67639C /* InjectionCycleEngine.swift */; };
 		CFF94785A36A6FFACDF2D1A9 /* WeightTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DD84186B7F661DEAD7667B0 /* WeightTrendChart.swift */; };
 		D65C4971B6322037A02C0A25 /* GroceryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B848AC9825476CBEEC85AC /* GroceryListView.swift */; };
+		DCB045D8B94622A0B133D4BA /* BodyStatsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC45409B9241986F89314CDE /* BodyStatsScreen.swift */; };
 		DCCC4A29A9894D6ADD219F3B /* BarcodeScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1743618E8AE833EBE26DFD /* BarcodeScanner.swift */; };
 		DF984CDAB17532BDAD2256CC /* ReceiptScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43741A583EA394EE6FC0C28 /* ReceiptScannerView.swift */; };
 		DFEF4DE79F20482A798186B5 /* NutritionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772C4DFAAFDE50412197536B /* NutritionLog.swift */; };
@@ -133,6 +136,7 @@
 		506240CE835185D510251C6C /* GlassCardStrong.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlassCardStrong.swift; path = MemoryAisle2/DesignSystem/GlassCardStrong.swift; sourceTree = SOURCE_ROOT; };
 		52964A289E2145EB658EBD2A /* FoodSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FoodSearchView.swift; path = MemoryAisle2/Features/Scan/FoodSearchView.swift; sourceTree = SOURCE_ROOT; };
 		52C6489781332BE91C67639C /* InjectionCycleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InjectionCycleEngine.swift; path = MemoryAisle2/Services/Medication/InjectionCycleEngine.swift; sourceTree = SOURCE_ROOT; };
+		52CB487285A6D146939E19E6 /* PhotoCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotoCheckInView.swift; path = MemoryAisle2/Features/Progress/PhotoCheckInView.swift; sourceTree = SOURCE_ROOT; };
 		557840D780BB0DF863C32C36 /* MiraAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraAPIClient.swift; path = MemoryAisle2/Services/AI/MiraAPIClient.swift; sourceTree = SOURCE_ROOT; };
 		57294B48A8131AD09B33F510 /* ScanResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ScanResultView.swift; path = MemoryAisle2/Features/Scan/ScanResultView.swift; sourceTree = SOURCE_ROOT; };
 		5B294492BE492FD71C0C6523 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserProfile.swift; path = MemoryAisle2/Models/UserProfile.swift; sourceTree = SOURCE_ROOT; };
@@ -144,6 +148,7 @@
 		772C4DFAAFDE50412197536B /* NutritionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NutritionLog.swift; path = MemoryAisle2/Models/NutritionLog.swift; sourceTree = SOURCE_ROOT; };
 		788343C2BD56EA9C54361D80 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileView.swift; path = MemoryAisle2/Features/Profile/ProfileView.swift; sourceTree = SOURCE_ROOT; };
 		7FC74B4D8A9E864DC85E9D66 /* GhostButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GhostButton.swift; path = MemoryAisle2/DesignSystem/GhostButton.swift; sourceTree = SOURCE_ROOT; };
+		809B46D18E3D24E08209537C /* OnboardingLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingLogo.swift; path = MemoryAisle2/DesignSystem/OnboardingLogo.swift; sourceTree = SOURCE_ROOT; };
 		849648448FD61E9F718CA956 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PaywallView.swift; path = MemoryAisle2/Features/Subscription/PaywallView.swift; sourceTree = SOURCE_ROOT; };
 		84EA4FEE91F2155DF5DDDF5B /* RecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RecipesView.swift; path = MemoryAisle2/Features/Recipes/RecipesView.swift; sourceTree = SOURCE_ROOT; };
 		855E4985B7567EEB6D505C70 /* SymptomLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SymptomLog.swift; path = MemoryAisle2/Models/SymptomLog.swift; sourceTree = SOURCE_ROOT; };
@@ -182,6 +187,7 @@
 		F43741A583EA394EE6FC0C28 /* ReceiptScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReceiptScannerView.swift; path = MemoryAisle2/Features/Recipes/ReceiptScannerView.swift; sourceTree = SOURCE_ROOT; };
 		F48444BD84D42196D0CC3E22 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingFlow.swift; path = MemoryAisle2/Features/Onboarding/OnboardingFlow.swift; sourceTree = SOURCE_ROOT; };
 		F98A435BA82A219DA009067F /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlassCard.swift; path = MemoryAisle2/DesignSystem/GlassCard.swift; sourceTree = SOURCE_ROOT; };
+		FC45409B9241986F89314CDE /* BodyStatsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BodyStatsScreen.swift; path = MemoryAisle2/Features/Onboarding/BodyStatsScreen.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -276,6 +282,9 @@
 				B0994D298A46D57B88B3C237 /* CalendarView.swift */,
 				4B1A425583690D2AC6328F2D /* HolidayCalendar.swift */,
 				B6B94AFC807203D44BBAB8C9 /* OnboardingLogo.swift */,
+				FC45409B9241986F89314CDE /* BodyStatsScreen.swift */,
+				52CB487285A6D146939E19E6 /* PhotoCheckInView.swift */,
+				809B46D18E3D24E08209537C /* OnboardingLogo.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -482,6 +491,9 @@
 				024B4A0F93C333D037F82D35 /* CalendarView.swift in Sources */,
 				28744E558C6F64F6765EC663 /* HolidayCalendar.swift in Sources */,
 				C0774319B3E9AC99B5266310 /* OnboardingLogo.swift in Sources */,
+				DCB045D8B94622A0B133D4BA /* BodyStatsScreen.swift in Sources */,
+				166C4B35ADC7F2411924F361 /* PhotoCheckInView.swift in Sources */,
+				C0DB47E199B5E0377DF45AF1 /* OnboardingLogo.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
