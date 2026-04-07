@@ -8,7 +8,7 @@ final class CognitoAuthManager {
     private(set) var userId: String?
     private(set) var email: String?
     private(set) var accessToken: String?
-    private(set) var error: String?
+    var error: String?
 
     private let userPoolId = "us-east-1_8jluiv1HL"
     private let clientId = "724lhhilciamunsh13vj5pf753"
