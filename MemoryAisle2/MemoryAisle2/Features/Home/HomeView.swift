@@ -76,9 +76,7 @@ struct HomeView: View {
             Button {
                 showProfile = true
             } label: {
-                MiraWaveform(state: .idle, size: .hero)
-                    .frame(height: 32)
-                    .scaleEffect(0.6, anchor: .trailing)
+                OnboardingLogo(size: 32)
             }
         }
         .padding(.horizontal, Theme.Spacing.md)
@@ -311,10 +309,14 @@ struct HomeView: View {
     private var miraSuggestionText: String {
         let hour = Calendar.current.component(.hour, from: .now)
 
-        if proteinDeficit > 30 {
-            return "You're \(proteinDeficit)g behind on protein. Greek yogurt + hemp seeds closes the gap in one snack."
+        if proteinDeficit > 80 {
+            return "You need \(proteinDeficit)g more protein today. That's about 3 meals worth. Start with a chicken breast (31g), then a protein shake (25g), and finish with salmon for dinner (23g)."
+        } else if proteinDeficit > 50 {
+            return "\(proteinDeficit)g to go. Two solid meals will do it. Try a grilled chicken bowl (45g protein) for lunch and Greek yogurt with hemp seeds (24g) as a snack."
+        } else if proteinDeficit > 20 {
+            return "\(proteinDeficit)g left. A protein shake (25g) or a can of tuna with crackers (30g) would close the gap in one sitting."
         } else if proteinDeficit > 0 {
-            return "Almost there! Just \(proteinDeficit)g more protein. A quick protein shake would do it."
+            return "Almost there! Just \(proteinDeficit)g more. A cup of cottage cheese (14g) or a handful of almonds with a string cheese (13g) will do it."
         } else if water < waterTarget * 0.5 {
             if isOnGLP1 {
                 return "You're behind on hydration. GLP-1s can suppress thirst, so you may not feel it. Try a glass now."
@@ -323,18 +325,14 @@ struct HomeView: View {
             }
         } else if protein == 0 && hour < 12 {
             if isOnGLP1 {
-                return "Morning is a great time to start on protein, even if appetite is low. A smoothie or yogurt is easy to get down."
+                return "Morning is a great time to start on protein, even if appetite is low. A smoothie or eggs are easy to get down."
             } else {
-                return "Good morning! Start your day with a protein-rich breakfast to fuel your body and stay satisfied longer."
+                return "Start your day with protein. Eggs (18g for 3), overnight oats with Greek yogurt (32g), or a smoothie (30g)."
             }
         } else if protein == 0 && hour >= 12 {
-            return "You haven't logged any protein yet today. Even a quick snack like cottage cheese or a protein bar helps."
+            return "You haven't logged any protein yet. A quick chicken breast (31g) or tuna wrap (28g) will get you going."
         } else {
-            if isOnGLP1 {
-                return "Great progress today! You're on track. Keep listening to your body and eating when you can."
-            } else {
-                return "Great progress today! Keep it up and you'll hit all your targets."
-            }
+            return "You've hit your protein target. Focus on hydration and vegetables for the rest of the day."
         }
     }
 

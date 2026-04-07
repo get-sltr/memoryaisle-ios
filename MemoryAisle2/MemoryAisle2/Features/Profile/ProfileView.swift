@@ -44,19 +44,30 @@ struct ProfileView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 16) {
-                    // Mira + greeting
-                    VStack(spacing: 12) {
-                        MiraWaveform(state: .idle, size: .hero)
-                            .frame(height: 40)
+                    // Logo + user info
+                    VStack(spacing: 10) {
+                        OnboardingLogo(size: 56)
 
                         if let med = profile?.medication {
                             Text(med.rawValue)
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(Color.violet.opacity(0.7))
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.6))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(Color(hex: 0xA78BFA).opacity(0.08))
+                                .clipShape(Capsule())
+                        } else {
+                            Text("Smart Nutrition")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color(hex: 0x34D399).opacity(0.6))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(Color(hex: 0x34D399).opacity(0.08))
+                                .clipShape(Capsule())
                         }
                     }
-                    .padding(.top, 20)
-                    .padding(.bottom, 8)
+                    .padding(.top, 16)
+                    .padding(.bottom, 4)
 
                     // Medication section
                     section("Medication") {

@@ -76,6 +76,10 @@ struct GroceryListView: View {
                     if checkedCount > 0 {
                         Button {
                             HapticManager.heavy()
+                            // Remove all checked items
+                            for i in categories.indices {
+                                categories[i].items.removeAll { $0.isChecked }
+                            }
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                                 showConfetti = true
                             }
@@ -174,7 +178,7 @@ struct GroceryListView: View {
         HStack(spacing: 10) {
             // Mic button
             Button {
-                HapticManager.medium()
+                HapticManager.meshopping dium()
                 withAnimation(.easeOut(duration: 0.2)) {
                     micActive.toggle()
                 }
