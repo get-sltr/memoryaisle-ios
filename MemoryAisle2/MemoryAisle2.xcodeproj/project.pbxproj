@@ -14,6 +14,7 @@
 		161E4891BEA873A25B0338BF /* MiraChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EC4F0883537C29DC32C1B2 /* MiraChatView.swift */; };
 		165843B493950DBC7100B93E /* TrainingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECA4F149FD027EFC35F2456 /* TrainingScreen.swift */; };
 		173E4C99A4A0CDE52B4EDB19 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299B49FB9621C6BB76354F28 /* ScanView.swift */; };
+		1F954129BB47E10F320E12BF /* UpgradePrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 216B48748807B1685CA46DEF /* UpgradePrompt.swift */; };
 		262D4C0187A0D307BC0D0F33 /* GlowButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC345C68315E39FD1CF0163 /* GlowButton.swift */; };
 		27E4487290A3AD8DEF382E27 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 305B45C49B37D2415184B6FD /* Theme.swift */; };
 		29A1411E95F5333298515471 /* MealsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C892475BA9FF13903B47A6DC /* MealsView.swift */; };
@@ -29,6 +30,7 @@
 		724343C0916D4253312DD45D /* GhostButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FC74B4D8A9E864DC85E9D66 /* GhostButton.swift */; };
 		787D402E97B2B3B6C485E349 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BAA4CB08A7717EE5D125AF1 /* HomeView.swift */; };
 		82B744599DD7DCD3009C02FE /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D674F82B74DB0A621E6447D /* HealthKitManager.swift */; };
+		870243C8847C703B75F5AC77 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 849648448FD61E9F718CA956 /* PaywallView.swift */; };
 		8785423BB29E7E1CD9D24401 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4914431A658D0E83910C515 /* Typography.swift */; };
 		8E6443079E0C541D56131F79 /* WorriesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C874F039772E554343A8C35 /* WorriesScreen.swift */; };
 		91034E69BBEDEF052E9BA6E2 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788343C2BD56EA9C54361D80 /* ProfileView.swift */; };
@@ -46,6 +48,7 @@
 		D65C4971B6322037A02C0A25 /* GroceryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B848AC9825476CBEEC85AC /* GroceryListView.swift */; };
 		DCCC4A29A9894D6ADD219F3B /* BarcodeScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1743618E8AE833EBE26DFD /* BarcodeScanner.swift */; };
 		DFEF4DE79F20482A798186B5 /* NutritionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772C4DFAAFDE50412197536B /* NutritionLog.swift */; };
+		E0D14E23BF2076C3D705B767 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4B4328BA122E1C6F872308 /* SubscriptionManager.swift */; };
 		E7304B41AF2CF0772C6B0C3A /* SymptomQuickLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D3E416CBF0A88F494A4F026 /* SymptomQuickLog.swift */; };
 		E7CF4CFB948DD698D6D6E2BB /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F48444BD84D42196D0CC3E22 /* OnboardingFlow.swift */; };
 		EB0D4806AF46797110EB5DD5 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F98A435BA82A219DA009067F /* GlassCard.swift */; };
@@ -75,6 +78,7 @@
 		123744ECA42A55A09346F5E1 /* MemoryAisleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MemoryAisleApp.swift; path = MemoryAisle2/App/MemoryAisleApp.swift; sourceTree = SOURCE_ROOT; };
 		14B84BCDB1ED542FDE2C9CAE /* DietaryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DietaryScreen.swift; path = MemoryAisle2/Features/Onboarding/DietaryScreen.swift; sourceTree = SOURCE_ROOT; };
 		1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraIntroScreen.swift; path = MemoryAisle2/Features/Onboarding/MiraIntroScreen.swift; sourceTree = SOURCE_ROOT; };
+		216B48748807B1685CA46DEF /* UpgradePrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UpgradePrompt.swift; path = MemoryAisle2/Features/Subscription/UpgradePrompt.swift; sourceTree = SOURCE_ROOT; };
 		299B49FB9621C6BB76354F28 /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ScanView.swift; path = MemoryAisle2/Features/Scan/ScanView.swift; sourceTree = SOURCE_ROOT; };
 		2D3E416CBF0A88F494A4F026 /* SymptomQuickLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SymptomQuickLog.swift; path = MemoryAisle2/Features/Home/SymptomQuickLog.swift; sourceTree = SOURCE_ROOT; };
 		2E3147B3BF898D3DDDB5B8C0 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HapticManager.swift; path = MemoryAisle2/DesignSystem/HapticManager.swift; sourceTree = SOURCE_ROOT; };
@@ -94,6 +98,7 @@
 		772C4DFAAFDE50412197536B /* NutritionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NutritionLog.swift; path = MemoryAisle2/Models/NutritionLog.swift; sourceTree = SOURCE_ROOT; };
 		788343C2BD56EA9C54361D80 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileView.swift; path = MemoryAisle2/Features/Profile/ProfileView.swift; sourceTree = SOURCE_ROOT; };
 		7FC74B4D8A9E864DC85E9D66 /* GhostButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GhostButton.swift; path = MemoryAisle2/DesignSystem/GhostButton.swift; sourceTree = SOURCE_ROOT; };
+		849648448FD61E9F718CA956 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PaywallView.swift; path = MemoryAisle2/Features/Subscription/PaywallView.swift; sourceTree = SOURCE_ROOT; };
 		855E4985B7567EEB6D505C70 /* SymptomLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SymptomLog.swift; path = MemoryAisle2/Models/SymptomLog.swift; sourceTree = SOURCE_ROOT; };
 		8BD860882F84549700EEDDAF /* MemoryAisle2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemoryAisle2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BD860972F84549900EEDDAF /* MemoryAisle2Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoryAisle2Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -101,6 +106,7 @@
 		9AF045FC987D6FB0515F538B /* PillBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PillBadge.swift; path = MemoryAisle2/DesignSystem/PillBadge.swift; sourceTree = SOURCE_ROOT; };
 		A1B4411BA2BB7A820A97EA91 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MainTabView.swift; path = MemoryAisle2/App/MainTabView.swift; sourceTree = SOURCE_ROOT; };
 		A1B848AC9825476CBEEC85AC /* GroceryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GroceryListView.swift; path = MemoryAisle2/Features/Scan/GroceryListView.swift; sourceTree = SOURCE_ROOT; };
+		AB4B4328BA122E1C6F872308 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SubscriptionManager.swift; path = MemoryAisle2/Services/Subscription/SubscriptionManager.swift; sourceTree = SOURCE_ROOT; };
 		AD54425B8FD9D8774489B4E9 /* DoseTimingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DoseTimingScreen.swift; path = MemoryAisle2/Features/Onboarding/DoseTimingScreen.swift; sourceTree = SOURCE_ROOT; };
 		C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationScheduler.swift; path = MemoryAisle2/Services/System/NotificationScheduler.swift; sourceTree = SOURCE_ROOT; };
 		C892475BA9FF13903B47A6DC /* MealsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealsView.swift; path = MemoryAisle2/Features/Meals/MealsView.swift; sourceTree = SOURCE_ROOT; };
@@ -199,6 +205,9 @@
 				4D674F82B74DB0A621E6447D /* HealthKitManager.swift */,
 				C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */,
 				E40641D89BFFF7D09BE9FEF8 /* MemoryAisle2.entitlements */,
+				AB4B4328BA122E1C6F872308 /* SubscriptionManager.swift */,
+				849648448FD61E9F718CA956 /* PaywallView.swift */,
+				216B48748807B1685CA46DEF /* UpgradePrompt.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -399,6 +408,9 @@
 				A6CB4EACBFA9DB5FC3A5CC97 /* ScanResultView.swift in Sources */,
 				82B744599DD7DCD3009C02FE /* HealthKitManager.swift in Sources */,
 				B55B4F0DA22D52DE7EEF5FF6 /* NotificationScheduler.swift in Sources */,
+				E0D14E23BF2076C3D705B767 /* SubscriptionManager.swift in Sources */,
+				870243C8847C703B75F5AC77 /* PaywallView.swift in Sources */,
+				1F954129BB47E10F320E12BF /* UpgradePrompt.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -607,6 +619,8 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
 					"$(SRCROOT)/MemoryAisle2",
+					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
@@ -672,6 +686,8 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
 					"$(SRCROOT)/MemoryAisle2",
+					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
@@ -721,6 +737,8 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
 					"$(SRCROOT)/MemoryAisle2",
+					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
@@ -769,6 +787,8 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
 					"$(SRCROOT)/MemoryAisle2",
+					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
@@ -815,6 +835,8 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
 					"$(SRCROOT)/MemoryAisle2",
+					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;
@@ -861,6 +883,8 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
 					"$(SRCROOT)/MemoryAisle2",
+					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;
