@@ -6,6 +6,7 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showProfile = false
     @State private var showFullGrocery = false
+    @State private var showCalendar = false
     @Query private var profiles: [UserProfile]
     @Query(sort: \PantryItem.addedDate, order: .reverse) private var pantryItems: [PantryItem]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
@@ -60,6 +61,17 @@ struct HomeView: View {
                     .foregroundStyle(Theme.Text.primary)
             }
             Spacer()
+
+            Button {
+                showCalendar = true
+            } label: {
+                Image(systemName: "calendar")
+                    .font(.system(size: 18))
+                    .foregroundStyle(Color.violet.opacity(0.6))
+            }
+            .sheet(isPresented: $showCalendar) {
+                CalendarView()
+            }
 
             Button {
                 showProfile = true

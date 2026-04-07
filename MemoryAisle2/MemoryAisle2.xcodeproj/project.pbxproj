@@ -22,6 +22,7 @@
 		35A8469C9F00D674C4F6BA7B /* ProteinCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */; };
 		38E64D72A546975168D6065C /* MiraWaveform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */; };
 		3BDB4570BBD7D86AA103931C /* LegalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */; };
+		3FA44A5F974B983F7BF61001 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302947C38AA103672A77000F /* CalendarView.swift */; };
 		41D94F87A2556F72C519A426 /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5640B3BABC0F505637F2FC /* ProgressBar.swift */; };
 		4BBC465A88A6826533BD009C /* GIToleranceRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4564362A2F998248701E2AC /* GIToleranceRecord.swift */; };
 		50874713BECF1D22DA220658 /* MiraIntroScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */; };
@@ -52,6 +53,7 @@
 		A8E34207AC7802EDC23F5C3C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B4411BA2BB7A820A97EA91 /* MainTabView.swift */; };
 		AA494640BA532682E9690ADA /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E3147B3BF898D3DDDB5B8C0 /* HapticManager.swift */; };
 		AA8E46EA8D863E63CA3F9F5C /* NutritionAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7C4FC2AFDCB63D2433FDE1 /* NutritionAPIClient.swift */; };
+		AEB54F40939DA98DBEF94A9E /* HolidayCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1642288E6A9C96AAF20DC9 /* HolidayCalendar.swift */; };
 		B55B4F0DA22D52DE7EEF5FF6 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */; };
 		BB2D4E6FBCACF3C119FB7E42 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26E44ADA86F30E9569F1575 /* AppState.swift */; };
 		BCF24B22B8770A883AD5E916 /* GIToleranceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E84B36BB085F228FF0EDE8 /* GIToleranceEngine.swift */; };
@@ -121,12 +123,14 @@
 		10F44569B68AC65A05C9817B /* MiraReadyScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraReadyScreen.swift; path = MemoryAisle2/Features/Onboarding/MiraReadyScreen.swift; sourceTree = SOURCE_ROOT; };
 		123744ECA42A55A09346F5E1 /* MemoryAisleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MemoryAisleApp.swift; path = MemoryAisle2/App/MemoryAisleApp.swift; sourceTree = SOURCE_ROOT; };
 		14B84BCDB1ED542FDE2C9CAE /* DietaryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DietaryScreen.swift; path = MemoryAisle2/Features/Onboarding/DietaryScreen.swift; sourceTree = SOURCE_ROOT; };
+		1A1642288E6A9C96AAF20DC9 /* HolidayCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HolidayCalendar.swift; path = MemoryAisle2/Features/Calendar/HolidayCalendar.swift; sourceTree = SOURCE_ROOT; };
 		1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraIntroScreen.swift; path = MemoryAisle2/Features/Onboarding/MiraIntroScreen.swift; sourceTree = SOURCE_ROOT; };
 		1EB043AD8D83C14C5C0E20BD /* ProviderReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProviderReportGenerator.swift; path = MemoryAisle2/Services/System/ProviderReportGenerator.swift; sourceTree = SOURCE_ROOT; };
 		216B48748807B1685CA46DEF /* UpgradePrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UpgradePrompt.swift; path = MemoryAisle2/Features/Subscription/UpgradePrompt.swift; sourceTree = SOURCE_ROOT; };
 		299B49FB9621C6BB76354F28 /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ScanView.swift; path = MemoryAisle2/Features/Scan/ScanView.swift; sourceTree = SOURCE_ROOT; };
 		2D3E416CBF0A88F494A4F026 /* SymptomQuickLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SymptomQuickLog.swift; path = MemoryAisle2/Features/Home/SymptomQuickLog.swift; sourceTree = SOURCE_ROOT; };
 		2E3147B3BF898D3DDDB5B8C0 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HapticManager.swift; path = MemoryAisle2/DesignSystem/HapticManager.swift; sourceTree = SOURCE_ROOT; };
+		302947C38AA103672A77000F /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CalendarView.swift; path = MemoryAisle2/Features/Calendar/CalendarView.swift; sourceTree = SOURCE_ROOT; };
 		305B45C49B37D2415184B6FD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Theme.swift; path = MemoryAisle2/DesignSystem/Theme.swift; sourceTree = SOURCE_ROOT; };
 		36544B5B9A7CC184FBF5AEE7 /* GIToleranceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GIToleranceView.swift; path = MemoryAisle2/Features/Progress/GIToleranceView.swift; sourceTree = SOURCE_ROOT; };
 		422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProteinCalculator.swift; path = MemoryAisle2/Services/Nutrition/ProteinCalculator.swift; sourceTree = SOURCE_ROOT; };
@@ -323,6 +327,8 @@
 				D98A4837B665CBC33CB5BA99 /* RecipeDetailView.swift */,
 				F43741A583EA394EE6FC0C28 /* ReceiptScannerView.swift */,
 				4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */,
+				1A1642288E6A9C96AAF20DC9 /* HolidayCalendar.swift */,
+				302947C38AA103672A77000F /* CalendarView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -588,6 +594,8 @@
 				EDED46E8A0834B1A471D14D1 /* RecipeDetailView.swift in Sources */,
 				DF984CDAB17532BDAD2256CC /* ReceiptScannerView.swift in Sources */,
 				3BDB4570BBD7D86AA103931C /* LegalView.swift in Sources */,
+				AEB54F40939DA98DBEF94A9E /* HolidayCalendar.swift in Sources */,
+				3FA44A5F974B983F7BF61001 /* CalendarView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -652,6 +660,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
 					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
+					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2.MemoryAisleWidgets;
@@ -692,6 +701,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
 					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
+					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2.MemoryAisleWidgets;
@@ -887,6 +897,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
 					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
+					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
@@ -958,6 +969,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
 					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
+					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
@@ -1013,6 +1025,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
 					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
+					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
@@ -1067,6 +1080,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
 					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
+					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
@@ -1119,6 +1133,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
 					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
+					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;
@@ -1171,6 +1186,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
 					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
+					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;
