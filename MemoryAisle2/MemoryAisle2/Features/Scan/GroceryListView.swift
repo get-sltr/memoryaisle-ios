@@ -22,6 +22,7 @@ struct GroceryListView: View {
     @State private var categories: [GroceryCategory]
     @State private var inputText = ""
     @State private var micActive = false
+    @State private var showConfetti = false
     @FocusState private var inputFocused: Bool
 
     init() {
@@ -70,6 +71,38 @@ struct GroceryListView: View {
                     ForEach(Array(categories.enumerated()), id: \.element.id) { catIndex, category in
                         categorySection(catIndex: catIndex, category: category)
                     }
+
+                    // Done button when all checked
+                    if checkedCount > 0 {
+                        Button {
+                            HapticManager.heavy()
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                                showConfetti = true
+                            }
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: checkedCount == totalCount ? "checkmark.seal.fill" : "cart.badge.minus")
+                                    .font(.system(size: 16))
+                                Text(checkedCount == totalCount ? "Shopping complete!" : "Done shopping")
+                                    .font(.system(size: 15, weight: .medium))
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color(hex: 0x34D399).opacity(0.2))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .stroke(Color(hex: 0x34D399).opacity(0.3), lineWidth: 0.5)
+                            )
+                            .shadow(color: Color(hex: 0x34D399).opacity(0.15), radius: 12, y: 4)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
+                    }
+
                     Spacer(minLength: 80)
                 }
                 .padding(.top, 8)
@@ -79,6 +112,11 @@ struct GroceryListView: View {
             inputBar
         }
         .themeBackground()
+        .overlay {
+            if showConfetti {
+                confettiOverlay
+            }
+        }
     }
 
     // MARK: - Category Section
@@ -242,6 +280,51 @@ struct GroceryListView: View {
         }
     }
 
+    // MARK: - Confetti
+
+    private var confettiOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.5)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation { showConfetti = false }
+                    dismiss()
+                }
+
+            VStack(spacing: 20) {
+                // Confetti particles
+                ZStack {
+                    ForEach(0..<30, id: \.self) { i in
+                        ConfettiPiece(index: i)
+                    }
+                }
+                .frame(height: 200)
+
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(Color(hex: 0x34D399))
+
+                Text("Shopping done!")
+                    .font(.system(size: 28, weight: .light, design: .serif))
+                    .foregroundStyle(.white)
+                    .tracking(0.3)
+
+                Text("Everything's checked off.\nTime to cook something amazing.")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.white.opacity(0.45))
+                    .multilineTextAlignment(.center)
+
+                GlowButton("Back to home") {
+                    showConfetti = false
+                    dismiss()
+                }
+                .padding(.horizontal, 50)
+                .padding(.top, 8)
+            }
+        }
+        .transition(.opacity)
+    }
+
     // MARK: - Add Item
 
     private func addItem(_ name: String) {
@@ -255,6 +338,38 @@ struct GroceryListView: View {
         HapticManager.success()
     }
 
+}
+
+// MARK: - Confetti Piece
+
+struct ConfettiPiece: View {
+    let index: Int
+    @State private var animate = false
+
+    private let colors: [UInt] = [0xA78BFA, 0x34D399, 0xFBBF24, 0x38BDF8, 0xF87171, 0xFCA5A5, 0x67E8F9, 0xFDE68A]
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 2)
+            .fill(Color(hex: colors[index % colors.count]))
+            .frame(width: CGFloat.random(in: 4...8), height: CGFloat.random(in: 8...16))
+            .rotationEffect(.degrees(animate ? Double.random(in: 0...360) : 0))
+            .offset(
+                x: animate ? CGFloat.random(in: -160...160) : 0,
+                y: animate ? CGFloat.random(in: -80...200) : -50
+            )
+            .opacity(animate ? 0 : 1)
+            .onAppear {
+                withAnimation(
+                    .easeOut(duration: Double.random(in: 1.2...2.5))
+                    .delay(Double.random(in: 0...0.3))
+                ) {
+                    animate = true
+                }
+            }
+    }
+}
+
+extension GroceryListView {
     // MARK: - Default Grocery List
 
     private static func defaultList() -> [GroceryCategory] {
