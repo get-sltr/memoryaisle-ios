@@ -71,58 +71,74 @@ struct MiraChatView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            Spacer(minLength: Theme.Spacing.xxl)
+        VStack(spacing: 0) {
+            Spacer()
 
-            MiraWaveform(state: .idle, size: .hero)
-                .padding(.bottom, Theme.Spacing.sm)
+            MiraWaveform(state: .speaking, size: .hero)
+                .frame(height: 70)
+                .padding(.bottom, 40)
 
-            Text("How can I help today?")
-                .font(Typography.displaySmall)
-                .foregroundStyle(Theme.Text.primary)
+            Text("How can I help?")
+                .font(.system(size: 28, weight: .light, design: .serif))
+                .foregroundStyle(.white)
+                .tracking(0.3)
+
+            Text("Meals, protein, groceries, or how your day is going.")
+                .font(.system(size: 15))
+                .foregroundStyle(.white.opacity(0.4))
                 .multilineTextAlignment(.center)
+                .padding(.top, 12)
+                .padding(.horizontal, 40)
 
-            Text("Ask me about meals, protein, groceries, or how your day is going.")
-                .font(Typography.bodyMedium)
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, Theme.Spacing.xl)
+            Spacer()
+                .frame(height: 36)
 
-            VStack(spacing: Theme.Spacing.sm) {
+            VStack(spacing: 8) {
                 quickAction("What should I eat right now?", icon: "fork.knife")
                 quickAction("I'm feeling nauseous", icon: "leaf.fill")
                 quickAction("Generate my grocery list", icon: "cart.fill")
                 quickAction("How's my protein today?", icon: "chart.bar.fill")
             }
-            .padding(.top, Theme.Spacing.lg)
+            .padding(.horizontal, 24)
+
+            Spacer()
         }
     }
 
     // MARK: - Quick Action
 
     private func quickAction(_ text: String, icon: String) -> some View {
-        InteractiveGlassCard(action: {
+        Button {
             sendMessage(text)
-        }) {
-            HStack(spacing: Theme.Spacing.sm) {
+        } label: {
+            HStack(spacing: 12) {
                 Image(systemName: icon)
-                    .font(Typography.bodyMedium)
-                    .foregroundStyle(Theme.Accent.primary(for: scheme))
-                    .frame(width: 24)
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.violet)
+                    .frame(width: 20)
 
                 Text(text)
-                    .font(Typography.bodyMedium)
-                    .foregroundStyle(Theme.Text.primary)
+                    .font(.system(size: 15))
+                    .foregroundStyle(.white.opacity(0.7))
 
                 Spacer()
 
                 Image(systemName: "arrow.up.right")
-                    .font(Typography.caption)
-                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    .font(.system(size: 10))
+                    .foregroundStyle(.white.opacity(0.2))
             }
-            .padding(.horizontal, Theme.Spacing.md)
-            .padding(.vertical, Theme.Spacing.sm + 2)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 13)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.white.opacity(0.03))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(.white.opacity(0.06), lineWidth: 0.5)
+            )
         }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Message Bubble
@@ -131,13 +147,15 @@ struct MiraChatView: View {
         HStack {
             if message.isUser { Spacer(minLength: 60) }
 
-            VStack(alignment: message.isUser ? .trailing : .leading, spacing: Theme.Spacing.xs) {
+            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 6) {
                 if !message.isUser {
-                    HStack(spacing: Theme.Spacing.xs) {
-                        MiraWaveform(state: .idle, size: .compact)
+                    HStack(spacing: 6) {
+                        MiraWaveform(state: .idle, size: .hero)
+                            .scaleEffect(0.35, anchor: .leading)
+                            .frame(width: 30, height: 14)
                         Text("Mira")
-                            .font(Typography.caption)
-                            .foregroundStyle(Theme.Accent.label(for: scheme))
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Color.violet.opacity(0.6))
                     }
                 }
 
@@ -168,8 +186,10 @@ struct MiraChatView: View {
 
     private var typingIndicator: some View {
         HStack {
-            HStack(spacing: 4) {
-                MiraWaveform(state: .thinking, size: .compact)
+            HStack(spacing: 6) {
+                MiraWaveform(state: .thinking, size: .hero)
+                    .scaleEffect(0.35, anchor: .leading)
+                    .frame(width: 30, height: 14)
                 Text("Mira is thinking...")
                     .font(Typography.caption)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
