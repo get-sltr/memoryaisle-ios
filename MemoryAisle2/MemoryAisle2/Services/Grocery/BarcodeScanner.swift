@@ -26,7 +26,7 @@ final class BarcodeScannerController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupCamera()
+        requestCameraAccess()
     }
 
     override func viewDidLayoutSubviews() {
@@ -37,7 +37,9 @@ final class BarcodeScannerController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         processingQueue.async { [captureSession] in
-            captureSession.startRunning()
+            if !captureSession.isRunning {
+                captureSession.startRunning()
+            }
         }
     }
 
@@ -47,6 +49,47 @@ final class BarcodeScannerController: UIViewController {
             captureSession.stopRunning()
         }
     }
+
+    // MARK: - Permission
+
+    private func requestCameraAccess() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            setupCamera()
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                if granted {
+                    DispatchQueue.main.async {
+                        self?.setupCamera()
+                    }
+                }
+            }
+        case .denied, .restricted:
+            // Show message that camera is needed
+            DispatchQueue.main.async { [weak self] in
+                self?.showPermissionDenied()
+            }
+        @unknown default:
+            break
+        }
+    }
+
+    private func showPermissionDenied() {
+        let label = UILabel()
+        label.text = "Camera access needed\nGo to Settings > MemoryAisle"
+        label.textColor = .white.withAlphaComponent(0.4)
+        label.font = .systemFont(ofSize: 14)
+        label.numberOfLines = 0
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+
+    // MARK: - Camera Setup
 
     private func setupCamera() {
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
@@ -73,8 +116,15 @@ final class BarcodeScannerController: UIViewController {
         layer.frame = view.bounds
         view.layer.addSublayer(layer)
         previewLayer = layer
+
+        // Start immediately
+        processingQueue.async { [captureSession] in
+            captureSession.startRunning()
+        }
     }
 }
+
+// MARK: - Barcode Detection
 
 extension BarcodeScannerController: AVCaptureVideoDataOutputSampleBufferDelegate {
     nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {

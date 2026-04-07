@@ -47,7 +47,7 @@ struct ScanView: View {
                             handleBarcode(barcode)
                         }
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .frame(width: 260, height: 260)
+                        .frame(width: 300, height: 300)
                     }
 
                     ScannerCorners()
