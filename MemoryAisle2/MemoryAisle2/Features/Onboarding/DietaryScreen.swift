@@ -15,10 +15,7 @@ struct DietaryScreen: View {
                 .padding(.bottom, 32)
 
             ScrollView(showsIndicators: false) {
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 8),
-                    GridItem(.flexible(), spacing: 8)
-                ], spacing: 8) {
+                VStack(spacing: 8) {
                     ForEach(DietaryRestriction.allCases, id: \.self) { restriction in
                         let isSelected = selected.contains(restriction)
 
