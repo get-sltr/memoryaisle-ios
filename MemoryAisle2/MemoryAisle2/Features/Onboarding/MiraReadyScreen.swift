@@ -43,7 +43,7 @@ struct MiraReadyScreen: View {
                     )
                     .padding(.horizontal, 36)
 
-                    Text("I'll plan your meals around your cycle\nand make sure every bite counts.")
+                    Text(closingMessage)
                         .font(.system(size: 15))
                         .foregroundStyle(.white.opacity(0.4))
                         .multilineTextAlignment(.center)
@@ -94,8 +94,25 @@ struct MiraReadyScreen: View {
     }
 
     private var derivedMode: String {
+        if !profile.isOnGLP1 {
+            if profile.trainingLevel == .lifts { return "Muscle Preservation" }
+            return "Smart Nutrition"
+        }
         if profile.worries.contains(.nausea) { return ProductMode.sensitiveStomach.rawValue }
         if profile.trainingLevel == .lifts { return ProductMode.musclePreservation.rawValue }
         return ProductMode.everyday.rawValue
+    }
+
+    private var closingMessage: String {
+        if !profile.isOnGLP1 {
+            return "I'll build your meal plans around your goals\nand make sure every bite counts."
+        }
+        if profile.worries.contains(.nausea) {
+            return "I'll focus on gentle, nausea-friendly meals\nthat still hit your protein targets."
+        }
+        if profile.trainingLevel == .lifts {
+            return "I'll fuel your training with the right protein\nat the right times to preserve muscle."
+        }
+        return "I'll plan your meals around your medication cycle\nand make sure every bite counts."
     }
 }
