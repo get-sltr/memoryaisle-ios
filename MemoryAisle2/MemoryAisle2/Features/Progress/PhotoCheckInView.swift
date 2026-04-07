@@ -96,7 +96,7 @@ struct PhotoCheckInView: View {
                     }
                     .onChange(of: selectedPhoto) { _, newValue in
                         guard let newValue else { return }
-                        Task {
+                        Task { @MainActor in
                             photoData = try? await newValue.loadTransferable(type: Data.self)
                         }
                     }
