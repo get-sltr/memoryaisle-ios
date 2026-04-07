@@ -9,22 +9,36 @@ struct MemoryAisleApp: App {
         WindowGroup {
             RootView()
                 .environment(appState)
+                .modelContainer(for: [
+                    UserProfile.self,
+                    NutritionLog.self,
+                    SymptomLog.self
+                ])
         }
     }
 }
 
 struct RootView: View {
     @Environment(AppState.self) private var appState
+    @Query private var profiles: [UserProfile]
+
+    private var isOnboarded: Bool {
+        appState.hasCompletedOnboarding || (profiles.first?.hasCompletedOnboarding == true)
+    }
 
     var body: some View {
         Group {
-            if !appState.hasCompletedOnboarding {
-                // TODO: Replace with MiraIntroView when onboarding is built
+            if isOnboarded {
                 MainTabView()
             } else {
-                MainTabView()
+                OnboardingFlow()
             }
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            if profiles.first?.hasCompletedOnboarding == true {
+                appState.hasCompletedOnboarding = true
+            }
+        }
     }
 }
