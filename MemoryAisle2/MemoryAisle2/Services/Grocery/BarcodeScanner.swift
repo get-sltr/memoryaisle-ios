@@ -1,6 +1,6 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import SwiftUI
-import Vision
+@preconcurrency import Vision
 
 struct BarcodeScannerView: UIViewControllerRepresentable {
     let onBarcodeDetected: (String) -> Void
@@ -17,9 +17,9 @@ struct BarcodeScannerView: UIViewControllerRepresentable {
 final class BarcodeScannerController: UIViewController {
     var onBarcodeDetected: ((String) -> Void)?
 
-    private nonisolated(unsafe) let captureSession = AVCaptureSession()
+    private let captureSession = AVCaptureSession()
     private var previewLayer: AVCaptureVideoPreviewLayer?
-    private nonisolated(unsafe) let videoOutput = AVCaptureVideoDataOutput()
+    private let videoOutput = AVCaptureVideoDataOutput()
     private let processingQueue = DispatchQueue(label: "com.sltrdigital.barcode", qos: .userInitiated)
     private nonisolated(unsafe) var lastDetectedBarcode: String?
     private nonisolated(unsafe) var lastDetectionTime: Date = .distantPast
