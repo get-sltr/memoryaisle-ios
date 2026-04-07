@@ -167,7 +167,7 @@ extension Color {
 // MARK: - Hex Initializer
 
 extension Color {
-    init(hex: UInt, opacity: Double = 1.0) {
+    nonisolated init(hex: UInt, opacity: Double = 1.0) {
         self.init(
             .sRGB,
             red: Double((hex >> 16) & 0xFF) / 255,

@@ -17,9 +17,9 @@ struct BarcodeScannerView: UIViewControllerRepresentable {
 final class BarcodeScannerController: UIViewController {
     var onBarcodeDetected: ((String) -> Void)?
 
-    private let captureSession = AVCaptureSession()
+    private nonisolated(unsafe) let captureSession = AVCaptureSession()
     private var previewLayer: AVCaptureVideoPreviewLayer?
-    private let videoOutput = AVCaptureVideoDataOutput()
+    private nonisolated(unsafe) let videoOutput = AVCaptureVideoDataOutput()
     private let processingQueue = DispatchQueue(label: "com.sltrdigital.barcode", qos: .userInitiated)
     private nonisolated(unsafe) var lastDetectedBarcode: String?
     private nonisolated(unsafe) var lastDetectionTime: Date = .distantPast
@@ -36,17 +36,15 @@ final class BarcodeScannerController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        let session = captureSession
-        processingQueue.async {
-            session.startRunning()
+        processingQueue.async { [captureSession] in
+            captureSession.startRunning()
         }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        let session = captureSession
-        processingQueue.async {
-            session.stopRunning()
+        processingQueue.async { [captureSession] in
+            captureSession.stopRunning()
         }
     }
 
