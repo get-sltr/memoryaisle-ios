@@ -3,7 +3,6 @@ import SwiftUI
 struct DoseTimingScreen: View {
     @Binding var profile: OnboardingProfile
     let onContinue: () -> Void
-    @Environment(\.colorScheme) private var scheme
 
     private var modality: MedicationModality {
         guard let med = profile.medication else { return .injectable }
@@ -19,31 +18,41 @@ struct DoseTimingScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: Theme.Spacing.lg) {
-                    Text("Dose and timing")
-                        .font(Typography.displaySmall)
-                        .foregroundStyle(.white)
-                        .padding(.top, Theme.Spacing.xl)
+            Spacer()
+                .frame(height: 20)
 
+            Text("Dose and timing")
+                .font(.system(size: 26, weight: .medium))
+                .foregroundStyle(.white)
+                .padding(.bottom, 32)
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 20) {
                     // Dose input
-                    GlassCard {
-                        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                            Text("Current dose")
-                                .font(Typography.bodySmall)
-                                .foregroundStyle(.white.opacity(0.5))
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("CURRENT DOSE")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.3))
+                            .tracking(1)
 
-                            TextField("e.g. 0.5mg", text: Binding(
-                                get: { profile.doseAmount ?? "" },
-                                set: { profile.doseAmount = $0 }
-                            ))
-                            .font(Typography.bodyLarge)
-                            .foregroundStyle(.white)
-                            .keyboardType(.decimalPad)
-                        }
-                        .padding(Theme.Spacing.md)
+                        TextField("e.g. 0.5mg", text: Binding(
+                            get: { profile.doseAmount ?? "" },
+                            set: { profile.doseAmount = $0 }
+                        ))
+                        .font(.system(size: 17, weight: .regular))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(.white.opacity(0.04))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(.white.opacity(0.08), lineWidth: 0.5)
+                        )
+                        .keyboardType(.decimalPad)
                     }
-                    .padding(.horizontal, Theme.Spacing.md)
 
                     // Modality-specific
                     if modality == .injectable {
@@ -54,108 +63,123 @@ struct DoseTimingScreen: View {
                         noFastingNote
                     }
 
-                    // Mira context
-                    GlassCard {
-                        HStack(spacing: Theme.Spacing.sm) {
-                            MiraWaveform(state: .idle, size: .compact)
-                            Text("I'll adjust your meals based on where you are in your cycle.")
-                                .font(Typography.bodySmall)
-                                .foregroundStyle(.white.opacity(0.6))
-                        }
-                        .padding(Theme.Spacing.md)
+                    // Mira note
+                    HStack(spacing: 10) {
+                        MiraWaveform(state: .idle, size: .compact)
+                        Text("I'll adjust your meals based on where you are in your cycle.")
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.4))
                     }
-                    .padding(.horizontal, Theme.Spacing.md)
+                    .padding(.top, 8)
                 }
+                .padding(.horizontal, 28)
             }
 
-            VioletButton("Continue") {
+            GlowButton("Continue") {
                 profile.modality = modality
                 onContinue()
             }
-            .padding(.horizontal, Theme.Spacing.lg)
-            .padding(.vertical, Theme.Spacing.lg)
+            .padding(.horizontal, 32)
+            .padding(.top, 16)
+            .padding(.bottom, 56)
         }
     }
 
     // MARK: - Injectable
 
     private var injectableTiming: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                Text("Injection day")
-                    .font(Typography.bodySmall)
-                    .foregroundStyle(.white.opacity(0.5))
+        VStack(alignment: .leading, spacing: 10) {
+            Text("INJECTION DAY")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.white.opacity(0.3))
+                .tracking(1)
 
-                HStack(spacing: Theme.Spacing.sm) {
-                    ForEach(Array(zip(1...7, ["S","M","T","W","T","F","S"])), id: \.0) { day, label in
-                        Button {
-                            HapticManager.selection()
+            HStack(spacing: 8) {
+                ForEach(Array(zip(1...7, ["S", "M", "T", "W", "T", "F", "S"])), id: \.0) { day, label in
+                    let isSelected = profile.injectionDay == day
+
+                    Button {
+                        HapticManager.selection()
+                        withAnimation(.easeOut(duration: 0.12)) {
                             profile.injectionDay = day
-                        } label: {
-                            Text(label)
-                                .font(Typography.bodyMediumBold)
-                                .foregroundStyle(.white)
-                                .frame(width: 36, height: 36)
-                                .background(
-                                    profile.injectionDay == day
-                                        ? Color.violetDeep
-                                        : Theme.Surface.glass(for: scheme)
-                                )
-                                .clipShape(Circle())
                         }
+                    } label: {
+                        Text(label)
+                            .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                            .foregroundStyle(.white.opacity(isSelected ? 1 : 0.4))
+                            .frame(maxWidth: .infinity)
+                            .aspectRatio(1, contentMode: .fit)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(isSelected ? Color.violet.opacity(0.2) : .white.opacity(0.03))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .stroke(
+                                        isSelected ? Color.violet.opacity(0.4) : .clear,
+                                        lineWidth: 0.5
+                                    )
+                            )
+                            .shadow(
+                                color: isSelected ? Color.violet.opacity(0.15) : .clear,
+                                radius: 8
+                            )
                     }
+                    .buttonStyle(.plain)
                 }
             }
-            .padding(Theme.Spacing.md)
         }
-        .padding(.horizontal, Theme.Spacing.md)
     }
 
     // MARK: - Oral with fasting
 
     private var oralFastingTiming: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                Text("What time do you take your pill?")
-                    .font(Typography.bodySmall)
-                    .foregroundStyle(.white.opacity(0.5))
+        VStack(alignment: .leading, spacing: 10) {
+            Text("PILL TIME")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.white.opacity(0.3))
+                .tracking(1)
 
-                DatePicker(
-                    "",
-                    selection: Binding(
-                        get: { profile.pillTime ?? Calendar.current.date(from: DateComponents(hour: 7))! },
-                        set: { profile.pillTime = $0 }
-                    ),
-                    displayedComponents: .hourAndMinute
-                )
-                .datePickerStyle(.wheel)
-                .labelsHidden()
-                .colorScheme(.dark)
+            DatePicker(
+                "",
+                selection: Binding(
+                    get: { profile.pillTime ?? Calendar.current.date(from: DateComponents(hour: 7))! },
+                    set: { profile.pillTime = $0 }
+                ),
+                displayedComponents: .hourAndMinute
+            )
+            .datePickerStyle(.wheel)
+            .labelsHidden()
+            .colorScheme(.dark)
+            .frame(height: 120)
+            .clipped()
 
-                Text("Mira will plan breakfast around your 30-minute window.")
-                    .font(Typography.caption)
-                    .foregroundStyle(.white.opacity(0.4))
-            }
-            .padding(Theme.Spacing.md)
+            Text("Mira will plan breakfast around your 30-minute fasting window.")
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(.white.opacity(0.35))
         }
-        .padding(.horizontal, Theme.Spacing.md)
     }
 
     // MARK: - No fasting
 
     private var noFastingNote: some View {
-        GlassCard {
-            HStack(spacing: Theme.Spacing.sm) {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(Color(hex: 0x34D399))
-                    .font(.system(size: 22))
+        HStack(spacing: 12) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(Color(hex: 0x34D399))
+                .font(.system(size: 20))
 
-                Text("No timing restrictions. I'll plan meals for maximum absorption and comfort.")
-                    .font(Typography.bodyMedium)
-                    .foregroundStyle(.white.opacity(0.7))
-            }
-            .padding(Theme.Spacing.md)
+            Text("No timing restrictions. I'll plan meals for maximum absorption and comfort.")
+                .font(.system(size: 14, weight: .regular))
+                .foregroundStyle(.white.opacity(0.6))
         }
-        .padding(.horizontal, Theme.Spacing.md)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(hex: 0x34D399).opacity(0.06))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color(hex: 0x34D399).opacity(0.15), lineWidth: 0.5)
+        )
     }
 }
