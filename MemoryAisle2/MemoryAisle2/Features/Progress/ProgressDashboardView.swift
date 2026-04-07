@@ -5,6 +5,9 @@ struct ProgressDashboardView: View {
     @Environment(\.colorScheme) private var scheme
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
+    @State private var healthKit = HealthKitManager()
+    @State private var showGITolerance = false
+    @State private var showProviderReport = false
 
     private var profile: UserProfile? { profiles.first }
     private var todayLog: NutritionLog? {
@@ -123,28 +126,36 @@ struct ProgressDashboardView: View {
                     .padding(.horizontal, 20)
                 }
 
-                // HealthKit CTA
-                VStack(spacing: 12) {
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(Color(hex: 0xF87171).opacity(0.5))
+                // Weight trend chart
+                WeightTrendChart(data: healthKit.weightHistory)
+                    .padding(.horizontal, 20)
 
-                    Text("Connect HealthKit for weight\nand body composition trends")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.white.opacity(0.35))
-                        .multilineTextAlignment(.center)
-
-                    GlowButton("Connect HealthKit") {}
-                        .padding(.horizontal, 20)
+                // Action buttons
+                HStack(spacing: 10) {
+                    actionButton("GI Tolerance", icon: "leaf.fill") {
+                        showGITolerance = true
+                    }
+                    actionButton("Provider Report", icon: "doc.text.fill") {
+                        showProviderReport = true
+                    }
                 }
-                .padding(.vertical, 20)
                 .padding(.horizontal, 20)
+
+                // HealthKit connect if not authorized
+                if !healthKit.isAuthorized {
+                    GlowButton("Connect HealthKit") {
+                        Task { await healthKit.requestAuthorization() }
+                    }
+                    .padding(.horizontal, 40)
+                }
 
                 Spacer(minLength: 80)
             }
         }
         .themeBackground()
         .navigationBarHidden(true)
+        .sheet(isPresented: $showGITolerance) { GIToleranceView() }
+        .sheet(isPresented: $showProviderReport) { ProviderReportView() }
     }
 
     // MARK: - Components
@@ -203,5 +214,32 @@ struct ProgressDashboardView: View {
         let f = DateFormatter()
         f.dateFormat = "E"
         return String(f.string(from: date).prefix(1))
+    }
+
+    private func actionButton(_ label: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button {
+            HapticManager.light()
+            action()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.violet)
+                Text(label)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.white.opacity(0.03))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(.white.opacity(0.06), lineWidth: 0.5)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }

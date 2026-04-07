@@ -4,6 +4,9 @@ struct ScanView: View {
     @Environment(\.colorScheme) private var scheme
     @State private var scanLineOffset: CGFloat = -100
     @State private var showGroceryList = false
+    @State private var showPantry = false
+    @State private var showMealPhoto = false
+    @State private var showFoodSearch = false
     @State private var selectedMode = 0
     @State private var isScanning = false
     @State private var scannedProduct: ScannedProduct?
@@ -22,27 +25,17 @@ struct ScanView: View {
 
                     Spacer()
 
-                    Button {
-                        showGroceryList = true
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "cart")
-                                .font(.system(size: 14))
-                            Text("List")
-                                .font(.system(size: 13, weight: .medium))
-                        }
-                        .foregroundStyle(Color.violet.opacity(0.7))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(Color.violet.opacity(0.08))
-                        .clipShape(Capsule())
+                    HStack(spacing: 8) {
+                        scanHeaderButton("cart", "List") { showGroceryList = true }
+                        scanHeaderButton("refrigerator", "Pantry") { showPantry = true }
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
-                .sheet(isPresented: $showGroceryList) {
-                    GroceryListView()
-                }
+                .sheet(isPresented: $showGroceryList) { GroceryListView() }
+                .sheet(isPresented: $showPantry) { PantryView() }
+                .sheet(isPresented: $showMealPhoto) { MealPhotoView() }
+                .sheet(isPresented: $showFoodSearch) { FoodSearchView() }
 
                 Spacer()
 
@@ -115,8 +108,15 @@ struct ScanView: View {
                 // Capture button
                 Button {
                     HapticManager.heavy()
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        isScanning.toggle()
+                    switch selectedMode {
+                    case 0:
+                        withAnimation(.easeOut(duration: 0.2)) { isScanning.toggle() }
+                    case 1:
+                        showMealPhoto = true
+                    case 2:
+                        showFoodSearch = true
+                    default:
+                        break
                     }
                 } label: {
                     ZStack {
@@ -181,6 +181,25 @@ struct ScanView: View {
                     reason: "Couldn't look up this barcode. Make sure you're connected to the internet."
                 )
             }
+        }
+    }
+
+    private func scanHeaderButton(_ icon: String, _ label: String, action: @escaping () -> Void) -> some View {
+        Button {
+            HapticManager.light()
+            action()
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                Text(label)
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .foregroundStyle(Color.violet.opacity(0.7))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.violet.opacity(0.08))
+            .clipShape(Capsule())
         }
     }
 
