@@ -61,7 +61,9 @@ struct HomeView: View {
             Button {
                 showProfile = true
             } label: {
-                MiraWaveform(state: .idle, size: .inline)
+                MiraWaveform(state: .idle, size: .hero)
+                    .frame(height: 32)
+                    .scaleEffect(0.6, anchor: .trailing)
             }
         }
         .padding(.horizontal, Theme.Spacing.md)
