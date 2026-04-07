@@ -7,6 +7,7 @@ struct ProfileView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
     @Query private var profiles: [UserProfile]
+    @State private var showLegal: LegalPage?
 
     private var profile: UserProfile? { profiles.first }
 
@@ -111,10 +112,17 @@ struct ProfileView: View {
                         }
                     }
 
-                    // About
+                    // About + Legal
                     section("About") {
                         infoRow("Version", value: "1.0.0")
                         infoRow("Built by", value: "SLTR Digital LLC")
+                    }
+
+                    section("Legal") {
+                        legalLink(.terms)
+                        legalLink(.privacy)
+                        legalLink(.medical)
+                        legalLink(.community)
                     }
 
                     // Sign out
@@ -147,6 +155,26 @@ struct ProfileView: View {
             }
         }
         .themeBackground()
+        .sheet(item: $showLegal) { page in
+            LegalView(page: page)
+        }
+    }
+
+    private func legalLink(_ page: LegalPage) -> some View {
+        Button {
+            showLegal = page
+        } label: {
+            HStack {
+                Text(page.rawValue)
+                    .font(.system(size: 14))
+                    .foregroundStyle(.white.opacity(0.5))
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.white.opacity(0.15))
+            }
+            .padding(.vertical, 2)
+        }
     }
 
     // MARK: - Components

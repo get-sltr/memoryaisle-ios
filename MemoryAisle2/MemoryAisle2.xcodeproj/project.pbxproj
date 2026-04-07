@@ -21,6 +21,7 @@
 		359B4DFBB5154B349218012A /* CognitoAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA6E4DE8933E6B52543866FD /* CognitoAuthManager.swift */; };
 		35A8469C9F00D674C4F6BA7B /* ProteinCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */; };
 		38E64D72A546975168D6065C /* MiraWaveform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */; };
+		3BDB4570BBD7D86AA103931C /* LegalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */; };
 		41D94F87A2556F72C519A426 /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5640B3BABC0F505637F2FC /* ProgressBar.swift */; };
 		4BBC465A88A6826533BD009C /* GIToleranceRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4564362A2F998248701E2AC /* GIToleranceRecord.swift */; };
 		50874713BECF1D22DA220658 /* MiraIntroScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */; };
@@ -131,6 +132,7 @@
 		422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProteinCalculator.swift; path = MemoryAisle2/Services/Nutrition/ProteinCalculator.swift; sourceTree = SOURCE_ROOT; };
 		44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraWaveform.swift; path = MemoryAisle2/DesignSystem/MiraWaveform.swift; sourceTree = SOURCE_ROOT; };
 		4BAA4CB08A7717EE5D125AF1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeView.swift; path = MemoryAisle2/Features/Home/HomeView.swift; sourceTree = SOURCE_ROOT; };
+		4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LegalView.swift; path = MemoryAisle2/Features/Auth/LegalView.swift; sourceTree = SOURCE_ROOT; };
 		4CE8428783F05EDD67FF55C2 /* AuthFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AuthFlowView.swift; path = MemoryAisle2/Features/Auth/AuthFlowView.swift; sourceTree = SOURCE_ROOT; };
 		4D674F82B74DB0A621E6447D /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HealthKitManager.swift; path = MemoryAisle2/Services/Health/HealthKitManager.swift; sourceTree = SOURCE_ROOT; };
 		4DC345C68315E39FD1CF0163 /* GlowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlowButton.swift; path = MemoryAisle2/DesignSystem/GlowButton.swift; sourceTree = SOURCE_ROOT; };
@@ -320,6 +322,7 @@
 				84EA4FEE91F2155DF5DDDF5B /* RecipesView.swift */,
 				D98A4837B665CBC33CB5BA99 /* RecipeDetailView.swift */,
 				F43741A583EA394EE6FC0C28 /* ReceiptScannerView.swift */,
+				4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -584,6 +587,7 @@
 				EACC4230A6CA93B3AB8EC58B /* RecipesView.swift in Sources */,
 				EDED46E8A0834B1A471D14D1 /* RecipeDetailView.swift in Sources */,
 				DF984CDAB17532BDAD2256CC /* ReceiptScannerView.swift in Sources */,
+				3BDB4570BBD7D86AA103931C /* LegalView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
