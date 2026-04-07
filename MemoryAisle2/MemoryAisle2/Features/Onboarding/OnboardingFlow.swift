@@ -12,10 +12,33 @@ struct OnboardingFlow: View {
             Color.indigoBlack.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Progress dots
-                if step != .intro && step != .ready {
-                    progressDots
-                        .padding(.top, Theme.Spacing.md)
+                // Top bar: back button + progress
+                if step != .intro {
+                    HStack {
+                        Button {
+                            HapticManager.light()
+                            withAnimation(.easeOut(duration: 0.25)) {
+                                goBack()
+                            }
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundStyle(.white.opacity(0.5))
+                                .frame(width: 44, height: 44)
+                        }
+
+                        Spacer()
+
+                        if step != .ready {
+                            progressDots
+                        }
+
+                        Spacer()
+
+                        Color.clear.frame(width: 44, height: 44)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.top, 4)
                 }
 
                 // Content
@@ -82,6 +105,21 @@ struct OnboardingFlow: View {
                     .frame(width: s == step ? 20 : 6, height: 4)
                     .animation(.easeInOut(duration: 0.25), value: step)
             }
+        }
+    }
+
+    // MARK: - Navigation
+
+    private func goBack() {
+        switch step {
+        case .intro: break
+        case .glp1Check: step = .intro
+        case .medication: step = .glp1Check
+        case .doseTiming: step = .medication
+        case .worries: step = profile.isOnGLP1 ? .doseTiming : .glp1Check
+        case .training: step = .worries
+        case .dietary: step = .training
+        case .ready: step = .dietary
         }
     }
 
