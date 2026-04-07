@@ -178,7 +178,7 @@ struct GroceryListView: View {
         HStack(spacing: 10) {
             // Mic button
             Button {
-                HapticManager.meshopping dium()
+                HapticManager.medium()
                 withAnimation(.easeOut(duration: 0.2)) {
                     micActive.toggle()
                 }
