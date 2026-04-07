@@ -10,7 +10,7 @@ struct GLP1CheckScreen: View {
                 Spacer()
                     .frame(height: geo.size.height * 0.25)
 
-                OnboardingLogo(size: 64)
+                OnboardingLogo()
                     .padding(.bottom, 40)
 
                 Text("Are you on\nGLP-1 medication?")

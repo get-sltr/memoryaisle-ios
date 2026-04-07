@@ -46,7 +46,7 @@ struct ProfileView: View {
                 VStack(spacing: 16) {
                     // Logo + user info
                     VStack(spacing: 10) {
-                        OnboardingLogo(size: 56)
+                        OnboardingLogo()
 
                         if let med = profile?.medication {
                             Text(med.rawValue)

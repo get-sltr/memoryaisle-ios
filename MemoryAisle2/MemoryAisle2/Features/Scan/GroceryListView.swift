@@ -76,10 +76,12 @@ struct GroceryListView: View {
                     if checkedCount > 0 {
                         Button {
                             HapticManager.heavy()
-                            // Remove all checked items
-                            for i in categories.indices {
-                                categories[i].items.removeAll { $0.isChecked }
+                            // Remove all checked items by rebuilding categories
+                            var updated = categories
+                            for i in updated.indices {
+                                updated[i].items = updated[i].items.filter { !$0.isChecked }
                             }
+                            categories = updated
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                                 showConfetti = true
                             }
