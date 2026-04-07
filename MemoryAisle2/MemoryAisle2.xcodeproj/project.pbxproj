@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		07D948479853B38C01937871 /* MemoryAisleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123744ECA42A55A09346F5E1 /* MemoryAisleApp.swift */; };
 		0D46401AA263700B907CB13D /* DoseTimingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD54425B8FD9D8774489B4E9 /* DoseTimingScreen.swift */; };
+		12E741F193DFCB2A948D654F /* MemoryAisle2.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = E40641D89BFFF7D09BE9FEF8 /* MemoryAisle2.entitlements */; };
 		15D24033A54B0142D21998D0 /* VioletButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68424357A33FA4E35A837E5F /* VioletButton.swift */; };
 		161E4891BEA873A25B0338BF /* MiraChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EC4F0883537C29DC32C1B2 /* MiraChatView.swift */; };
 		165843B493950DBC7100B93E /* TrainingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECA4F149FD027EFC35F2456 /* TrainingScreen.swift */; };
@@ -106,6 +107,7 @@
 		D4F2445794B97475876C58CB /* GLP1CheckScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GLP1CheckScreen.swift; path = MemoryAisle2/Features/Onboarding/GLP1CheckScreen.swift; sourceTree = SOURCE_ROOT; };
 		DA1743618E8AE833EBE26DFD /* BarcodeScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BarcodeScanner.swift; path = MemoryAisle2/Services/Grocery/BarcodeScanner.swift; sourceTree = SOURCE_ROOT; };
 		DECA4F149FD027EFC35F2456 /* TrainingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TrainingScreen.swift; path = MemoryAisle2/Features/Onboarding/TrainingScreen.swift; sourceTree = SOURCE_ROOT; };
+		E40641D89BFFF7D09BE9FEF8 /* MemoryAisle2.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MemoryAisle2.entitlements; path = MemoryAisle2/MemoryAisle2.entitlements; sourceTree = SOURCE_ROOT; };
 		E4914431A658D0E83910C515 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Typography.swift; path = MemoryAisle2/DesignSystem/Typography.swift; sourceTree = SOURCE_ROOT; };
 		E6EC4F0883537C29DC32C1B2 /* MiraChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraChatView.swift; path = MemoryAisle2/Features/Mira/MiraChatView.swift; sourceTree = SOURCE_ROOT; };
 		EB5640B3BABC0F505637F2FC /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProgressBar.swift; path = MemoryAisle2/DesignSystem/ProgressBar.swift; sourceTree = SOURCE_ROOT; };
@@ -196,6 +198,7 @@
 				57294B48A8131AD09B33F510 /* ScanResultView.swift */,
 				4D674F82B74DB0A621E6447D /* HealthKitManager.swift */,
 				C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */,
+				E40641D89BFFF7D09BE9FEF8 /* MemoryAisle2.entitlements */,
 			);
 			sourceTree = "<group>";
 		};
@@ -329,6 +332,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				12E741F193DFCB2A948D654F /* MemoryAisle2.entitlements in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -558,6 +562,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MemoryAisle2/MemoryAisle2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = A2RL4W62BR;
@@ -565,6 +570,9 @@
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSCameraUsageDescription = "MemoryAisle needs camera access to scan food barcodes and analyze meals.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "MemoryAisle reads your weight and body composition to personalize protein targets and track progress.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MemoryAisle uses the microphone for voice conversations with Mira.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -598,6 +606,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
+					"$(SRCROOT)/MemoryAisle2",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
@@ -618,6 +627,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MemoryAisle2/MemoryAisle2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = A2RL4W62BR;
@@ -625,6 +635,9 @@
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSCameraUsageDescription = "MemoryAisle needs camera access to scan food barcodes and analyze meals.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "MemoryAisle reads your weight and body composition to personalize protein targets and track progress.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MemoryAisle uses the microphone for voice conversations with Mira.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -658,6 +671,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
+					"$(SRCROOT)/MemoryAisle2",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
@@ -706,6 +720,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
+					"$(SRCROOT)/MemoryAisle2",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
@@ -753,6 +768,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
+					"$(SRCROOT)/MemoryAisle2",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
@@ -798,6 +814,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
+					"$(SRCROOT)/MemoryAisle2",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;
@@ -843,6 +860,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
 					"$(SRCROOT)/MemoryAisle2/Services/Health",
 					"$(SRCROOT)/MemoryAisle2/Services/System",
+					"$(SRCROOT)/MemoryAisle2",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;
