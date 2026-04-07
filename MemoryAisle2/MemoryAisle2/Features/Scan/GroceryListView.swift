@@ -186,7 +186,7 @@ struct GroceryListView: View {
                 .buttonStyle(.plain)
                 .contextMenu {
                     Button(role: .destructive) {
-                        withAnimation {
+                        _ = withAnimation {
                             categories[catIndex].items.remove(at: itemIndex)
                         }
                         HapticManager.light()
