@@ -223,12 +223,18 @@ struct HomeView: View {
             // Color-coded category cards
             LazyVGrid(columns: [
                 GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8),
                 GridItem(.flexible(), spacing: 8)
             ], spacing: 8) {
-                groceryCategory("Protein", icon: "flame.fill", count: 5, color: Color(hex: 0xA78BFA), items: ["Chicken breast", "Greek yogurt", "Eggs", "Salmon", "Whey protein"])
-                groceryCategory("Produce", icon: "carrot.fill", count: 6, color: Color(hex: 0x34D399), items: ["Broccoli", "Spinach", "Bananas", "Berries", "Avocados"])
-                groceryCategory("Grains", icon: "leaf.fill", count: 3, color: Color(hex: 0xFBBF24), items: ["Brown rice", "Oats", "Sweet potatoes"])
-                groceryCategory("Pantry", icon: "bag.fill", count: 4, color: Color(hex: 0x38BDF8), items: ["Hemp seeds", "Almond butter", "Chia seeds", "Ginger tea"])
+                groceryCategory("Protein", icon: "flame.fill", count: 5, color: Color(hex: 0xA78BFA), items: ["Chicken breast", "Salmon", "Eggs"])
+                groceryCategory("Dairy", icon: "cup.and.saucer.fill", count: 4, color: Color(hex: 0x38BDF8), items: ["Greek yogurt", "Cottage cheese", "Milk"])
+                groceryCategory("Produce", icon: "carrot.fill", count: 7, color: Color(hex: 0x34D399), items: ["Broccoli", "Spinach", "Bananas"])
+                groceryCategory("Grains", icon: "leaf.fill", count: 4, color: Color(hex: 0xFBBF24), items: ["Brown rice", "Oats", "Quinoa"])
+                groceryCategory("Frozen", icon: "snowflake", count: 3, color: Color(hex: 0x67E8F9), items: ["Frozen berries", "Vegetables", "Chicken"])
+                groceryCategory("Dry Goods", icon: "bag.fill", count: 5, color: Color(hex: 0xFCA5A5), items: ["Hemp seeds", "Almond butter", "Chia seeds"])
+                groceryCategory("Snacks", icon: "popcorn.fill", count: 3, color: Color(hex: 0xFDE68A), items: ["Protein bars", "Rice cakes", "Nuts"])
+                groceryCategory("Drinks", icon: "drop.fill", count: 3, color: Color(hex: 0x93C5FD), items: ["Almond milk", "Ginger tea", "Electrolytes"])
+                groceryCategory("Spices", icon: "flask.fill", count: 4, color: Color(hex: 0xD8B4FE), items: ["Garlic powder", "Italian herbs", "Cinnamon"])
             }
 
             // Quick add from pantry
