@@ -53,6 +53,7 @@
 		B55B4F0DA22D52DE7EEF5FF6 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */; };
 		BB2D4E6FBCACF3C119FB7E42 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26E44ADA86F30E9569F1575 /* AppState.swift */; };
 		BCF24B22B8770A883AD5E916 /* GIToleranceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E84B36BB085F228FF0EDE8 /* GIToleranceEngine.swift */; };
+		BDD84966AD845EB0ECC0BDE4 /* MiraAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557840D780BB0DF863C32C36 /* MiraAPIClient.swift */; };
 		BF744C58A8F22C3538A63B99 /* ProviderReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E94C5CA5E194DEFA7E5E23 /* ProviderReportView.swift */; };
 		C5E64D3A845532E38BED40DE /* GLP1CheckScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F2445794B97475876C58CB /* GLP1CheckScreen.swift */; };
 		CB4F48C09299FD5A9FFC2870 /* InjectionCycleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C6489781332BE91C67639C /* InjectionCycleEngine.swift */; };
@@ -131,6 +132,7 @@
 		506240CE835185D510251C6C /* GlassCardStrong.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlassCardStrong.swift; path = MemoryAisle2/DesignSystem/GlassCardStrong.swift; sourceTree = SOURCE_ROOT; };
 		52964A289E2145EB658EBD2A /* FoodSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FoodSearchView.swift; path = MemoryAisle2/Features/Scan/FoodSearchView.swift; sourceTree = SOURCE_ROOT; };
 		52C6489781332BE91C67639C /* InjectionCycleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InjectionCycleEngine.swift; path = MemoryAisle2/Services/Medication/InjectionCycleEngine.swift; sourceTree = SOURCE_ROOT; };
+		557840D780BB0DF863C32C36 /* MiraAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraAPIClient.swift; path = MemoryAisle2/Services/AI/MiraAPIClient.swift; sourceTree = SOURCE_ROOT; };
 		57294B48A8131AD09B33F510 /* ScanResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ScanResultView.swift; path = MemoryAisle2/Features/Scan/ScanResultView.swift; sourceTree = SOURCE_ROOT; };
 		5B294492BE492FD71C0C6523 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserProfile.swift; path = MemoryAisle2/Models/UserProfile.swift; sourceTree = SOURCE_ROOT; };
 		5CE14476936BC7AFA255BE8B /* MedicationSelectScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MedicationSelectScreen.swift; path = MemoryAisle2/Features/Onboarding/MedicationSelectScreen.swift; sourceTree = SOURCE_ROOT; };
@@ -302,6 +304,7 @@
 				36544B5B9A7CC184FBF5AEE7 /* GIToleranceView.swift */,
 				D2E94C5CA5E194DEFA7E5E23 /* ProviderReportView.swift */,
 				92E84B36BB085F228FF0EDE8 /* GIToleranceEngine.swift */,
+				557840D780BB0DF863C32C36 /* MiraAPIClient.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -560,6 +563,7 @@
 				95EF42A1B7A644AC7283345F /* GIToleranceView.swift in Sources */,
 				BF744C58A8F22C3538A63B99 /* ProviderReportView.swift in Sources */,
 				BCF24B22B8770A883AD5E916 /* GIToleranceEngine.swift in Sources */,
+				BDD84966AD845EB0ECC0BDE4 /* MiraAPIClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -620,6 +624,7 @@
 					"$(SRCROOT)/MemoryAisle2/Features/Scan",
 					"$(SRCROOT)/MemoryAisle2/Models",
 					"$(SRCROOT)/MemoryAisle2/Features/Progress",
+					"$(SRCROOT)/MemoryAisle2/Services/AI",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2.MemoryAisleWidgets;
@@ -656,6 +661,7 @@
 					"$(SRCROOT)/MemoryAisle2/Features/Scan",
 					"$(SRCROOT)/MemoryAisle2/Models",
 					"$(SRCROOT)/MemoryAisle2/Features/Progress",
+					"$(SRCROOT)/MemoryAisle2/Services/AI",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2.MemoryAisleWidgets;
@@ -847,6 +853,7 @@
 					"$(SRCROOT)/MemoryAisle2",
 					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
 					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Services/AI",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
@@ -914,6 +921,7 @@
 					"$(SRCROOT)/MemoryAisle2",
 					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
 					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Services/AI",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
@@ -965,6 +973,7 @@
 					"$(SRCROOT)/MemoryAisle2",
 					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
 					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Services/AI",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
@@ -1015,6 +1024,7 @@
 					"$(SRCROOT)/MemoryAisle2",
 					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
 					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Services/AI",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
@@ -1063,6 +1073,7 @@
 					"$(SRCROOT)/MemoryAisle2",
 					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
 					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Services/AI",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;
@@ -1111,6 +1122,7 @@
 					"$(SRCROOT)/MemoryAisle2",
 					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
 					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
+					"$(SRCROOT)/MemoryAisle2/Services/AI",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;

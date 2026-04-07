@@ -323,6 +323,8 @@ struct MiraChatView: View {
         inputText = ""
     }
 
+    private let miraClient = MiraAPIClient()
+
     private func sendMessage(_ text: String) {
         HapticManager.medium()
         let userMsg = MiraMessage(text, isUser: true)
@@ -331,62 +333,30 @@ struct MiraChatView: View {
             isTyping = true
         }
 
-        let response = generateResponse(to: text)
-        let delay = Double.random(in: 0.8...1.8)
+        let context = MiraAPIClient.MiraContext(
+            medication: profile?.medication?.rawValue,
+            mode: profile?.productMode.rawValue,
+            proteinTarget: profile?.proteinTargetGrams,
+            proteinToday: Int(todayLog?.proteinGrams ?? 0),
+            waterToday: todayLog?.waterLiters,
+            trainingLevel: profile?.trainingLevel.rawValue,
+            nauseaLevel: nil
+        )
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(Theme.Motion.spring) {
-                isTyping = false
-                messages.append(MiraMessage(response))
-            }
-            HapticManager.light()
-        }
-    }
-
-    // MARK: - Response Engine (Canned)
-
-    private func generateResponse(to input: String) -> String {
-        let lower = input.lowercased()
-        let proteinNow = Int(todayLog?.proteinGrams ?? 0)
-        let target = profile?.proteinTargetGrams ?? 140
-        let deficit = max(0, target - proteinNow)
-        let med = profile?.medication?.rawValue ?? "your medication"
-
-        if lower.contains("eat") || lower.contains("meal") || lower.contains("hungry") {
-            if deficit > 40 {
-                return "You're \(deficit)g behind on protein. I'd suggest grilled chicken with quinoa and roasted vegetables. That'll get you about 42g of protein in one sitting. Quick to prep, easy on the stomach."
-            } else if deficit > 0 {
-                return "You're close to your protein target! A Greek yogurt parfait with hemp seeds and berries would close the gap. Only takes 2 minutes, and the probiotics help with GI comfort."
-            } else {
-                return "You've hit your protein target! For your next meal, focus on vegetables and hydration. A light salad with avocado and a big glass of water would be perfect."
+        Task {
+            do {
+                let reply = try await miraClient.send(message: text, context: context)
+                withAnimation(Theme.Motion.spring) {
+                    isTyping = false
+                    messages.append(MiraMessage(reply))
+                }
+                HapticManager.light()
+            } catch {
+                withAnimation(Theme.Motion.spring) {
+                    isTyping = false
+                    messages.append(MiraMessage("I'm having trouble connecting right now. Check your internet and try again."))
+                }
             }
         }
-
-        if lower.contains("nausea") || lower.contains("nauseous") || lower.contains("sick") {
-            return "I hear you. On nausea days, go small and bland. Try plain rice with a soft-boiled egg, or a banana with a tablespoon of almond butter. Sip ginger tea between bites. Avoid anything high-fat or spicy until the wave passes. This is normal with \(med), especially days 1-2 after your dose."
-        }
-
-        if lower.contains("grocery") || lower.contains("shopping") || lower.contains("store") {
-            return "Based on your targets, here's a quick grocery run: chicken breast, Greek yogurt, eggs, rice, frozen vegetables, bananas, almond butter, hemp seeds, and ginger tea. That covers about 5 days of high-protein, nausea-friendly meals. Want me to build out the full weekly list?"
-        }
-
-        if lower.contains("protein") || lower.contains("how") {
-            return "Today you're at \(proteinNow)g out of \(target)g protein. That's \(deficit > 0 ? "\(deficit)g to go" : "target hit!"). \(deficit > 20 ? "You'll want to prioritize protein-dense options for your remaining meals." : "You're doing great. Keep up the consistency.")"
-        }
-
-        if lower.contains("water") || lower.contains("hydra") {
-            let waterNow = todayLog?.waterLiters ?? 0
-            return "You're at \(String(format: "%.1f", waterNow))L of water today. GLP-1 medications suppress your thirst response, so you may not feel thirsty even when you need fluids. Try keeping a water bottle visible and sipping throughout the day. Aim for \(String(format: "%.1f", profile?.waterTargetLiters ?? 2.5))L."
-        }
-
-        if lower.contains("weight") || lower.contains("progress") {
-            return "Weight fluctuates day to day, especially on GLP-1s. What matters is the trend over weeks, not individual weigh-ins. Focus on protein compliance and training consistency. The body composition changes will follow. Connect HealthKit for automatic trend tracking."
-        }
-
-        if lower.contains("workout") || lower.contains("train") || lower.contains("gym") || lower.contains("exercise") {
-            return "On training days, aim for a protein-rich meal 1-2 hours before and within 30 minutes after. If appetite is low, a protein shake works great post-workout. Don't skip carbs before lifting. Your muscles need glycogen for performance, even on a calorie deficit."
-        }
-
-        return "I'm here to help with your nutrition, meals, groceries, hydration, and how your body responds to \(med). Ask me anything about what to eat, how you're tracking, or what to buy at the store."
     }
 }
