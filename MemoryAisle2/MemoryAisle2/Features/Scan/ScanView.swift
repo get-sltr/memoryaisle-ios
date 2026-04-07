@@ -145,28 +145,43 @@ struct ScanView: View {
 
     // MARK: - Barcode Handler
 
+    private let nutritionClient = NutritionAPIClient()
+
     private func handleBarcode(_ barcode: String) {
         HapticManager.success()
         isScanning = false
 
-        // Demo product -- in production this hits FatSecret/Nutritionix API
-        let product = ScannedProduct(
-            barcode: barcode,
-            name: "Greek Yogurt, Plain",
-            brand: "Fage",
-            servingSize: "1 cup (227g)",
-            protein: 20,
-            calories: 130,
-            fat: 0,
-            carbs: 7,
-            fiber: 0,
-            sodium: 65,
-            verdict: .good,
-            nauseaRisk: false,
-            reason: "High protein, low fat. Easy on the stomach. Great for your 140g daily target."
-        )
-
-        scannedProduct = product
+        Task {
+            do {
+                if let nutrition = try await nutritionClient.lookupBarcode(barcode) {
+                    let product = BarcodeInterpreter.interpret(nutrition: nutrition)
+                    scannedProduct = product
+                } else {
+                    // Product not found in database
+                    scannedProduct = ScannedProduct(
+                        barcode: barcode,
+                        name: "Unknown Product",
+                        brand: "Barcode: \(barcode)",
+                        servingSize: "",
+                        protein: 0, calories: 0, fat: 0, carbs: 0, fiber: 0, sodium: 0,
+                        verdict: .okay,
+                        nauseaRisk: false,
+                        reason: "This product wasn't found in our database. Try searching by name instead."
+                    )
+                }
+            } catch {
+                scannedProduct = ScannedProduct(
+                    barcode: barcode,
+                    name: "Lookup Failed",
+                    brand: "Check your connection",
+                    servingSize: "",
+                    protein: 0, calories: 0, fat: 0, carbs: 0, fiber: 0, sodium: 0,
+                    verdict: .okay,
+                    nauseaRisk: false,
+                    reason: "Couldn't look up this barcode. Make sure you're connected to the internet."
+                )
+            }
+        }
     }
 
     private func modeTab(_ title: String, icon: String, index: Int) -> some View {
