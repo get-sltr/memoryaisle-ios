@@ -22,18 +22,17 @@ struct FoodSearchResult: Identifiable, Codable, Sendable {
     let protein: Double
 }
 
-actor NutritionAPIClient {
+struct NutritionAPIClient: Sendable {
     // Using OpenFoodFacts (free, no API key required)
     private let baseURL = "https://world.openfoodfacts.org/api/v2"
-    private let session: URLSession
 
-    init() {
+    private var session: URLSession {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 15
         config.httpAdditionalHeaders = [
             "User-Agent": "MemoryAisle/1.0 (iOS; contact: kevin@sltrdigital.com)"
         ]
-        session = URLSession(configuration: config)
+        return URLSession(configuration: config)
     }
 
     // MARK: - Barcode Lookup
