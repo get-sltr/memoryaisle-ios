@@ -148,76 +148,22 @@ struct GroceryListView: View {
 
             // Items
             ForEach(Array(category.items.enumerated()), id: \.element.id) { itemIndex, item in
-                Button {
-                    HapticManager.selection()
-                    withAnimation(.easeOut(duration: 0.15)) {
-                        categories[catIndex].items[itemIndex].isChecked.toggle()
-                    }
-                } label: {
-                    let catColor = Color(hex: category.color)
-
-                    HStack(spacing: 12) {
-                        Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
-                            .font(.system(size: 18))
-                            .foregroundStyle(
-                                item.isChecked
-                                    ? Color(hex: 0x34D399)
-                                    : catColor.opacity(0.4)
-                            )
-
-                        Text(item.name)
-                            .font(.system(size: 15, weight: item.isChecked ? .regular : .medium))
-                            .foregroundStyle(item.isChecked ? .white.opacity(0.3) : .white.opacity(0.85))
-                            .strikethrough(item.isChecked, color: .white.opacity(0.15))
-
-                        Spacer()
-
-                        if !item.isChecked {
-                            VStack(alignment: .trailing, spacing: 1) {
-                                Text(item.quantity)
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.white.opacity(0.25))
-                                if let protein = item.proteinPer {
-                                    Text(protein)
-                                        .font(.system(size: 10, design: .monospaced))
-                                        .foregroundStyle(catColor.opacity(0.5))
-                                }
-                            }
+                GroceryItemRow(
+                    item: item,
+                    categoryColor: category.color,
+                    onToggle: {
+                        HapticManager.selection()
+                        withAnimation(.easeOut(duration: 0.15)) {
+                            categories[catIndex].items[itemIndex].isChecked.toggle()
                         }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 9)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(
-                                item.isChecked
-                                    ? .clear
-                                    : LinearGradient(
-                                        colors: [catColor.opacity(0.06), catColor.opacity(0.02)],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                            )
-                    )
-                    .overlay(
-                        item.isChecked
-                            ? nil
-                            : RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(catColor.opacity(0.08), lineWidth: 0.5)
-                    )
-                    .padding(.horizontal, 16)
-                }
-                .buttonStyle(.plain)
-                .contextMenu {
-                    Button(role: .destructive) {
+                    },
+                    onDelete: {
                         _ = withAnimation {
                             categories[catIndex].items.remove(at: itemIndex)
                         }
                         HapticManager.light()
-                    } label: {
-                        Label("Remove", systemImage: "trash")
                     }
-                }
+                )
             }
         }
     }
@@ -448,5 +394,92 @@ extension GroceryListView {
                 GroceryItem(name: "Frozen chicken", quantity: "2 lbs", proteinPer: "31g/4oz"),
             ]),
         ]
+    }
+}
+
+// MARK: - Grocery Item Row (extracted for compiler performance)
+
+struct GroceryItemRow: View {
+    let item: GroceryItem
+    let categoryColor: UInt
+    let onToggle: () -> Void
+    let onDelete: () -> Void
+
+    private var catColor: Color { Color(hex: categoryColor) }
+
+    var body: some View {
+        Button(action: onToggle) {
+            rowContent
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button(role: .destructive, action: onDelete) {
+                Label("Remove", systemImage: "trash")
+            }
+        }
+    }
+
+    private var rowContent: some View {
+        HStack(spacing: 12) {
+            checkIcon
+            nameLabel
+            Spacer()
+            if !item.isChecked { detailLabels }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 9)
+        .background(rowBackground)
+        .overlay(rowBorder)
+        .padding(.horizontal, 16)
+    }
+
+    private var checkIcon: some View {
+        Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
+            .font(.system(size: 18))
+            .foregroundStyle(item.isChecked ? Color(hex: 0x34D399) : catColor.opacity(0.4))
+    }
+
+    private var nameLabel: some View {
+        Text(item.name)
+            .font(.system(size: 15, weight: item.isChecked ? .regular : .medium))
+            .foregroundStyle(.white.opacity(item.isChecked ? 0.3 : 0.85))
+            .strikethrough(item.isChecked, color: .white.opacity(0.15))
+    }
+
+    private var detailLabels: some View {
+        VStack(alignment: .trailing, spacing: 1) {
+            Text(item.quantity)
+                .font(.system(size: 11))
+                .foregroundStyle(.white.opacity(0.25))
+            if let protein = item.proteinPer {
+                Text(protein)
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(catColor.opacity(0.5))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var rowBackground: some View {
+        if item.isChecked {
+            Color.clear
+        } else {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [catColor.opacity(0.06), catColor.opacity(0.02)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+        }
+    }
+
+    @ViewBuilder
+    private var rowBorder: some View {
+        if !item.isChecked {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(catColor.opacity(0.08), lineWidth: 0.5)
+        }
     }
 }
