@@ -330,15 +330,37 @@ struct HomeView: View {
         .padding(.horizontal, Theme.Spacing.md)
     }
 
+    private var isOnGLP1: Bool {
+        profile?.medication != nil
+    }
+
     private var miraSuggestionText: String {
+        let hour = Calendar.current.component(.hour, from: .now)
+
         if proteinDeficit > 30 {
             return "You're \(proteinDeficit)g behind on protein. Greek yogurt + hemp seeds closes the gap in one snack."
         } else if proteinDeficit > 0 {
             return "Almost there! Just \(proteinDeficit)g more protein. A quick protein shake would do it."
         } else if water < waterTarget * 0.5 {
-            return "You're behind on hydration. GLP-1s suppress thirst. Try to drink a glass now."
+            if isOnGLP1 {
+                return "You're behind on hydration. GLP-1s can suppress thirst, so you may not feel it. Try a glass now."
+            } else {
+                return "You're behind on hydration. Try to get a glass of water in. Staying hydrated helps with energy and focus."
+            }
+        } else if protein == 0 && hour < 12 {
+            if isOnGLP1 {
+                return "Morning is a great time to start on protein, even if appetite is low. A smoothie or yogurt is easy to get down."
+            } else {
+                return "Good morning! Start your day with a protein-rich breakfast to fuel your body and stay satisfied longer."
+            }
+        } else if protein == 0 && hour >= 12 {
+            return "You haven't logged any protein yet today. Even a quick snack like cottage cheese or a protein bar helps."
         } else {
-            return "Great progress today! Keep it up and you'll hit all your targets."
+            if isOnGLP1 {
+                return "Great progress today! You're on track. Keep listening to your body and eating when you can."
+            } else {
+                return "Great progress today! Keep it up and you'll hit all your targets."
+            }
         }
     }
 
