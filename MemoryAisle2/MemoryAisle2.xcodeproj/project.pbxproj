@@ -62,13 +62,16 @@
 		CFF94785A36A6FFACDF2D1A9 /* WeightTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DD84186B7F661DEAD7667B0 /* WeightTrendChart.swift */; };
 		D65C4971B6322037A02C0A25 /* GroceryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B848AC9825476CBEEC85AC /* GroceryListView.swift */; };
 		DCCC4A29A9894D6ADD219F3B /* BarcodeScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1743618E8AE833EBE26DFD /* BarcodeScanner.swift */; };
+		DF984CDAB17532BDAD2256CC /* ReceiptScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43741A583EA394EE6FC0C28 /* ReceiptScannerView.swift */; };
 		DFEF4DE79F20482A798186B5 /* NutritionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772C4DFAAFDE50412197536B /* NutritionLog.swift */; };
 		E0D14E23BF2076C3D705B767 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4B4328BA122E1C6F872308 /* SubscriptionManager.swift */; };
 		E71640C682333D59F85F7705 /* ProviderReportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EB043AD8D83C14C5C0E20BD /* ProviderReportGenerator.swift */; };
 		E7304B41AF2CF0772C6B0C3A /* SymptomQuickLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D3E416CBF0A88F494A4F026 /* SymptomQuickLog.swift */; };
 		E7CF4CFB948DD698D6D6E2BB /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F48444BD84D42196D0CC3E22 /* OnboardingFlow.swift */; };
+		EACC4230A6CA93B3AB8EC58B /* RecipesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84EA4FEE91F2155DF5DDDF5B /* RecipesView.swift */; };
 		EB0D4806AF46797110EB5DD5 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F98A435BA82A219DA009067F /* GlassCard.swift */; };
 		EB7D40AABDD0FBD8D93EFD6C /* MiraReadyScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10F44569B68AC65A05C9817B /* MiraReadyScreen.swift */; };
+		EDED46E8A0834B1A471D14D1 /* RecipeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98A4837B665CBC33CB5BA99 /* RecipeDetailView.swift */; };
 		EF4747C4B0D93092979B5258 /* PantryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FE4DC69474384CFCD38097 /* PantryItem.swift */; };
 		FD9440E7AD9FB5A14E8FF442 /* BarcodeInterpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BD1487F95C863AF21AE7D88 /* BarcodeInterpreter.swift */; };
 /* End PBXBuildFile section */
@@ -147,6 +150,7 @@
 		788343C2BD56EA9C54361D80 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileView.swift; path = MemoryAisle2/Features/Profile/ProfileView.swift; sourceTree = SOURCE_ROOT; };
 		7FC74B4D8A9E864DC85E9D66 /* GhostButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GhostButton.swift; path = MemoryAisle2/DesignSystem/GhostButton.swift; sourceTree = SOURCE_ROOT; };
 		849648448FD61E9F718CA956 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PaywallView.swift; path = MemoryAisle2/Features/Subscription/PaywallView.swift; sourceTree = SOURCE_ROOT; };
+		84EA4FEE91F2155DF5DDDF5B /* RecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RecipesView.swift; path = MemoryAisle2/Features/Recipes/RecipesView.swift; sourceTree = SOURCE_ROOT; };
 		855E4985B7567EEB6D505C70 /* SymptomLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SymptomLog.swift; path = MemoryAisle2/Models/SymptomLog.swift; sourceTree = SOURCE_ROOT; };
 		8B3F98F92F849BA000710E33 /* MemoryAisleWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MemoryAisleWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B3F98FB2F849BA000710E33 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -166,6 +170,7 @@
 		C892475BA9FF13903B47A6DC /* MealsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealsView.swift; path = MemoryAisle2/Features/Meals/MealsView.swift; sourceTree = SOURCE_ROOT; };
 		D2E94C5CA5E194DEFA7E5E23 /* ProviderReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProviderReportView.swift; path = MemoryAisle2/Features/Progress/ProviderReportView.swift; sourceTree = SOURCE_ROOT; };
 		D4F2445794B97475876C58CB /* GLP1CheckScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GLP1CheckScreen.swift; path = MemoryAisle2/Features/Onboarding/GLP1CheckScreen.swift; sourceTree = SOURCE_ROOT; };
+		D98A4837B665CBC33CB5BA99 /* RecipeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RecipeDetailView.swift; path = MemoryAisle2/Features/Recipes/RecipeDetailView.swift; sourceTree = SOURCE_ROOT; };
 		DA1743618E8AE833EBE26DFD /* BarcodeScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BarcodeScanner.swift; path = MemoryAisle2/Services/Grocery/BarcodeScanner.swift; sourceTree = SOURCE_ROOT; };
 		DECA4F149FD027EFC35F2456 /* TrainingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TrainingScreen.swift; path = MemoryAisle2/Features/Onboarding/TrainingScreen.swift; sourceTree = SOURCE_ROOT; };
 		E40641D89BFFF7D09BE9FEF8 /* MemoryAisle2.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MemoryAisle2.entitlements; path = MemoryAisle2/MemoryAisle2.entitlements; sourceTree = SOURCE_ROOT; };
@@ -177,6 +182,7 @@
 		EF5140E8882E1CFB23214AEF /* PantryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PantryView.swift; path = MemoryAisle2/Features/Scan/PantryView.swift; sourceTree = SOURCE_ROOT; };
 		EFE54345A69DA4E5A1CD11D4 /* VoiceWaveform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VoiceWaveform.swift; path = MemoryAisle2/DesignSystem/VoiceWaveform.swift; sourceTree = SOURCE_ROOT; };
 		F26E44ADA86F30E9569F1575 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppState.swift; path = MemoryAisle2/App/AppState.swift; sourceTree = SOURCE_ROOT; };
+		F43741A583EA394EE6FC0C28 /* ReceiptScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReceiptScannerView.swift; path = MemoryAisle2/Features/Recipes/ReceiptScannerView.swift; sourceTree = SOURCE_ROOT; };
 		F48444BD84D42196D0CC3E22 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingFlow.swift; path = MemoryAisle2/Features/Onboarding/OnboardingFlow.swift; sourceTree = SOURCE_ROOT; };
 		F98A435BA82A219DA009067F /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlassCard.swift; path = MemoryAisle2/DesignSystem/GlassCard.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -311,6 +317,9 @@
 				557840D780BB0DF863C32C36 /* MiraAPIClient.swift */,
 				EA6E4DE8933E6B52543866FD /* CognitoAuthManager.swift */,
 				4CE8428783F05EDD67FF55C2 /* AuthFlowView.swift */,
+				84EA4FEE91F2155DF5DDDF5B /* RecipesView.swift */,
+				D98A4837B665CBC33CB5BA99 /* RecipeDetailView.swift */,
+				F43741A583EA394EE6FC0C28 /* ReceiptScannerView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -572,6 +581,9 @@
 				BDD84966AD845EB0ECC0BDE4 /* MiraAPIClient.swift in Sources */,
 				359B4DFBB5154B349218012A /* CognitoAuthManager.swift in Sources */,
 				BD02417C8B6FA18051E37504 /* AuthFlowView.swift in Sources */,
+				EACC4230A6CA93B3AB8EC58B /* RecipesView.swift in Sources */,
+				EDED46E8A0834B1A471D14D1 /* RecipeDetailView.swift in Sources */,
+				DF984CDAB17532BDAD2256CC /* ReceiptScannerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -635,6 +647,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/AI",
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
+					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2.MemoryAisleWidgets;
@@ -674,6 +687,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/AI",
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
+					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2.MemoryAisleWidgets;
@@ -868,6 +882,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/AI",
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
+					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
@@ -938,6 +953,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/AI",
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
+					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
@@ -992,6 +1008,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/AI",
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
+					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
@@ -1045,6 +1062,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/AI",
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
+					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
@@ -1096,6 +1114,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/AI",
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
+					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;
@@ -1147,6 +1166,7 @@
 					"$(SRCROOT)/MemoryAisle2/Services/AI",
 					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
 					"$(SRCROOT)/MemoryAisle2/Features/Auth",
+					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;

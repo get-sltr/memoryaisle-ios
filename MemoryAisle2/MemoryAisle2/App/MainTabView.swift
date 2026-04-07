@@ -14,9 +14,9 @@ struct MainTabView: View {
                     NavigationStack(path: $state.homePath) {
                         HomeView()
                     }
-                case .meals:
-                    NavigationStack(path: $state.mealsPath) {
-                        MealsView()
+                case .recipes:
+                    NavigationStack(path: $state.recipesPath) {
+                        RecipesView()
                     }
                 case .scan:
                     ScanView()

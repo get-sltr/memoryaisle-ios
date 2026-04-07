@@ -11,7 +11,7 @@ final class AppState {
 
     enum Tab: Int, CaseIterable {
         case home
-        case meals
+        case recipes
         case scan
         case mira
         case progress
@@ -19,7 +19,7 @@ final class AppState {
         var title: String {
             switch self {
             case .home: "Home"
-            case .meals: "Meals"
+            case .recipes: "Recipes"
             case .scan: "Scan"
             case .mira: "Mira"
             case .progress: "Progress"
@@ -29,7 +29,7 @@ final class AppState {
         var icon: String {
             switch self {
             case .home: "house.fill"
-            case .meals: "fork.knife"
+            case .recipes: "book.fill"
             case .scan: "barcode.viewfinder"
             case .mira: "waveform"
             case .progress: "chart.line.uptrend.xyaxis"
@@ -41,7 +41,7 @@ final class AppState {
     var hasCompletedOnboarding = false
     var selectedTab: Tab = .home
     var homePath = NavigationPath()
-    var mealsPath = NavigationPath()
+    var recipesPath = NavigationPath()
     var miraPath = NavigationPath()
     var progressPath = NavigationPath()
 }
