@@ -17,12 +17,17 @@ struct TrainingScreen: View {
         VStack(spacing: 0) {
             Spacer()
 
+            MiraWaveform(state: .idle, size: .hero)
+                .frame(height: 50)
+                .padding(.bottom, 28)
+
             Text("Do you train or\nexercise regularly?")
-                .font(.system(size: 26, weight: .medium))
+                .font(.system(size: 26, weight: .light, design: .serif))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
-                .padding(.bottom, 36)
+                .tracking(0.3)
+                .padding(.bottom, 32)
 
             VStack(spacing: 8) {
                 ForEach(TrainingLevel.allCases, id: \.self) { level in
@@ -34,19 +39,17 @@ struct TrainingScreen: View {
                             selection = level
                         }
                     } label: {
-                        HStack(spacing: 14) {
+                        HStack(spacing: 12) {
                             Image(systemName: iconFor(level))
-                                .font(.system(size: 15))
-                                .foregroundStyle(isSelected ? Color.violet : .white.opacity(0.3))
-                                .frame(width: 22)
+                                .font(.system(size: 14))
+                                .foregroundStyle(isSelected ? Color.violet : .white.opacity(0.25))
+                                .frame(width: 20)
 
                             Text(level.rawValue)
                                 .font(.system(size: 15, weight: isSelected ? .medium : .regular))
                                 .foregroundStyle(.white.opacity(isSelected ? 1 : 0.6))
-
-                            Spacer()
                         }
-                        .padding(.horizontal, 18)
+                        .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -54,16 +57,9 @@ struct TrainingScreen: View {
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(
-                                    isSelected ? Color.violet.opacity(0.4) : .clear,
-                                    lineWidth: 0.5
-                                )
+                                .stroke(isSelected ? Color.violet.opacity(0.4) : .clear, lineWidth: 0.5)
                         )
-                        .shadow(
-                            color: isSelected ? Color.violet.opacity(0.2) : .clear,
-                            radius: 12,
-                            y: 2
-                        )
+                        .shadow(color: isSelected ? Color.violet.opacity(0.2) : .clear, radius: 12, y: 2)
                     }
                     .buttonStyle(.plain)
                 }

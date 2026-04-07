@@ -18,22 +18,25 @@ struct DoseTimingScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-                .frame(height: 20)
+            MiraWaveform(state: .idle, size: .hero)
+                .frame(height: 50)
+                .padding(.top, 16)
+                .padding(.bottom, 20)
 
             Text("Dose and timing")
-                .font(.system(size: 26, weight: .medium))
+                .font(.system(size: 26, weight: .light, design: .serif))
                 .foregroundStyle(.white)
-                .padding(.bottom, 32)
+                .tracking(0.3)
+                .padding(.bottom, 28)
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
+                VStack(spacing: 24) {
                     // Dose input
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(spacing: 8) {
                         Text("CURRENT DOSE")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.3))
-                            .tracking(1)
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.25))
+                            .tracking(1.2)
 
                         TextField("e.g. 0.5mg", text: Binding(
                             get: { profile.doseAmount ?? "" },
@@ -41,6 +44,7 @@ struct DoseTimingScreen: View {
                         ))
                         .font(.system(size: 17, weight: .regular))
                         .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
                         .background(
@@ -54,7 +58,6 @@ struct DoseTimingScreen: View {
                         .keyboardType(.decimalPad)
                     }
 
-                    // Modality-specific
                     if modality == .injectable {
                         injectableTiming
                     } else if modality == .oralWithFasting {
@@ -67,10 +70,9 @@ struct DoseTimingScreen: View {
                     HStack(spacing: 10) {
                         MiraWaveform(state: .idle, size: .compact)
                         Text("I'll adjust your meals based on where you are in your cycle.")
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundStyle(.white.opacity(0.4))
+                            .font(.system(size: 13))
+                            .foregroundStyle(.white.opacity(0.35))
                     }
-                    .padding(.top, 8)
                 }
                 .padding(.horizontal, 28)
             }
@@ -80,19 +82,17 @@ struct DoseTimingScreen: View {
                 onContinue()
             }
             .padding(.horizontal, 32)
-            .padding(.top, 16)
+            .padding(.top, 12)
             .padding(.bottom, 56)
         }
     }
 
-    // MARK: - Injectable
-
     private var injectableTiming: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(spacing: 10) {
             Text("INJECTION DAY")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.white.opacity(0.3))
-                .tracking(1)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.white.opacity(0.25))
+                .tracking(1.2)
 
             HStack(spacing: 8) {
                 ForEach(Array(zip(1...7, ["S", "M", "T", "W", "T", "F", "S"])), id: \.0) { day, label in
@@ -106,7 +106,7 @@ struct DoseTimingScreen: View {
                     } label: {
                         Text(label)
                             .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
-                            .foregroundStyle(.white.opacity(isSelected ? 1 : 0.4))
+                            .foregroundStyle(.white.opacity(isSelected ? 1 : 0.35))
                             .frame(maxWidth: .infinity)
                             .aspectRatio(1, contentMode: .fit)
                             .background(
@@ -115,15 +115,9 @@ struct DoseTimingScreen: View {
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(
-                                        isSelected ? Color.violet.opacity(0.4) : .clear,
-                                        lineWidth: 0.5
-                                    )
+                                    .stroke(isSelected ? Color.violet.opacity(0.4) : .clear, lineWidth: 0.5)
                             )
-                            .shadow(
-                                color: isSelected ? Color.violet.opacity(0.15) : .clear,
-                                radius: 8
-                            )
+                            .shadow(color: isSelected ? Color.violet.opacity(0.15) : .clear, radius: 8)
                     }
                     .buttonStyle(.plain)
                 }
@@ -131,14 +125,12 @@ struct DoseTimingScreen: View {
         }
     }
 
-    // MARK: - Oral with fasting
-
     private var oralFastingTiming: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(spacing: 10) {
             Text("PILL TIME")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.white.opacity(0.3))
-                .tracking(1)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.white.opacity(0.25))
+                .tracking(1.2)
 
             DatePicker(
                 "",
@@ -155,22 +147,21 @@ struct DoseTimingScreen: View {
             .clipped()
 
             Text("Mira will plan breakfast around your 30-minute fasting window.")
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(.white.opacity(0.35))
+                .font(.system(size: 13))
+                .foregroundStyle(.white.opacity(0.3))
+                .multilineTextAlignment(.center)
         }
     }
-
-    // MARK: - No fasting
 
     private var noFastingNote: some View {
         HStack(spacing: 12) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(Color(hex: 0x34D399))
-                .font(.system(size: 20))
+                .font(.system(size: 18))
 
-            Text("No timing restrictions. I'll plan meals for maximum absorption and comfort.")
-                .font(.system(size: 14, weight: .regular))
-                .foregroundStyle(.white.opacity(0.6))
+            Text("No timing restrictions. I'll plan meals for comfort.")
+                .font(.system(size: 14))
+                .foregroundStyle(.white.opacity(0.55))
         }
         .padding(16)
         .background(
@@ -179,7 +170,7 @@ struct DoseTimingScreen: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color(hex: 0x34D399).opacity(0.15), lineWidth: 0.5)
+                .stroke(Color(hex: 0x34D399).opacity(0.12), lineWidth: 0.5)
         )
     }
 }
