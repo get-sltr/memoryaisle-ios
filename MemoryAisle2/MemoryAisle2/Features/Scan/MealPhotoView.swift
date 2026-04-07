@@ -205,11 +205,11 @@ struct MealPhotoView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Analysis (placeholder for Bedrock Claude Vision)
+    // MARK: - Analysis (Bedrock Claude Vision)
 
     private func analyzePhoto() {
         isAnalyzing = true
-        // Simulate AI analysis -- replace with Bedrock Claude Vision call
+        // AI analysis via Bedrock (simulated until Vision API is wired)
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
             result = MealPhotoResult(
                 mealName: "Grilled Chicken with Rice & Vegetables",

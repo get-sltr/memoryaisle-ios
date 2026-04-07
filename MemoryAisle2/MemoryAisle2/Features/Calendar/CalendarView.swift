@@ -299,7 +299,7 @@ struct CalendarView: View {
         return f.string(from: date)
     }
 
-    // MARK: - Plan Generator (placeholder)
+    // MARK: - Plan Generator
 
     private func generateMealPlan(days: Int) {
         let calendar = Calendar.current

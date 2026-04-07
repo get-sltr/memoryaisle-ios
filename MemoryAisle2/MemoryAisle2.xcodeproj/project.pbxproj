@@ -21,6 +21,7 @@
 		27E4487290A3AD8DEF382E27 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 305B45C49B37D2415184B6FD /* Theme.swift */; };
 		28744E558C6F64F6765EC663 /* HolidayCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B1A425583690D2AC6328F2D /* HolidayCalendar.swift */; };
 		29A1411E95F5333298515471 /* MealsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C892475BA9FF13903B47A6DC /* MealsView.swift */; };
+		2A05425CB0033B8C3B9AF6A4 /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04246C4A0721EB9C05CA6FF /* CloudSyncManager.swift */; };
 		359B4DFBB5154B349218012A /* CognitoAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA6E4DE8933E6B52543866FD /* CognitoAuthManager.swift */; };
 		35A8469C9F00D674C4F6BA7B /* ProteinCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */; };
 		38E64D72A546975168D6065C /* MiraWaveform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */; };
@@ -164,6 +165,7 @@
 		A1B848AC9825476CBEEC85AC /* GroceryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GroceryListView.swift; path = MemoryAisle2/Features/Scan/GroceryListView.swift; sourceTree = SOURCE_ROOT; };
 		AB4B4328BA122E1C6F872308 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SubscriptionManager.swift; path = MemoryAisle2/Services/Subscription/SubscriptionManager.swift; sourceTree = SOURCE_ROOT; };
 		AD54425B8FD9D8774489B4E9 /* DoseTimingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DoseTimingScreen.swift; path = MemoryAisle2/Features/Onboarding/DoseTimingScreen.swift; sourceTree = SOURCE_ROOT; };
+		B04246C4A0721EB9C05CA6FF /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CloudSyncManager.swift; path = MemoryAisle2/Services/Cloud/CloudSyncManager.swift; sourceTree = SOURCE_ROOT; };
 		B0994D298A46D57B88B3C237 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CalendarView.swift; path = MemoryAisle2/Features/Calendar/CalendarView.swift; sourceTree = SOURCE_ROOT; };
 		B2FE4DC69474384CFCD38097 /* PantryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PantryItem.swift; path = MemoryAisle2/Models/PantryItem.swift; sourceTree = SOURCE_ROOT; };
 		B6B94AFC807203D44BBAB8C9 /* OnboardingLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingLogo.swift; path = MemoryAisle2/DesignSystem/OnboardingLogo.swift; sourceTree = SOURCE_ROOT; };
@@ -285,6 +287,7 @@
 				FC45409B9241986F89314CDE /* BodyStatsScreen.swift */,
 				52CB487285A6D146939E19E6 /* PhotoCheckInView.swift */,
 				809B46D18E3D24E08209537C /* OnboardingLogo.swift */,
+				B04246C4A0721EB9C05CA6FF /* CloudSyncManager.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -494,6 +497,7 @@
 				DCB045D8B94622A0B133D4BA /* BodyStatsScreen.swift in Sources */,
 				166C4B35ADC7F2411924F361 /* PhotoCheckInView.swift in Sources */,
 				C0DB47E199B5E0377DF45AF1 /* OnboardingLogo.swift in Sources */,
+				2A05425CB0033B8C3B9AF6A4 /* CloudSyncManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

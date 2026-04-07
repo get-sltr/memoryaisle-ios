@@ -127,6 +127,28 @@ struct ProfileView: View {
                         legalLink(.dataPolicy)
                     }
 
+                    // Sync
+                    section("Cloud Sync") {
+                        Button {
+                            Task {
+                                let sync = CloudSyncManager()
+                                let userId = UserDefaults.standard.string(forKey: "ma_email") ?? ""
+                                await sync.pushAll(userId: userId, modelContext: modelContext)
+                                HapticManager.success()
+                            }
+                        } label: {
+                            HStack {
+                                Text("Sync now")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.white.opacity(0.5))
+                                Spacer()
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(Color.violet.opacity(0.5))
+                            }
+                        }
+                    }
+
                     // Sign out
                     Button {
                         HapticManager.warning()
@@ -264,31 +286,39 @@ struct ProfileView: View {
     }
 
     private func deleteAllData() {
-        // 1. Delete all SwiftData records
-        try? modelContext.delete(model: UserProfile.self)
-        try? modelContext.delete(model: NutritionLog.self)
-        try? modelContext.delete(model: SymptomLog.self)
-        try? modelContext.delete(model: PantryItem.self)
-        try? modelContext.delete(model: GIToleranceRecord.self)
+        Task {
+            // 1. Delete cloud data first
+            let userId = UserDefaults.standard.string(forKey: "ma_email") ?? ""
+            let sync = CloudSyncManager()
+            _ = await sync.deleteAllCloudData(userId: userId)
 
-        // 2. Delete local progress photos
-        let fileManager = FileManager.default
-        let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let photosDir = documentsPath.appendingPathComponent("ProgressPhotos")
-        try? fileManager.removeItem(at: photosDir)
+            // 2. Delete all SwiftData records
+            try? modelContext.delete(model: UserProfile.self)
+            try? modelContext.delete(model: NutritionLog.self)
+            try? modelContext.delete(model: SymptomLog.self)
+            try? modelContext.delete(model: PantryItem.self)
+            try? modelContext.delete(model: GIToleranceRecord.self)
 
-        // 3. Clear UserDefaults (session data)
-        UserDefaults.standard.removeObject(forKey: "ma_email")
-        UserDefaults.standard.removeObject(forKey: "ma_token")
+            // 3. Delete local progress photos
+            let fileManager = FileManager.default
+            let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let photosDir = documentsPath.appendingPathComponent("ProgressPhotos")
+            try? fileManager.removeItem(at: photosDir)
 
-        // 4. Sign out
-        CognitoAuthManager().signOut()
+            // 4. Clear ALL UserDefaults
+            if let bundleId = Bundle.main.bundleIdentifier {
+                UserDefaults.standard.removePersistentDomain(forName: bundleId)
+            }
 
-        // 5. Reset app state
-        appState.hasCompletedOnboarding = false
-        appState.authStatus = .signedOut
+            // 5. Sign out
+            CognitoAuthManager().signOut()
 
-        HapticManager.heavy()
-        dismiss()
+            // 6. Reset app state
+            appState.hasCompletedOnboarding = false
+            appState.authStatus = .signedOut
+
+            HapticManager.heavy()
+            dismiss()
+        }
     }
 }

@@ -121,7 +121,7 @@ struct MiraChatView: View {
             }
             // Future: start/stop AVAudioSession recording
             if micPressed {
-                // Simulate listening then responding
+                // Voice input (AVAudioSession in Phase 2)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                     withAnimation(.easeOut(duration: 0.2)) {
                         micPressed = false

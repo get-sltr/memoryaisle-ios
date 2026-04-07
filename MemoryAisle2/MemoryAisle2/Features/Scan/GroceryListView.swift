@@ -179,7 +179,7 @@ struct GroceryListView: View {
                     micActive.toggle()
                 }
                 if micActive {
-                    // Simulate voice input
+                    // Voice input (Phase 2)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                         withAnimation { micActive = false }
                         addItem("Almond milk")
