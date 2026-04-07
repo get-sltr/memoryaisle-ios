@@ -70,28 +70,32 @@ struct MiraChatView: View {
 
     // MARK: - Empty State
 
+    @State private var micPressed = false
+
     private var emptyState: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            MiraWaveform(state: .speaking, size: .hero)
+            MiraWaveform(state: micPressed ? .speaking : .idle, size: .hero)
                 .frame(height: 70)
-                .padding(.bottom, 40)
+                .padding(.bottom, 32)
 
             Text("How can I help?")
                 .font(.system(size: 28, weight: .light, design: .serif))
                 .foregroundStyle(.white)
                 .tracking(0.3)
 
-            Text("Meals, protein, groceries, or how your day is going.")
-                .font(.system(size: 15))
-                .foregroundStyle(.white.opacity(0.4))
-                .multilineTextAlignment(.center)
-                .padding(.top, 12)
-                .padding(.horizontal, 40)
+            Text("Tap the mic to talk, or choose below.")
+                .font(.system(size: 14))
+                .foregroundStyle(.white.opacity(0.35))
+                .padding(.top, 10)
+
+            // Mic button
+            micButton
+                .padding(.top, 32)
 
             Spacer()
-                .frame(height: 36)
+                .frame(height: 28)
 
             VStack(spacing: 8) {
                 quickAction("What should I eat right now?", icon: "fork.knife")
@@ -103,6 +107,67 @@ struct MiraChatView: View {
 
             Spacer()
         }
+    }
+
+    // MARK: - Mic Button
+
+    private var micButton: some View {
+        Button {
+            HapticManager.medium()
+            withAnimation(.easeOut(duration: 0.2)) {
+                micPressed.toggle()
+            }
+            // Future: start/stop AVAudioSession recording
+            if micPressed {
+                // Simulate listening then responding
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        micPressed = false
+                    }
+                    sendMessage("What should I eat right now?")
+                }
+            }
+        } label: {
+            ZStack {
+                // Outer glow rings
+                Circle()
+                    .fill(Color.violet.opacity(micPressed ? 0.12 : 0.05))
+                    .frame(width: 88, height: 88)
+
+                Circle()
+                    .fill(Color.violet.opacity(micPressed ? 0.2 : 0.08))
+                    .frame(width: 72, height: 72)
+
+                // Main button
+                Circle()
+                    .fill(
+                        micPressed
+                            ? Color.violetDeep
+                            : Color.violet.opacity(0.15)
+                    )
+                    .frame(width: 56, height: 56)
+                    .overlay(
+                        Circle()
+                            .stroke(
+                                Color.violet.opacity(micPressed ? 0.6 : 0.3),
+                                lineWidth: 0.5
+                            )
+                    )
+                    .shadow(
+                        color: Color.violet.opacity(micPressed ? 0.5 : 0.2),
+                        radius: micPressed ? 24 : 12,
+                        y: 2
+                    )
+
+                Image(systemName: micPressed ? "waveform" : "mic.fill")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(.white.opacity(micPressed ? 1 : 0.7))
+            }
+            .scaleEffect(micPressed ? 1.05 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: micPressed)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(micPressed ? "Stop listening" : "Talk to Mira")
     }
 
     // MARK: - Quick Action
