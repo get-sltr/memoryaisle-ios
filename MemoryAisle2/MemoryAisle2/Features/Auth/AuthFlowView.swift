@@ -43,9 +43,12 @@ struct AuthFlowView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            MiraWaveform(state: .idle, size: .hero)
-                .frame(height: 50)
-                .padding(.bottom, 32)
+            Image("AppLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 80, height: 80)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .padding(.bottom, 24)
 
             Text("Welcome back")
                 .font(.system(size: 28, weight: .light, design: .serif))
