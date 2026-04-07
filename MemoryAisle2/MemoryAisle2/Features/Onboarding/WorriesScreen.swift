@@ -3,81 +3,94 @@ import SwiftUI
 struct WorriesScreen: View {
     @Binding var selected: [Worry]
     let onContinue: () -> Void
-    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         VStack(spacing: 0) {
             Text("What worries you\nmost right now?")
-                .font(Typography.displaySmall)
+                .font(.system(size: 26, weight: .medium))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
-                .padding(.top, Theme.Spacing.xl)
+                .lineSpacing(4)
+                .padding(.top, 40)
 
             Text("Select all that apply")
-                .font(Typography.bodySmall)
-                .foregroundStyle(.white.opacity(0.4))
-                .padding(.top, Theme.Spacing.sm)
-                .padding(.bottom, Theme.Spacing.lg)
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(.white.opacity(0.3))
+                .padding(.top, 8)
+                .padding(.bottom, 28)
 
-            ScrollView {
-                VStack(spacing: Theme.Spacing.sm) {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 8) {
                     ForEach(Worry.allCases, id: \.self) { worry in
-                        worryOption(worry)
+                        checkOption(worry.rawValue, isSelected: selected.contains(worry)) {
+                            HapticManager.selection()
+                            withAnimation(.easeOut(duration: 0.15)) {
+                                if selected.contains(worry) {
+                                    selected.removeAll { $0 == worry }
+                                } else {
+                                    selected.append(worry)
+                                }
+                            }
+                        }
                     }
                 }
-                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.horizontal, 24)
             }
 
             VioletButton("Continue") {
                 onContinue()
             }
-            .padding(.horizontal, Theme.Spacing.lg)
-            .padding(.vertical, Theme.Spacing.lg)
-            .opacity(selected.isEmpty ? 0.4 : 1)
+            .padding(.horizontal, 32)
+            .padding(.top, 16)
+            .padding(.bottom, 56)
+            .opacity(selected.isEmpty ? 0.3 : 1)
             .disabled(selected.isEmpty)
         }
     }
+}
 
-    private func worryOption(_ worry: Worry) -> some View {
-        let isSelected = selected.contains(worry)
+// MARK: - Shared Check Option
 
-        return Button {
-            HapticManager.selection()
-            withAnimation(Theme.Motion.press) {
-                if isSelected {
-                    selected.removeAll { $0 == worry }
-                } else {
-                    selected.append(worry)
-                }
-            }
-        } label: {
-            HStack {
-                Text(worry.rawValue)
-                    .font(Typography.bodyMedium)
-                    .foregroundStyle(.white)
+func checkOption(_ text: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+        HStack {
+            Text(text)
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(.white)
 
-                Spacer()
+            Spacer()
 
-                Image(systemName: isSelected ? "checkmark.square.fill" : "square")
-                    .foregroundStyle(isSelected ? Color.violet : .white.opacity(0.3))
-                    .font(.system(size: 20))
-            }
-            .padding(.horizontal, Theme.Spacing.md)
-            .padding(.vertical, Theme.Spacing.sm + 2)
-            .background(
-                isSelected
-                    ? Theme.Surface.strong(for: scheme)
-                    : Theme.Surface.glass(for: scheme)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
-                    .stroke(
-                        isSelected ? Color.violet.opacity(0.3) : Theme.Border.glass(for: scheme),
-                        lineWidth: isSelected ? 1 : Theme.glassBorderWidth
-                    )
-            )
+            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                .strokeBorder(
+                    isSelected ? Color.violet : .white.opacity(0.15),
+                    lineWidth: isSelected ? 0 : 1.5
+                )
+                .background(
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill(isSelected ? Color.violet : .clear)
+                )
+                .overlay(
+                    isSelected
+                        ? Image(systemName: "checkmark")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.white)
+                        : nil
+                )
+                .frame(width: 20, height: 20)
         }
-        .buttonStyle(GlassPressStyle())
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(isSelected ? Color.violet.opacity(0.08) : .white.opacity(0.03))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(
+                    isSelected ? Color.violet.opacity(0.25) : .white.opacity(0.06),
+                    lineWidth: 0.5
+                )
+        )
     }
+    .buttonStyle(.plain)
 }

@@ -7,18 +7,23 @@ struct GLP1CheckScreen: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
+            Spacer()
 
             MiraWaveform(state: .idle, size: .inline)
-                .padding(.bottom, Theme.Spacing.xl)
+                .frame(height: 30)
+                .padding(.bottom, 40)
 
             Text("Are you on\nGLP-1 medication?")
-                .font(Typography.displayMedium)
+                .font(.system(size: 28, weight: .medium))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
-                .padding(.bottom, Theme.Spacing.xxl)
+                .lineSpacing(4)
 
-            VStack(spacing: Theme.Spacing.md) {
-                VioletButton("Yes, I'm on a GLP-1 medication") {
+            Spacer()
+            Spacer()
+
+            VStack(spacing: 14) {
+                VioletButton("Yes, I'm on a GLP-1") {
                     onYes()
                 }
 
@@ -26,10 +31,8 @@ struct GLP1CheckScreen: View {
                     onNo()
                 }
             }
-            .padding(.horizontal, Theme.Spacing.lg)
-
-            Spacer()
-            Spacer()
+            .padding(.horizontal, 32)
+            .padding(.bottom, 56)
         }
     }
 }

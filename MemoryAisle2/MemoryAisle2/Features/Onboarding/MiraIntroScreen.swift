@@ -3,62 +3,69 @@ import SwiftUI
 struct MiraIntroScreen: View {
     let onContinue: () -> Void
     @State private var miraState: MiraState = .idle
-    @State private var showText = false
+    @State private var showGreeting = false
+    @State private var showSubtitle = false
     @State private var showButton = false
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
+            Spacer()
 
-            // Mira waveform hero
+            // Mira waveform - generous space around it
             MiraWaveform(state: miraState, size: .hero)
-                .padding(.bottom, Theme.Spacing.xxl)
+                .frame(height: 60)
+                .padding(.bottom, 48)
 
-            // Greeting text
-            VStack(spacing: Theme.Spacing.md) {
-                Text("Hello. I'm Mira.")
-                    .font(Typography.displayMedium)
-                    .foregroundStyle(.white)
+            // Greeting
+            Text("Hello. I'm Mira.")
+                .font(.system(size: 30, weight: .medium))
+                .foregroundStyle(.white)
+                .opacity(showGreeting ? 1 : 0)
+                .offset(y: showGreeting ? 0 : 16)
 
-                Text("Your personal nutrition companion\nfor this journey.")
-                    .font(Typography.bodyLarge)
-                    .foregroundStyle(.white.opacity(0.6))
-                    .multilineTextAlignment(.center)
-            }
-            .opacity(showText ? 1 : 0)
-            .offset(y: showText ? 0 : 20)
+            Text("Your personal nutrition companion\nfor this journey.")
+                .font(.system(size: 17, weight: .regular))
+                .foregroundStyle(.white.opacity(0.5))
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+                .padding(.top, 14)
+                .opacity(showSubtitle ? 1 : 0)
+                .offset(y: showSubtitle ? 0 : 12)
 
+            Spacer()
+            Spacer()
             Spacer()
 
             // CTA
-            VStack(spacing: Theme.Spacing.md) {
+            VStack(spacing: 16) {
                 VioletButton("Let's get started") {
                     onContinue()
                 }
+                .padding(.horizontal, 32)
 
-                Text("Tap to speak, or just listen")
-                    .font(Typography.caption)
-                    .foregroundStyle(.white.opacity(0.3))
+                Text("Takes about 2 minutes")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.25))
             }
-            .padding(.horizontal, Theme.Spacing.lg)
-            .padding(.bottom, Theme.Spacing.xxl)
             .opacity(showButton ? 1 : 0)
-            .offset(y: showButton ? 0 : 10)
+            .padding(.bottom, 56)
         }
         .onAppear {
-            // Staggered entrance
-            withAnimation(Theme.Motion.gentle.delay(0.3)) {
+            withAnimation(.easeOut(duration: 0.8).delay(0.4)) {
                 miraState = .speaking
             }
-            withAnimation(Theme.Motion.gentle.delay(0.8)) {
-                showText = true
+            withAnimation(.easeOut(duration: 0.7).delay(0.9)) {
+                showGreeting = true
             }
-            withAnimation(Theme.Motion.gentle.delay(1.4)) {
+            withAnimation(.easeOut(duration: 0.7).delay(1.4)) {
+                showSubtitle = true
+            }
+            withAnimation(.easeOut(duration: 0.6).delay(2.0)) {
                 showButton = true
             }
-            // Settle to idle
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation(Theme.Motion.gentle) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+                withAnimation(.easeOut(duration: 0.6)) {
                     miraState = .idle
                 }
             }

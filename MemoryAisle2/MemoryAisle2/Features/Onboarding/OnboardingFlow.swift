@@ -75,13 +75,12 @@ struct OnboardingFlow: View {
     // MARK: - Progress Dots
 
     private var progressDots: some View {
-        HStack(spacing: Theme.Spacing.sm) {
+        HStack(spacing: 6) {
             ForEach(OnboardingStep.allCases.filter { $0 != .intro && $0 != .ready }, id: \.self) { s in
-                Circle()
-                    .fill(s.rawValue <= step.rawValue ? Color.violet : Color.white.opacity(0.15))
-                    .frame(width: 8, height: 8)
-                    .scaleEffect(s == step ? 1.2 : 1.0)
-                    .animation(Theme.Motion.spring, value: step)
+                Capsule()
+                    .fill(s.rawValue <= step.rawValue ? Color.violet : Color.white.opacity(0.1))
+                    .frame(width: s == step ? 20 : 6, height: 4)
+                    .animation(.easeInOut(duration: 0.25), value: step)
             }
         }
     }

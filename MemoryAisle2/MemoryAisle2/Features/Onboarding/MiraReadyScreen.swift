@@ -12,70 +12,68 @@ struct MiraReadyScreen: View {
             Spacer()
 
             MiraWaveform(state: miraState, size: .hero)
-                .padding(.bottom, Theme.Spacing.xl)
+                .frame(height: 60)
+                .padding(.bottom, 40)
 
             if showSummary {
-                VStack(spacing: Theme.Spacing.lg) {
-                    Text("I've set everything up.")
-                        .font(Typography.displaySmall)
+                VStack(spacing: 24) {
+                    Text("You're all set.")
+                        .font(.system(size: 28, weight: .medium))
                         .foregroundStyle(.white)
-                        .multilineTextAlignment(.center)
 
-                    // Summary card
-                    GlassCardStrong {
-                        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-                            if let med = profile.medication {
-                                summaryRow("Medication", value: med.rawValue)
-                            }
-
-                            if let modality = profile.modality {
-                                summaryRow("Type", value: modality.displayName)
-                            }
-
-                            if !profile.worries.isEmpty {
-                                summaryRow("Focus", value: profile.worries.first?.rawValue ?? "")
-                            }
-
-                            summaryRow("Training", value: profile.trainingLevel.rawValue)
-
-                            summaryRow("Mode", value: derivedMode)
+                    // Summary
+                    VStack(spacing: 12) {
+                        if let med = profile.medication {
+                            summaryRow("Medication", value: med.rawValue)
                         }
-                        .padding(Theme.Spacing.md)
+                        if let modality = profile.modality {
+                            summaryRow("Type", value: modality.displayName)
+                        }
+                        summaryRow("Training", value: profile.trainingLevel.rawValue)
+                        summaryRow("Mode", value: derivedMode)
                     }
-                    .padding(.horizontal, Theme.Spacing.lg)
+                    .padding(20)
+                    .background(.ultraThinMaterial.opacity(0.3))
+                    .background(Color.violet.opacity(0.04))
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                    )
+                    .padding(.horizontal, 32)
 
-                    Text("I'll plan your meals around your cycle and make sure every bite counts.")
-                        .font(Typography.bodyMedium)
-                        .foregroundStyle(.white.opacity(0.6))
+                    Text("I'll plan your meals around your cycle\nand make sure every bite counts.")
+                        .font(.system(size: 15, weight: .regular))
+                        .foregroundStyle(.white.opacity(0.45))
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, Theme.Spacing.xl)
+                        .lineSpacing(4)
                 }
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                .transition(.opacity.combined(with: .offset(y: 20)))
             }
 
             Spacer()
+            Spacer()
 
             if showButton {
-                VioletButton("Take me home", icon: "arrow.right") {
+                VioletButton("Take me home") {
                     HapticManager.success()
                     onComplete()
                 }
-                .padding(.horizontal, Theme.Spacing.lg)
-                .padding(.bottom, Theme.Spacing.xxl)
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                .padding(.horizontal, 32)
+                .padding(.bottom, 56)
+                .transition(.opacity)
             }
         }
         .onAppear {
-            // Mira "builds" the profile
-            withAnimation(Theme.Motion.gentle.delay(1.5)) {
+            withAnimation(.easeOut(duration: 0.8).delay(1.2)) {
                 miraState = .speaking
                 showSummary = true
             }
-            withAnimation(Theme.Motion.gentle.delay(2.5)) {
+            withAnimation(.easeOut(duration: 0.6).delay(2.2)) {
                 showButton = true
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
-                withAnimation(Theme.Motion.gentle) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+                withAnimation(.easeOut(duration: 0.5)) {
                     miraState = .idle
                 }
             }
@@ -85,12 +83,12 @@ struct MiraReadyScreen: View {
     private func summaryRow(_ label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .font(Typography.bodySmall)
-                .foregroundStyle(.white.opacity(0.5))
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(.white.opacity(0.4))
             Spacer()
             Text(value)
-                .font(Typography.bodyMediumBold)
-                .foregroundStyle(.white)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.white.opacity(0.85))
                 .lineLimit(1)
         }
     }

@@ -8,27 +8,29 @@ struct MedicationSelectScreen: View {
     var body: some View {
         VStack(spacing: 0) {
             Text("Which medication\nare you on?")
-                .font(Typography.displaySmall)
+                .font(.system(size: 26, weight: .medium))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
-                .padding(.top, Theme.Spacing.xl)
-                .padding(.bottom, Theme.Spacing.lg)
+                .lineSpacing(4)
+                .padding(.top, 40)
+                .padding(.bottom, 28)
 
-            ScrollView {
-                VStack(spacing: Theme.Spacing.sm) {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 8) {
                     ForEach(Medication.allCases, id: \.self) { med in
                         medOption(med)
                     }
                 }
-                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.horizontal, 24)
             }
 
             VioletButton("Continue") {
                 onContinue()
             }
-            .padding(.horizontal, Theme.Spacing.lg)
-            .padding(.vertical, Theme.Spacing.lg)
-            .opacity(selection != nil ? 1 : 0.4)
+            .padding(.horizontal, 32)
+            .padding(.top, 16)
+            .padding(.bottom, 56)
+            .opacity(selection != nil ? 1 : 0.3)
             .disabled(selection == nil)
         }
     }
@@ -38,41 +40,49 @@ struct MedicationSelectScreen: View {
 
         return Button {
             HapticManager.selection()
-            withAnimation(Theme.Motion.press) {
+            withAnimation(.easeOut(duration: 0.15)) {
                 selection = med
             }
         } label: {
             HStack {
                 Text(med.rawValue)
-                    .font(Typography.bodyLarge)
+                    .font(.system(size: 16, weight: .regular))
                     .foregroundStyle(.white)
 
                 Spacer()
 
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color.violet)
-                        .font(.system(size: 22))
-                }
-            }
-            .padding(.horizontal, Theme.Spacing.md)
-            .padding(.vertical, Theme.Spacing.sm + 4)
-            .background(
-                isSelected
-                    ? Theme.Surface.strong(for: scheme)
-                    : Theme.Surface.glass(for: scheme)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
-                    .stroke(
+                Circle()
+                    .strokeBorder(
+                        isSelected ? Color.violet : .white.opacity(0.15),
+                        lineWidth: isSelected ? 0 : 1.5
+                    )
+                    .background(
+                        Circle()
+                            .fill(isSelected ? Color.violet : .clear)
+                    )
+                    .overlay(
                         isSelected
-                            ? Color.violet.opacity(0.3)
-                            : Theme.Border.glass(for: scheme),
-                        lineWidth: isSelected ? 1 : Theme.glassBorderWidth
+                            ? Image(systemName: "checkmark")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(.white)
+                            : nil
+                    )
+                    .frame(width: 22, height: 22)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(isSelected ? Color.violet.opacity(0.08) : .white.opacity(0.03))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(
+                        isSelected ? Color.violet.opacity(0.25) : .white.opacity(0.06),
+                        lineWidth: 0.5
                     )
             )
         }
-        .buttonStyle(GlassPressStyle())
+        .buttonStyle(.plain)
     }
 }
