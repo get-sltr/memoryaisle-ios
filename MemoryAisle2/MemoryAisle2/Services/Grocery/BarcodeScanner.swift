@@ -1,0 +1,116 @@
+import AVFoundation
+import SwiftUI
+import Vision
+
+struct BarcodeScannerView: UIViewControllerRepresentable {
+    let onBarcodeDetected: (String) -> Void
+
+    func makeUIViewController(context: Context) -> BarcodeScannerController {
+        let controller = BarcodeScannerController()
+        controller.onBarcodeDetected = onBarcodeDetected
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: BarcodeScannerController, context: Context) {}
+}
+
+final class BarcodeScannerController: UIViewController {
+    var onBarcodeDetected: ((String) -> Void)?
+
+    private let captureSession = AVCaptureSession()
+    private var previewLayer: AVCaptureVideoPreviewLayer?
+    private let videoOutput = AVCaptureVideoDataOutput()
+    private let processingQueue = DispatchQueue(label: "com.sltrdigital.barcode", qos: .userInitiated)
+    private var lastDetectedBarcode: String?
+    private var lastDetectionTime: Date = .distantPast
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupCamera()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        previewLayer?.frame = view.bounds
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        startSession()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        stopSession()
+    }
+
+    private func setupCamera() {
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
+              let input = try? AVCaptureDeviceInput(device: device) else { return }
+
+        captureSession.beginConfiguration()
+        captureSession.sessionPreset = .high
+
+        if captureSession.canAddInput(input) {
+            captureSession.addInput(input)
+        }
+
+        videoOutput.setSampleBufferDelegate(self, queue: processingQueue)
+        videoOutput.alwaysDiscardsLateVideoFrames = true
+
+        if captureSession.canAddOutput(videoOutput) {
+            captureSession.addOutput(videoOutput)
+        }
+
+        captureSession.commitConfiguration()
+
+        let layer = AVCaptureVideoPreviewLayer(session: captureSession)
+        layer.videoGravity = .resizeAspectFill
+        layer.frame = view.bounds
+        view.layer.addSublayer(layer)
+        previewLayer = layer
+    }
+
+    private func startSession() {
+        processingQueue.async { [weak self] in
+            self?.captureSession.startRunning()
+        }
+    }
+
+    private func stopSession() {
+        processingQueue.async { [weak self] in
+            self?.captureSession.stopRunning()
+        }
+    }
+}
+
+extension BarcodeScannerController: AVCaptureVideoDataOutputSampleBufferDelegate {
+    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        // Throttle: only process every 0.5 seconds
+        guard Date().timeIntervalSince(lastDetectionTime) > 0.5 else { return }
+
+        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+
+        let request = VNDetectBarcodesRequest { [weak self] request, error in
+            guard error == nil,
+                  let results = request.results as? [VNBarcodeObservation],
+                  let barcode = results.first,
+                  let payload = barcode.payloadStringValue else { return }
+
+            // Avoid duplicate consecutive detections
+            guard payload != self?.lastDetectedBarcode else { return }
+
+            self?.lastDetectedBarcode = payload
+            self?.lastDetectionTime = Date()
+
+            DispatchQueue.main.async {
+                self?.onBarcodeDetected?(payload)
+            }
+        }
+
+        request.symbologies = [.ean8, .ean13, .upce, .code128, .code39, .qr, .dataMatrix]
+
+        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
+        try? handler.perform([request])
+    }
+}

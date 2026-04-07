@@ -5,6 +5,8 @@ struct ScanView: View {
     @State private var scanLineOffset: CGFloat = -100
     @State private var showGroceryList = false
     @State private var selectedMode = 0
+    @State private var isScanning = false
+    @State private var scannedProduct: ScannedProduct?
 
     var body: some View {
         ZStack {
@@ -46,15 +48,24 @@ struct ScanView: View {
 
                 // Viewfinder
                 ZStack {
+                    // Live camera feed when scanning
+                    if isScanning {
+                        BarcodeScannerView { barcode in
+                            handleBarcode(barcode)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .frame(width: 260, height: 260)
+                    }
+
                     ScannerCorners()
-                        .stroke(Color.violet.opacity(0.5), lineWidth: 2)
+                        .stroke(Color.violet.opacity(isScanning ? 0.8 : 0.5), lineWidth: 2)
                         .frame(width: 240, height: 240)
 
                     // Scan line
                     RoundedRectangle(cornerRadius: 1)
                         .fill(
                             LinearGradient(
-                                colors: [.clear, Color.violet.opacity(0.5), .clear],
+                                colors: [.clear, Color.violet.opacity(isScanning ? 0.7 : 0.5), .clear],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -70,15 +81,20 @@ struct ScanView: View {
                             }
                         }
 
-                    VStack(spacing: 10) {
-                        Image(systemName: "barcode.viewfinder")
-                            .font(.system(size: 32, weight: .ultraLight))
-                            .foregroundStyle(Color.violet.opacity(0.25))
+                    if !isScanning {
+                        VStack(spacing: 10) {
+                            Image(systemName: "barcode.viewfinder")
+                                .font(.system(size: 32, weight: .ultraLight))
+                                .foregroundStyle(Color.violet.opacity(0.25))
 
-                        Text("Point at a barcode")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.white.opacity(0.3))
+                            Text("Tap capture to start")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.white.opacity(0.3))
+                        }
                     }
+                }
+                .sheet(item: $scannedProduct) { product in
+                    ScanResultView(product: product)
                 }
 
                 Spacer()
@@ -99,6 +115,9 @@ struct ScanView: View {
                 // Capture button
                 Button {
                     HapticManager.heavy()
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        isScanning.toggle()
+                    }
                 } label: {
                     ZStack {
                         Circle()
@@ -122,6 +141,32 @@ struct ScanView: View {
                 Spacer(minLength: 80)
             }
         }
+    }
+
+    // MARK: - Barcode Handler
+
+    private func handleBarcode(_ barcode: String) {
+        HapticManager.success()
+        isScanning = false
+
+        // Demo product -- in production this hits FatSecret/Nutritionix API
+        let product = ScannedProduct(
+            barcode: barcode,
+            name: "Greek Yogurt, Plain",
+            brand: "Fage",
+            servingSize: "1 cup (227g)",
+            protein: 20,
+            calories: 130,
+            fat: 0,
+            carbs: 7,
+            fiber: 0,
+            sodium: 65,
+            verdict: .good,
+            nauseaRisk: false,
+            reason: "High protein, low fat. Easy on the stomach. Great for your 140g daily target."
+        )
+
+        scannedProduct = product
     }
 
     private func modeTab(_ title: String, icon: String, index: Int) -> some View {
