@@ -117,6 +117,9 @@ struct GroceryListView: View {
                 confettiOverlay
             }
         }
+        .alert("\(duplicateName) is already on the list", isPresented: $showDuplicateAlert) {
+            Button("OK") {}
+        }
     }
 
     // MARK: - Category Section
@@ -151,18 +154,20 @@ struct GroceryListView: View {
                         categories[catIndex].items[itemIndex].isChecked.toggle()
                     }
                 } label: {
+                    let catColor = Color(hex: category.color)
+
                     HStack(spacing: 12) {
                         Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
                             .font(.system(size: 18))
                             .foregroundStyle(
                                 item.isChecked
                                     ? Color(hex: 0x34D399)
-                                    : .white.opacity(0.15)
+                                    : catColor.opacity(0.4)
                             )
 
                         Text(item.name)
                             .font(.system(size: 15, weight: item.isChecked ? .regular : .medium))
-                            .foregroundStyle(.white.opacity(item.isChecked ? 0.3 : 0.8))
+                            .foregroundStyle(item.isChecked ? .white.opacity(0.3) : .white.opacity(0.85))
                             .strikethrough(item.isChecked, color: .white.opacity(0.15))
 
                         Spacer()
@@ -175,13 +180,32 @@ struct GroceryListView: View {
                                 if let protein = item.proteinPer {
                                     Text(protein)
                                         .font(.system(size: 10, design: .monospaced))
-                                        .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.4))
+                                        .foregroundStyle(catColor.opacity(0.5))
                                 }
                             }
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 9)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(
+                                item.isChecked
+                                    ? .clear
+                                    : LinearGradient(
+                                        colors: [catColor.opacity(0.06), catColor.opacity(0.02)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                            )
+                    )
+                    .overlay(
+                        item.isChecked
+                            ? nil
+                            : RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(catColor.opacity(0.08), lineWidth: 0.5)
+                    )
+                    .padding(.horizontal, 16)
                 }
                 .buttonStyle(.plain)
                 .contextMenu {
@@ -327,11 +351,24 @@ struct GroceryListView: View {
 
     // MARK: - Add Item
 
-    private func addItem(_ name: String) {
-        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        let item = GroceryItem(name: name.trimmingCharacters(in: .whitespaces), quantity: "", proteinPer: nil)
+    @State private var showDuplicateAlert = false
+    @State private var duplicateName = ""
 
-        // Add to first category (or "Other" if we had one)
+    private func addItem(_ name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+
+        // Check for duplicates across all categories
+        let allItems = categories.flatMap(\.items)
+        if allItems.contains(where: { $0.name.lowercased() == trimmed.lowercased() }) {
+            duplicateName = trimmed
+            showDuplicateAlert = true
+            HapticManager.warning()
+            return
+        }
+
+        let item = GroceryItem(name: trimmed, quantity: "", proteinPer: nil)
+
         if categories.indices.contains(0) {
             categories[0].items.insert(item, at: 0)
         }
