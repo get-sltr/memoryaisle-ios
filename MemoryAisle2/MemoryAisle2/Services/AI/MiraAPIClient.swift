@@ -4,13 +4,19 @@ struct MiraAPIClient: Sendable {
     private let endpoint = "https://9n2u3mkkma.execute-api.us-east-1.amazonaws.com/prod/mira"
 
     struct MiraContext: Codable, Sendable {
-        let medication: String?
+        let medicationClass: String?
+        let doseTier: String?
+        let daysSinceDose: Int?
+        let phase: String?
+        let symptomState: String?
         let mode: String?
         let proteinTarget: Int?
         let proteinToday: Int?
         let waterToday: Double?
         let trainingLevel: String?
-        let nauseaLevel: String?
+        let trainingToday: Bool?
+        let calorieTarget: Int?
+        let dietaryRestrictions: [String]?
     }
 
     struct MiraRequest: Codable, Sendable {

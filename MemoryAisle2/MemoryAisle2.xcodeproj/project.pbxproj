@@ -80,6 +80,31 @@
 		EDED46E8A0834B1A471D14D1 /* RecipeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98A4837B665CBC33CB5BA99 /* RecipeDetailView.swift */; };
 		EF4747C4B0D93092979B5258 /* PantryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FE4DC69474384CFCD38097 /* PantryItem.swift */; };
 		FD9440E7AD9FB5A14E8FF442 /* BarcodeInterpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BD1487F95C863AF21AE7D88 /* BarcodeInterpreter.swift */; };
+		2410477201959EF22A1821E3 /* Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93B94B3883E28B0D4F4F6707 /* Meal.swift */; };
+		B669448887D443CEA311B8B0 /* MealPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA747D3176058BF4F1A2580 /* MealPlan.swift */; };
+		B5F3477AA56121DC6861ED7D /* FoodItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA0447A92110601E0A5801C /* FoodItem.swift */; };
+		561847BA31231DAB63F288E5 /* GroceryList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799C4B6EE6B97D3382B70A75 /* GroceryList.swift */; };
+		F97840E5D8CB76BC79F20C92 /* MedicationProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1784DDCF109D5A084A0F7DB /* MedicationProfile.swift */; };
+		1D644E8027A1D79E4B8E3F95 /* TrainingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75304B4B5C2A91D358FBBFEC /* TrainingSession.swift */; };
+		82DD49BD8958EAF6F68A1EA9 /* BodyComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A640595FA3C66E99B2E6C2 /* BodyComposition.swift */; };
+		A0434700FE268AB04BF5B40C /* ProviderReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2F4DD051F2A716FB1EFAF2 /* ProviderReport.swift */; };
+		5163413B76C34839B4E22413 /* MedicationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44874D95AE7B2D7FF11721C7 /* MedicationManager.swift */; };
+		676D45B96BC62F6C6616CCBA /* OralTimingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337F4098B607E945113623A6 /* OralTimingEngine.swift */; };
+		DA004D7AFFEE6F56FF1BBDAC /* DosePhasePredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469C413DF00D9E7CEACA04AA /* DosePhasePredictor.swift */; };
+		26544BEAC3A55F88DC56A63B /* TaperManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 465E4BC1A7A5D5FFF8F1E4CE /* TaperManager.swift */; };
+		5DBE41C0681FFCF2778B045E /* MacroTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91F9486858FDC95774D62995 /* MacroTracker.swift */; };
+		FCAA4F8562878FDE07C14749 /* HydrationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E94492992C008B7AD6D0BC /* HydrationTracker.swift */; };
+		62534C576AF434F61EAD11B3 /* MealTimingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 622941A32C26EA69AA8DA5EA /* MealTimingEngine.swift */; };
+		889B4BACC8C2D81F72FB5308 /* LeanMassEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D4419B9B8414939AC23D9F /* LeanMassEstimator.swift */; };
+		C34B459FE2B199B9B40F9ACC /* BodyCompTrend.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C2499F32B346CFC4F1D7F4 /* BodyCompTrend.swift */; };
+		513E4C915DB814205DB7A9FE /* StrengthTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D854D9DFDF7C3B1A5329E6B /* StrengthTracker.swift */; };
+		1D034913511E0032B3A3743F /* PantryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B234D5394B7EBC3476C6092 /* PantryManager.swift */; };
+		320B45D1BE7C288E7C9271E5 /* GroceryListGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E24BA95862237E4A5A645A /* GroceryListGenerator.swift */; };
+		2BE84ED309A709FD95C3B7E6 /* StoreAisleOrganizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033548389345CE60EF495636 /* StoreAisleOrganizer.swift */; };
+		D5354EBE1B53F90B850A51B6 /* MiraEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EF640D9449402DE70E1C93D /* MiraEngine.swift */; };
+		BDD84A035952E148E75D474D /* MealGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4289492D9D233B6CBB6D969D /* MealGenerator.swift */; };
+		12454F8535308F7A818D9EBE /* FoodAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03E0480E826D45F967961DDA /* FoodAnalyzer.swift */; };
+		5E0C42602AB001937310ACDD /* MedicationAnonymizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B063400F8DEEF9650CB5A1DD /* MedicationAnonymizer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -192,6 +217,31 @@
 		F48444BD84D42196D0CC3E22 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingFlow.swift; path = MemoryAisle2/Features/Onboarding/OnboardingFlow.swift; sourceTree = SOURCE_ROOT; };
 		F98A435BA82A219DA009067F /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlassCard.swift; path = MemoryAisle2/DesignSystem/GlassCard.swift; sourceTree = SOURCE_ROOT; };
 		FC45409B9241986F89314CDE /* BodyStatsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BodyStatsScreen.swift; path = MemoryAisle2/Features/Onboarding/BodyStatsScreen.swift; sourceTree = SOURCE_ROOT; };
+		93B94B3883E28B0D4F4F6707 /* Meal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Meal.swift; path = MemoryAisle2/Models/Meal.swift; sourceTree = SOURCE_ROOT; };
+		AAA747D3176058BF4F1A2580 /* MealPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealPlan.swift; path = MemoryAisle2/Models/MealPlan.swift; sourceTree = SOURCE_ROOT; };
+		FAA0447A92110601E0A5801C /* FoodItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FoodItem.swift; path = MemoryAisle2/Models/FoodItem.swift; sourceTree = SOURCE_ROOT; };
+		799C4B6EE6B97D3382B70A75 /* GroceryList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GroceryList.swift; path = MemoryAisle2/Models/GroceryList.swift; sourceTree = SOURCE_ROOT; };
+		D1784DDCF109D5A084A0F7DB /* MedicationProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MedicationProfile.swift; path = MemoryAisle2/Models/MedicationProfile.swift; sourceTree = SOURCE_ROOT; };
+		75304B4B5C2A91D358FBBFEC /* TrainingSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TrainingSession.swift; path = MemoryAisle2/Models/TrainingSession.swift; sourceTree = SOURCE_ROOT; };
+		A2A640595FA3C66E99B2E6C2 /* BodyComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BodyComposition.swift; path = MemoryAisle2/Models/BodyComposition.swift; sourceTree = SOURCE_ROOT; };
+		3A2F4DD051F2A716FB1EFAF2 /* ProviderReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProviderReport.swift; path = MemoryAisle2/Models/ProviderReport.swift; sourceTree = SOURCE_ROOT; };
+		44874D95AE7B2D7FF11721C7 /* MedicationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MedicationManager.swift; path = MemoryAisle2/Services/Medication/MedicationManager.swift; sourceTree = SOURCE_ROOT; };
+		337F4098B607E945113623A6 /* OralTimingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OralTimingEngine.swift; path = MemoryAisle2/Services/Medication/OralTimingEngine.swift; sourceTree = SOURCE_ROOT; };
+		469C413DF00D9E7CEACA04AA /* DosePhasePredictor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DosePhasePredictor.swift; path = MemoryAisle2/Services/Medication/DosePhasePredictor.swift; sourceTree = SOURCE_ROOT; };
+		465E4BC1A7A5D5FFF8F1E4CE /* TaperManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TaperManager.swift; path = MemoryAisle2/Services/Medication/TaperManager.swift; sourceTree = SOURCE_ROOT; };
+		91F9486858FDC95774D62995 /* MacroTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MacroTracker.swift; path = MemoryAisle2/Services/Nutrition/MacroTracker.swift; sourceTree = SOURCE_ROOT; };
+		75E94492992C008B7AD6D0BC /* HydrationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HydrationTracker.swift; path = MemoryAisle2/Services/Nutrition/HydrationTracker.swift; sourceTree = SOURCE_ROOT; };
+		622941A32C26EA69AA8DA5EA /* MealTimingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealTimingEngine.swift; path = MemoryAisle2/Services/Nutrition/MealTimingEngine.swift; sourceTree = SOURCE_ROOT; };
+		64D4419B9B8414939AC23D9F /* LeanMassEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LeanMassEstimator.swift; path = MemoryAisle2/Services/BodyComp/LeanMassEstimator.swift; sourceTree = SOURCE_ROOT; };
+		F9C2499F32B346CFC4F1D7F4 /* BodyCompTrend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BodyCompTrend.swift; path = MemoryAisle2/Services/BodyComp/BodyCompTrend.swift; sourceTree = SOURCE_ROOT; };
+		9D854D9DFDF7C3B1A5329E6B /* StrengthTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = StrengthTracker.swift; path = MemoryAisle2/Services/BodyComp/StrengthTracker.swift; sourceTree = SOURCE_ROOT; };
+		6B234D5394B7EBC3476C6092 /* PantryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PantryManager.swift; path = MemoryAisle2/Services/Grocery/PantryManager.swift; sourceTree = SOURCE_ROOT; };
+		76E24BA95862237E4A5A645A /* GroceryListGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GroceryListGenerator.swift; path = MemoryAisle2/Services/Grocery/GroceryListGenerator.swift; sourceTree = SOURCE_ROOT; };
+		033548389345CE60EF495636 /* StoreAisleOrganizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = StoreAisleOrganizer.swift; path = MemoryAisle2/Services/Grocery/StoreAisleOrganizer.swift; sourceTree = SOURCE_ROOT; };
+		1EF640D9449402DE70E1C93D /* MiraEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraEngine.swift; path = MemoryAisle2/Services/AI/MiraEngine.swift; sourceTree = SOURCE_ROOT; };
+		4289492D9D233B6CBB6D969D /* MealGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealGenerator.swift; path = MemoryAisle2/Services/AI/MealGenerator.swift; sourceTree = SOURCE_ROOT; };
+		03E0480E826D45F967961DDA /* FoodAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FoodAnalyzer.swift; path = MemoryAisle2/Services/AI/FoodAnalyzer.swift; sourceTree = SOURCE_ROOT; };
+		B063400F8DEEF9650CB5A1DD /* MedicationAnonymizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MedicationAnonymizer.swift; path = MemoryAisle2/Services/AI/MedicationAnonymizer.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -303,6 +353,16 @@
 				8B3F98F92F849BA000710E33 /* MemoryAisleWidgetsExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		063E48731B7F9A475D5CF786 /* BodyComp */ = {
+			isa = PBXGroup;
+			children = (
+				64D4419B9B8414939AC23D9F /* LeanMassEstimator.swift */,
+				F9C2499F32B346CFC4F1D7F4 /* BodyCompTrend.swift */,
+				9D854D9DFDF7C3B1A5329E6B /* StrengthTracker.swift */,
+			);
+			name = BodyComp;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -430,6 +490,31 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5E0C42602AB001937310ACDD /* MedicationAnonymizer.swift in Sources */,
+				2410477201959EF22A1821E3 /* Meal.swift in Sources */,
+				B669448887D443CEA311B8B0 /* MealPlan.swift in Sources */,
+				B5F3477AA56121DC6861ED7D /* FoodItem.swift in Sources */,
+				561847BA31231DAB63F288E5 /* GroceryList.swift in Sources */,
+				F97840E5D8CB76BC79F20C92 /* MedicationProfile.swift in Sources */,
+				1D644E8027A1D79E4B8E3F95 /* TrainingSession.swift in Sources */,
+				82DD49BD8958EAF6F68A1EA9 /* BodyComposition.swift in Sources */,
+				A0434700FE268AB04BF5B40C /* ProviderReport.swift in Sources */,
+				5163413B76C34839B4E22413 /* MedicationManager.swift in Sources */,
+				676D45B96BC62F6C6616CCBA /* OralTimingEngine.swift in Sources */,
+				DA004D7AFFEE6F56FF1BBDAC /* DosePhasePredictor.swift in Sources */,
+				26544BEAC3A55F88DC56A63B /* TaperManager.swift in Sources */,
+				5DBE41C0681FFCF2778B045E /* MacroTracker.swift in Sources */,
+				FCAA4F8562878FDE07C14749 /* HydrationTracker.swift in Sources */,
+				62534C576AF434F61EAD11B3 /* MealTimingEngine.swift in Sources */,
+				889B4BACC8C2D81F72FB5308 /* LeanMassEstimator.swift in Sources */,
+				C34B459FE2B199B9B40F9ACC /* BodyCompTrend.swift in Sources */,
+				513E4C915DB814205DB7A9FE /* StrengthTracker.swift in Sources */,
+				1D034913511E0032B3A3743F /* PantryManager.swift in Sources */,
+				320B45D1BE7C288E7C9271E5 /* GroceryListGenerator.swift in Sources */,
+				2BE84ED309A709FD95C3B7E6 /* StoreAisleOrganizer.swift in Sources */,
+				D5354EBE1B53F90B850A51B6 /* MiraEngine.swift in Sources */,
+				BDD84A035952E148E75D474D /* MealGenerator.swift in Sources */,
+				12454F8535308F7A818D9EBE /* FoodAnalyzer.swift in Sources */,
 				8785423BB29E7E1CD9D24401 /* Typography.swift in Sources */,
 				724343C0916D4253312DD45D /* GhostButton.swift in Sources */,
 				AA494640BA532682E9690ADA /* HapticManager.swift in Sources */,

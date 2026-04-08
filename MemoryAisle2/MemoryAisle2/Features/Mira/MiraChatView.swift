@@ -340,15 +340,42 @@ struct MiraChatView: View {
             isTyping = true
         }
 
-        let context = MiraAPIClient.MiraContext(
-            medication: profile?.medication?.rawValue,
-            mode: profile?.productMode.rawValue,
-            proteinTarget: profile?.proteinTargetGrams,
-            proteinToday: Int(todayLog?.proteinGrams ?? 0),
-            waterToday: todayLog?.waterLiters,
-            trainingLevel: profile?.trainingLevel.rawValue,
-            nauseaLevel: nil
-        )
+        let context: MiraAPIClient.MiraContext
+        if let p = profile {
+            let anon = MedicationAnonymizer.anonymize(
+                profile: p,
+                cyclePhase: nil,
+                symptomState: "unknown",
+                proteinConsumed: Int(todayLog?.proteinGrams ?? 0),
+                waterConsumed: todayLog?.waterLiters ?? 0,
+                isTrainingDay: false
+            )
+            context = MiraAPIClient.MiraContext(
+                medicationClass: anon.medicationClass,
+                doseTier: anon.doseTier,
+                daysSinceDose: anon.daysSinceDose,
+                phase: anon.phase,
+                symptomState: anon.symptomState,
+                mode: anon.productMode,
+                proteinTarget: anon.proteinTargetGrams,
+                proteinToday: anon.proteinConsumedGrams,
+                waterToday: anon.waterConsumedLiters,
+                trainingLevel: anon.trainingLevel,
+                trainingToday: anon.trainingToday,
+                calorieTarget: anon.calorieTarget,
+                dietaryRestrictions: anon.dietaryRestrictions
+            )
+        } else {
+            context = MiraAPIClient.MiraContext(
+                medicationClass: nil, doseTier: nil,
+                daysSinceDose: nil, phase: nil,
+                symptomState: nil, mode: nil,
+                proteinTarget: nil, proteinToday: nil,
+                waterToday: nil, trainingLevel: nil,
+                trainingToday: nil, calorieTarget: nil,
+                dietaryRestrictions: nil
+            )
+        }
 
         Task {
             do {
