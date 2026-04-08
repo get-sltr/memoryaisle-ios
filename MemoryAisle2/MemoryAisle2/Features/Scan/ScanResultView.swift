@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 enum ScanVerdict {
@@ -49,6 +50,7 @@ struct ScannedProduct: Identifiable {
 
 struct ScanResultView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     let product: ScannedProduct
 
     var body: some View {
@@ -166,6 +168,7 @@ struct ScanResultView: View {
 
                     // Actions
                     GlowButton("Add to pantry") {
+                        addToPantry()
                         HapticManager.success()
                         dismiss()
                     }
@@ -184,6 +187,20 @@ struct ScanResultView: View {
             }
         }
         .themeBackground()
+    }
+
+    private func addToPantry() {
+        let category: PantryCategory = product.protein >= 15
+            ? .protein : .other
+        let item = PantryItem(
+            name: product.name,
+            brand: product.brand,
+            barcode: product.barcode,
+            proteinPer100g: Double(product.protein),
+            caloriesPer100g: product.calories,
+            category: category
+        )
+        modelContext.insert(item)
     }
 
     private func nutrientCell(_ label: String, _ value: String, _ color: Color) -> some View {

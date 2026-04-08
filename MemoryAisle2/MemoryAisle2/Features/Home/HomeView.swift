@@ -234,12 +234,9 @@ struct HomeView: View {
             // Horizontal scroll -- minimal
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
-                    groceryPill("Protein", icon: "flame.fill", count: 5, gradientColors: [Color(hex: 0xA78BFA), Color(hex: 0x7C3AED)])
-                    groceryPill("Produce", icon: "carrot.fill", count: 7, gradientColors: [Color(hex: 0x34D399), Color(hex: 0x059669)])
-                    groceryPill("Dairy", icon: "cup.and.saucer.fill", count: 4, gradientColors: [Color(hex: 0x38BDF8), Color(hex: 0x0EA5E9)])
-                    groceryPill("Grains", icon: "leaf.fill", count: 4, gradientColors: [Color(hex: 0xFBBF24), Color(hex: 0xD97706)])
-                    groceryPill("Frozen", icon: "snowflake", count: 3, gradientColors: [Color(hex: 0x67E8F9), Color(hex: 0x22D3EE)])
-                    groceryPill("Pantry", icon: "bag.fill", count: 5, gradientColors: [Color(hex: 0xFCA5A5), Color(hex: 0xF87171)])
+                    ForEach(pantryCategoryCounts, id: \.name) { cat in
+                        groceryPill(cat.name, icon: cat.icon, count: cat.count, gradientColors: cat.colors)
+                    }
                 }
                 .padding(.horizontal, Theme.Spacing.md)
             }
@@ -278,6 +275,23 @@ struct HomeView: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    private var pantryCategoryCounts: [(name: String, icon: String, count: Int, colors: [Color])] {
+        let grouped = Dictionary(grouping: pantryItems, by: \.category)
+        let mapping: [(PantryCategory, String, [Color])] = [
+            (.protein, "flame.fill", [Color(hex: 0xA78BFA), Color(hex: 0x7C3AED)]),
+            (.produce, "carrot.fill", [Color(hex: 0x34D399), Color(hex: 0x059669)]),
+            (.dairy, "cup.and.saucer.fill", [Color(hex: 0x38BDF8), Color(hex: 0x0EA5E9)]),
+            (.grains, "leaf.fill", [Color(hex: 0xFBBF24), Color(hex: 0xD97706)]),
+            (.frozen, "snowflake", [Color(hex: 0x67E8F9), Color(hex: 0x22D3EE)]),
+            (.pantryStaple, "bag.fill", [Color(hex: 0xFCA5A5), Color(hex: 0xF87171)]),
+        ]
+        return mapping.compactMap { cat, icon, colors in
+            let count = grouped[cat]?.count ?? 0
+            guard count > 0 else { return nil }
+            return (name: cat.rawValue, icon: icon, count: count, colors: colors)
+        }
     }
 
     // MARK: - Mira Suggestion

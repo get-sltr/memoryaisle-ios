@@ -5,6 +5,8 @@ struct ProgressDashboardView: View {
     @Environment(\.colorScheme) private var scheme
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
+    @Query(sort: \BodyComposition.date, order: .reverse) private var bodyComp: [BodyComposition]
+    @Query(sort: \TrainingSession.date, order: .reverse) private var trainingSessions: [TrainingSession]
     @State private var healthKit = HealthKitManager()
     @State private var showGITolerance = false
     @State private var showProviderReport = false
@@ -130,6 +132,16 @@ struct ProgressDashboardView: View {
                 WeightTrendChart(data: healthKit.weightHistory)
                     .padding(.horizontal, 20)
 
+                // Body composition
+                if let latest = bodyComp.first {
+                    bodyCompSection(latest)
+                }
+
+                // Training this week
+                if !trainingSessions.isEmpty {
+                    trainingSection
+                }
+
                 // Action buttons
                 HStack(spacing: 10) {
                     actionButton("GI Tolerance", icon: "leaf.fill") {
@@ -155,7 +167,9 @@ struct ProgressDashboardView: View {
         .themeBackground()
         .navigationBarHidden(true)
         .sheet(isPresented: $showGITolerance) { GIToleranceView() }
-        .sheet(isPresented: $showProviderReport) { ProviderReportView() }
+        .sheet(isPresented: $showProviderReport) {
+            ProviderReportView().biometricProtected()
+        }
     }
 
     // MARK: - Components
@@ -214,6 +228,103 @@ struct ProgressDashboardView: View {
         let f = DateFormatter()
         f.dateFormat = "E"
         return String(f.string(from: date).prefix(1))
+    }
+
+    private func bodyCompSection(_ latest: BodyComposition) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("BODY COMPOSITION")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.white.opacity(0.25))
+                .tracking(1.2)
+
+            HStack(spacing: 10) {
+                statCard(
+                    "Weight",
+                    value: "\(Int(latest.weightLbs)) lbs",
+                    color: .white.opacity(0.4)
+                )
+                statCard(
+                    "Lean Mass",
+                    value: "\(Int(latest.computedLeanMass)) lbs",
+                    color: Color.violet
+                )
+                if let bf = latest.bodyFatPercent {
+                    statCard(
+                        "Body Fat",
+                        value: String(format: "%.1f%%", bf),
+                        color: Color(hex: 0xFBBF24)
+                    )
+                }
+            }
+
+            if bodyComp.count >= 2 {
+                let first = bodyComp.last
+                let change = latest.weightLbs - (first?.weightLbs ?? latest.weightLbs)
+                let leanChange = latest.computedLeanMass - (first?.computedLeanMass ?? latest.computedLeanMass)
+                HStack(spacing: 16) {
+                    trendLabel("Weight", change: change, unit: "lbs")
+                    trendLabel("Lean", change: leanChange, unit: "lbs")
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(.white.opacity(0.03))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(.white.opacity(0.06), lineWidth: 0.5)
+        )
+        .padding(.horizontal, 20)
+    }
+
+    private func trendLabel(_ label: String, change: Double, unit: String) -> some View {
+        let isPositive = change >= 0
+        let color: Color = label == "Lean"
+            ? (isPositive ? Color(hex: 0x34D399) : Color(hex: 0xF87171))
+            : (isPositive ? Color(hex: 0xF87171) : Color(hex: 0x34D399))
+
+        return HStack(spacing: 4) {
+            Image(systemName: isPositive ? "arrow.up.right" : "arrow.down.right")
+                .font(.system(size: 10))
+            Text(String(format: "%+.1f %@", change, unit))
+                .font(.system(size: 11, design: .monospaced))
+            Text(label)
+                .font(.system(size: 11))
+                .foregroundStyle(.white.opacity(0.4))
+        }
+        .foregroundStyle(color)
+    }
+
+    private var trainingSection: some View {
+        let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .now
+        let weekSessions = trainingSessions.filter { $0.date >= weekAgo }
+        let strengthCount = weekSessions.filter(\.isStrengthTraining).count
+        let totalMinutes = weekSessions.reduce(0) { $0 + $1.durationMinutes }
+
+        return VStack(alignment: .leading, spacing: 12) {
+            Text("TRAINING THIS WEEK")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.white.opacity(0.25))
+                .tracking(1.2)
+
+            HStack(spacing: 10) {
+                statCard("Sessions", value: "\(weekSessions.count)", color: Color.violet)
+                statCard("Strength", value: "\(strengthCount)", color: Color(hex: 0xFBBF24))
+                statCard("Minutes", value: "\(totalMinutes)", color: Color(hex: 0x38BDF8))
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(.white.opacity(0.03))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(.white.opacity(0.06), lineWidth: 0.5)
+        )
+        .padding(.horizontal, 20)
     }
 
     private func actionButton(_ label: String, icon: String, action: @escaping () -> Void) -> some View {

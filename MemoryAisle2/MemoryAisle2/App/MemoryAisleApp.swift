@@ -14,7 +14,15 @@ struct MemoryAisleApp: App {
                     NutritionLog.self,
                     SymptomLog.self,
                     PantryItem.self,
-                    GIToleranceRecord.self
+                    GIToleranceRecord.self,
+                    MealPlan.self,
+                    Meal.self,
+                    FoodItem.self,
+                    GroceryList.self,
+                    MedicationProfile.self,
+                    TrainingSession.self,
+                    BodyComposition.self,
+                    ProviderReport.self
                 ])
         }
     }

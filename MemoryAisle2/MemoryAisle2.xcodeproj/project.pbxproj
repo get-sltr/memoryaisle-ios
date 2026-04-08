@@ -105,6 +105,7 @@
 		BDD84A035952E148E75D474D /* MealGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4289492D9D233B6CBB6D969D /* MealGenerator.swift */; };
 		12454F8535308F7A818D9EBE /* FoodAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03E0480E826D45F967961DDA /* FoodAnalyzer.swift */; };
 		5E0C42602AB001937310ACDD /* MedicationAnonymizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B063400F8DEEF9650CB5A1DD /* MedicationAnonymizer.swift */; };
+		F38943C5E9883A020A33090E /* BiometricGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86944DC6A9EED733B8636E1E /* BiometricGate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -242,6 +243,7 @@
 		4289492D9D233B6CBB6D969D /* MealGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealGenerator.swift; path = MemoryAisle2/Services/AI/MealGenerator.swift; sourceTree = SOURCE_ROOT; };
 		03E0480E826D45F967961DDA /* FoodAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FoodAnalyzer.swift; path = MemoryAisle2/Services/AI/FoodAnalyzer.swift; sourceTree = SOURCE_ROOT; };
 		B063400F8DEEF9650CB5A1DD /* MedicationAnonymizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MedicationAnonymizer.swift; path = MemoryAisle2/Services/AI/MedicationAnonymizer.swift; sourceTree = SOURCE_ROOT; };
+		86944DC6A9EED733B8636E1E /* BiometricGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BiometricGate.swift; path = MemoryAisle2/DesignSystem/BiometricGate.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -490,6 +492,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F38943C5E9883A020A33090E /* BiometricGate.swift in Sources */,
 				5E0C42602AB001937310ACDD /* MedicationAnonymizer.swift in Sources */,
 				2410477201959EF22A1821E3 /* Meal.swift in Sources */,
 				B669448887D443CEA311B8B0 /* MealPlan.swift in Sources */,
