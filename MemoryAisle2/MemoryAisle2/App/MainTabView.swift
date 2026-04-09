@@ -34,15 +34,14 @@ struct MainTabView: View {
 
             CustomTabBar(selectedTab: $state.selectedTab)
         }
-        .overlay(alignment: .bottomTrailing) {
+        .overlay {
             if appState.selectedTab != .mira {
                 MiraFloatingButton {
                     withAnimation(Theme.Motion.spring) {
                         appState.selectedTab = .mira
                     }
                 }
-                .padding(.trailing, 20)
-                .padding(.bottom, 90)
+                .allowsHitTesting(true)
             }
         }
         .ignoresSafeArea(.keyboard)
