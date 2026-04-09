@@ -90,11 +90,11 @@ enum MedicationModality: String, Codable {
 }
 
 enum ProductMode: String, Codable, CaseIterable {
-    case everyday = "Everyday GLP-1"
+    case everyday = "Everyday"
     case sensitiveStomach = "Sensitive Stomach"
     case musclePreservation = "Muscle Preservation"
     case trainingPerformance = "Training Performance"
-    case maintenanceTaper = "Maintenance / Taper"
+    case maintenanceTaper = "Maintenance"
 }
 
 enum BiologicalSex: String, Codable, CaseIterable {
