@@ -4,8 +4,7 @@ import SwiftUI
 struct HomeView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.modelContext) private var modelContext
-    @State private var showProfile = false
-    @State private var showCalendar = false
+    @Binding var showMenu: Bool
     @Query private var profiles: [UserProfile]
     @Query(sort: \PantryItem.addedDate, order: .reverse) private var pantryItems: [PantryItem]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
@@ -18,38 +17,29 @@ struct HomeView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
+                Button {
+                    HapticManager.light()
+                    showMenu = true
+                } label: {
+                    OnboardingLogo(size: 36)
+                }
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(greeting)
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     Text("Grocery List")
-                        .font(.system(size: 28, weight: .light, design: .serif))
+                        .font(.system(size: 22, weight: .light, design: .serif))
                         .foregroundStyle(Theme.Text.primary)
                         .tracking(0.3)
                 }
+                .padding(.leading, 10)
 
                 Spacer()
-
-                Button {
-                    showCalendar = true
-                } label: {
-                    Image(systemName: "calendar")
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color.violet.opacity(0.6))
-                }
-
-                Button {
-                    showProfile = true
-                } label: {
-                    OnboardingLogo(size: 32)
-                }
-                .padding(.leading, 12)
             }
             .padding(.horizontal, 20)
             .padding(.top, 12)
             .padding(.bottom, 12)
-            .sheet(isPresented: $showProfile) { ProfileView() }
-            .sheet(isPresented: $showCalendar) { CalendarView() }
 
             // Item count
             if !pantryItems.isEmpty {

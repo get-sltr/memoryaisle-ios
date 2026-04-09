@@ -4,102 +4,170 @@ struct MainTabView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.colorScheme) private var scheme
     @State private var showMira = false
+    @State private var showMenu = false
+    @State private var menuDestination: MenuDestination?
 
     var body: some View {
-        @Bindable var state = appState
+        ZStack {
+            // Main content is always the grocery list (HomeView)
+            HomeView(showMenu: $showMenu)
 
-        ZStack(alignment: .bottom) {
-            Group {
-                switch appState.selectedTab {
-                case .home:
-                    NavigationStack(path: $state.homePath) {
-                        HomeView()
-                    }
-                case .recipes:
-                    NavigationStack(path: $state.recipesPath) {
-                        RecipesView()
-                    }
-                case .scan:
-                    ScanView()
-                case .safeSpace:
-                    SafeSpaceView()
-                case .progress:
-                    NavigationStack(path: $state.progressPath) {
-                        JourneyProfileView()
-                    }
-                }
+            // Floating Mira button
+            MiraFloatingButton {
+                showMira = true
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            CustomTabBar(selectedTab: $state.selectedTab)
-        }
-        .overlay {
-            if appState.selectedTab != .safeSpace {
-                MiraFloatingButton {
-                    showMira = true
-                }
-                .allowsHitTesting(true)
-            }
+            .allowsHitTesting(true)
         }
         .sheet(isPresented: $showMira) {
             MiraChatView()
         }
+        .sheet(item: $menuDestination) { dest in
+            destinationView(dest)
+        }
+        .sheet(isPresented: $showMenu) {
+            menuSheet
+        }
         .ignoresSafeArea(.keyboard)
+    }
+
+    // MARK: - Menu Sheet
+
+    private var menuSheet: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Logo
+                OnboardingLogo(size: 80)
+                    .padding(.top, 24)
+                    .padding(.bottom, 8)
+
+                Text("MemoryAisle")
+                    .font(.system(size: 20, weight: .light, design: .serif))
+                    .foregroundStyle(Theme.Text.primary)
+                    .padding(.bottom, 24)
+
+                // Menu items
+                VStack(spacing: 4) {
+                    menuRow("My Journey", icon: "person.fill", color: Color.violet) {
+                        showMenu = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            menuDestination = .profile
+                        }
+                    }
+                    menuRow("Recipes", icon: "book.fill", color: Color(hex: 0xFBBF24)) {
+                        showMenu = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            menuDestination = .recipes
+                        }
+                    }
+                    menuRow("Scan", icon: "barcode.viewfinder", color: Color(hex: 0x60A5FA)) {
+                        showMenu = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            menuDestination = .scan
+                        }
+                    }
+                    menuRow("Smart Calendar", icon: "calendar", color: Color(hex: 0x38BDF8)) {
+                        showMenu = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            menuDestination = .calendar
+                        }
+                    }
+                    menuRow("Pantry", icon: "refrigerator.fill", color: Color(hex: 0x4ADE80)) {
+                        showMenu = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            menuDestination = .pantry
+                        }
+                    }
+                    menuRow("My Safe Space", icon: "lock.shield.fill", color: Color(hex: 0x6B6B88)) {
+                        showMenu = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            menuDestination = .safeSpace
+                        }
+                    }
+                    menuRow("Progress", icon: "chart.line.uptrend.xyaxis", color: Color(hex: 0x34D399)) {
+                        showMenu = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            menuDestination = .progress
+                        }
+                    }
+                    menuRow("Subscribe", icon: "star.fill", color: Color(hex: 0xFBBF24)) {
+                        showMenu = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            menuDestination = .subscribe
+                        }
+                    }
+
+                    Divider()
+                        .background(Theme.Border.glass(for: scheme))
+                        .padding(.vertical, 8)
+
+                    menuRow("Settings", icon: "gearshape.fill", color: Theme.Text.tertiary(for: scheme)) {
+                        showMenu = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            menuDestination = .settings
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+
+                Spacer()
+            }
+            .themeBackground()
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        showMenu = false
+                    }
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(Color.violet)
+                }
+            }
+        }
+    }
+
+    private func menuRow(_ title: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button {
+            HapticManager.light()
+            action()
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .foregroundStyle(color)
+                    .frame(width: 24)
+
+                Text(title)
+                    .font(.system(size: 16))
+                    .foregroundStyle(Theme.Text.primary)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 4)
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func destinationView(_ dest: MenuDestination) -> some View {
+        switch dest {
+        case .profile: JourneyProfileView()
+        case .recipes: RecipesView()
+        case .scan: ScanView()
+        case .calendar: CalendarView()
+        case .pantry: PantryView()
+        case .safeSpace: SafeSpaceView()
+        case .progress: ProgressDashboardView()
+        case .subscribe: PaywallView()
+        case .settings: ProfileView()
+        }
     }
 }
 
-// MARK: - Custom Tab Bar
-
-struct CustomTabBar: View {
-    @Binding var selectedTab: AppState.Tab
-    @Environment(\.colorScheme) private var scheme
-
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(AppState.Tab.allCases, id: \.self) { tab in
-                tabItem(tab)
-            }
-        }
-        .padding(.top, 8)
-        .padding(.bottom, 2)
-        .background(
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Rectangle()
-                        .fill(Theme.Surface.glass(for: scheme))
-                )
-                .overlay(alignment: .top) {
-                    Rectangle()
-                        .fill(Theme.Border.glass(for: scheme))
-                        .frame(height: Theme.glassBorderWidth)
-                }
-        )
-    }
-
-    private func tabItem(_ tab: AppState.Tab) -> some View {
-        Button {
-            HapticManager.selection()
-            withAnimation(Theme.Motion.press) {
-                selectedTab = tab
-            }
-        } label: {
-            VStack(spacing: 3) {
-                Image(systemName: tab.icon)
-                    .font(.system(size: 18, weight: selectedTab == tab ? .medium : .light))
-
-                Text(tab.title)
-                    .font(.system(size: 9, weight: .medium))
-                    .tracking(0.4)
-            }
-            .foregroundStyle(
-                selectedTab == tab
-                    ? Color.violet
-                    : Theme.Text.tertiary(for: scheme)
-            )
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
-        }
-        .accessibilityLabel(tab.title)
-    }
+enum MenuDestination: String, Identifiable {
+    case profile, recipes, scan, calendar, pantry, safeSpace, progress, subscribe, settings
+    var id: String { rawValue }
 }
