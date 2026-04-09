@@ -10,7 +10,6 @@ struct MiraOnboardingView: View {
     @State private var showChoices = false
     @State private var miraText = ""
     @State private var isListening = false
-    @State private var userResponse = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -44,8 +43,8 @@ struct MiraOnboardingView: View {
                 choicesForCurrentStep
             }
 
-            // Mic button at bottom
-            if !voice.isSpeaking && showChoices {
+            // Mic button
+            if !voice.isSpeaking && showChoices && !isListening {
                 micButton
                     .padding(.bottom, 20)
             }
@@ -104,29 +103,50 @@ struct MiraOnboardingView: View {
         VStack(spacing: 10) {
             switch step {
             case .intro:
-                choiceButton("Let's go") { advanceTo(.glp1) }
+                choiceButton("Let's go") { advanceTo(.goals) }
 
-            case .glp1:
-                choiceButton("Yes, I'm on a GLP-1") {
-                    profile.isOnGLP1 = true
-                    advanceTo(.medication)
-                }
-                choiceButton("No, just smarter nutrition") {
-                    profile.isOnGLP1 = false
-                    profile.medication = nil
-                    profile.modality = nil
-                    advanceTo(.age)
-                }
-
-            case .medication:
+            case .goals:
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 8) {
-                        ForEach(Medication.allCases, id: \.self) { med in
-                            choiceButton(med.rawValue) {
-                                profile.medication = med
-                                advanceTo(.age)
+                        ForEach(Worry.allCases, id: \.self) { worry in
+                            let isSelected = profile.worries.contains(worry)
+                            choiceButton(worry.rawValue, isSelected: isSelected) {
+                                if isSelected {
+                                    profile.worries.removeAll { $0 == worry }
+                                } else {
+                                    profile.worries.append(worry)
+                                }
                             }
                         }
+                        if !profile.worries.isEmpty {
+                            choiceButton("Continue") { advanceTo(.training) }
+                        }
+                    }
+                }
+                .frame(maxHeight: 320)
+
+            case .training:
+                ForEach(TrainingLevel.allCases, id: \.self) { level in
+                    choiceButton(level.rawValue) {
+                        profile.trainingLevel = level
+                        advanceTo(.dietary)
+                    }
+                }
+
+            case .dietary:
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 8) {
+                        ForEach(DietaryRestriction.allCases, id: \.self) { r in
+                            let isSelected = profile.dietaryRestrictions.contains(r)
+                            choiceButton(r.rawValue, isSelected: isSelected) {
+                                if isSelected {
+                                    profile.dietaryRestrictions.removeAll { $0 == r }
+                                } else {
+                                    profile.dietaryRestrictions.append(r)
+                                }
+                            }
+                        }
+                        choiceButton("Continue") { advanceTo(.age) }
                     }
                 }
                 .frame(maxHeight: 300)
@@ -169,55 +189,30 @@ struct MiraOnboardingView: View {
                             set: { profile.goalWeightLbs = Double($0) }
                         ))
                     }
-                    choiceButton("Next") { advanceTo(.worries) }
+                    choiceButton("Next") { advanceTo(.medication) }
                 }
 
-            case .worries:
+            case .medication:
+                choiceButton("Yes") {
+                    profile.isOnGLP1 = true
+                    advanceTo(.whichMed)
+                }
+                choiceButton("No") {
+                    profile.isOnGLP1 = false
+                    profile.medication = nil
+                    profile.modality = nil
+                    advanceTo(.ready)
+                }
+
+            case .whichMed:
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 8) {
-                        ForEach(Worry.allCases, id: \.self) { worry in
-                            let isSelected = profile.worries.contains(worry)
-                            choiceButton(
-                                worry.rawValue,
-                                isSelected: isSelected
-                            ) {
-                                if isSelected {
-                                    profile.worries.removeAll { $0 == worry }
-                                } else {
-                                    profile.worries.append(worry)
-                                }
+                        ForEach(Medication.allCases, id: \.self) { med in
+                            choiceButton(med.rawValue) {
+                                profile.medication = med
+                                advanceTo(.ready)
                             }
                         }
-                        choiceButton("Continue") { advanceTo(.training) }
-                    }
-                }
-                .frame(maxHeight: 300)
-
-            case .training:
-                ForEach(TrainingLevel.allCases, id: \.self) { level in
-                    choiceButton(level.rawValue) {
-                        profile.trainingLevel = level
-                        advanceTo(.dietary)
-                    }
-                }
-
-            case .dietary:
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 8) {
-                        ForEach(DietaryRestriction.allCases, id: \.self) { r in
-                            let isSelected = profile.dietaryRestrictions.contains(r)
-                            choiceButton(
-                                r.rawValue,
-                                isSelected: isSelected
-                            ) {
-                                if isSelected {
-                                    profile.dietaryRestrictions.removeAll { $0 == r }
-                                } else {
-                                    profile.dietaryRestrictions.append(r)
-                                }
-                            }
-                        }
-                        choiceButton("Continue") { advanceTo(.ready) }
                     }
                 }
                 .frame(maxHeight: 300)
@@ -278,7 +273,7 @@ struct MiraOnboardingView: View {
         Task {
             _ = await voice.requestPermissions()
             await miraSpeak(
-                "Welcome to MemoryAisle. I'm Mira, and I'll walk you through the setup.",
+                "Welcome to MemoryAisle. I'm Mira, and I'll help you get set up.",
                 step: .intro
             )
         }
@@ -289,20 +284,41 @@ struct MiraOnboardingView: View {
 
         let text: String = switch next {
         case .intro: ""
-        case .glp1: "Are you currently on a GLP-1 medication?"
-        case .medication: "Which medication are you on?"
+        case .goals: "What matters most to you right now? Pick everything that applies."
+        case .training: "Do you exercise or train regularly?"
+        case .dietary: "Any dietary restrictions? Select what applies, or just hit continue."
         case .age: "How old are you?"
         case .sex: "What is your biological sex? This helps me calculate your protein targets."
-        case .heightWeight: "What's your current weight and goal weight?"
-        case .worries: "What worries you most right now? Select all that apply."
-        case .training: "Do you exercise or train regularly?"
-        case .dietary: "Any dietary restrictions? Select all that apply, or just hit continue."
-        case .ready: "I've got everything I need. Your plan is personalized and ready to go."
+        case .heightWeight: "What's your current weight and where do you want to be?"
+        case .medication: "Are you on any medication that affects your appetite?"
+        case .whichMed: "Which medication?"
+        case .ready: buildReadySummary()
         }
 
-        Task {
-            await miraSpeak(text, step: next)
+        Task { await miraSpeak(text, step: next) }
+    }
+
+    private func buildReadySummary() -> String {
+        var parts: [String] = ["I've got everything I need."]
+
+        if !profile.worries.isEmpty {
+            let focus = profile.worries.first?.rawValue.lowercased() ?? "your goals"
+            parts.append("I'll focus on \(focus).")
         }
+
+        if let weight = profile.weightLbs, let goal = profile.goalWeightLbs {
+            let diff = Int(weight - goal)
+            if diff > 0 {
+                parts.append("We're working toward losing \(diff) pounds while keeping your muscle.")
+            }
+        }
+
+        if profile.isOnGLP1, let med = profile.medication {
+            parts.append("I'll adapt your meals to your \(med.rawValue) cycle.")
+        }
+
+        parts.append("Your plan is personalized and ready.")
+        return parts.joined(separator: " ")
     }
 
     @MainActor
@@ -311,7 +327,6 @@ struct MiraOnboardingView: View {
         self.step = step
         voice.speak(text)
 
-        // Wait for speech to finish
         while voice.isSpeaking {
             try? await Task.sleep(for: .milliseconds(100))
         }
@@ -330,7 +345,6 @@ struct MiraOnboardingView: View {
         voice.stopListening()
         let response = voice.transcribedText
         isListening = false
-
         processVoiceResponse(response)
     }
 
@@ -338,22 +352,20 @@ struct MiraOnboardingView: View {
         let lower = text.lowercased()
 
         switch step {
-        case .glp1:
+        case .medication:
             if lower.contains("yes") {
                 profile.isOnGLP1 = true
-                advanceTo(.medication)
+                advanceTo(.whichMed)
             } else if lower.contains("no") {
                 profile.isOnGLP1 = false
                 profile.medication = nil
-                advanceTo(.age)
+                advanceTo(.ready)
             }
-
         case .age:
             if let age = Int(text.filter(\.isNumber)) {
                 profile.age = age
                 advanceTo(.sex)
             }
-
         case .sex:
             if lower.contains("male") && !lower.contains("female") {
                 profile.sex = .male
@@ -362,7 +374,6 @@ struct MiraOnboardingView: View {
                 profile.sex = .female
                 advanceTo(.heightWeight)
             }
-
         case .training:
             if lower.contains("lift") || lower.contains("weight") {
                 profile.trainingLevel = .lifts
@@ -377,24 +388,23 @@ struct MiraOnboardingView: View {
                 profile.trainingLevel = .none
                 advanceTo(.dietary)
             }
-
         default:
             break
         }
     }
 }
 
-// MARK: - Question Steps
+// MARK: - Question Steps (reordered: goals first, medication last)
 
 enum MiraQuestion: Int, CaseIterable {
     case intro = 0
-    case glp1 = 1
-    case medication = 2
-    case age = 3
-    case sex = 4
-    case heightWeight = 5
-    case worries = 6
-    case training = 7
-    case dietary = 8
-    case ready = 9
+    case goals = 1        // What matters to you? (worries)
+    case training = 2     // Do you exercise?
+    case dietary = 3      // Restrictions?
+    case age = 4          // How old?
+    case sex = 5          // Biological sex
+    case heightWeight = 6 // Weight + goal
+    case medication = 7   // On any appetite medication?
+    case whichMed = 8     // Which one?
+    case ready = 9        // Personalized summary
 }

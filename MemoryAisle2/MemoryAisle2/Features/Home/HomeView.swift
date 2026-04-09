@@ -33,13 +33,15 @@ struct HomeView: View {
         ScrollView {
             VStack(spacing: Theme.Spacing.md) {
                 header
+                grocerySection
+                miraSuggestion
                 proteinHeroCard
                 macroTiles
                 quickLogButtons
-                grocerySection
-                InjectionCycleBar()
-                    .padding(.horizontal, Theme.Spacing.md)
-                miraSuggestion
+                if profile?.medication != nil {
+                    InjectionCycleBar()
+                        .padding(.horizontal, Theme.Spacing.md)
+                }
                 symptomQuickLog
                 Spacer(minLength: 80)
             }
@@ -316,38 +318,65 @@ struct HomeView: View {
         .padding(.horizontal, Theme.Spacing.md)
     }
 
-    private var isOnGLP1: Bool {
-        profile?.medication != nil
-    }
-
     private var miraSuggestionText: String {
         let hour = Calendar.current.component(.hour, from: .now)
+        let worries = profile?.worries ?? []
+        let training = profile?.trainingLevel ?? .none
+        let isOnMed = profile?.medication != nil
 
-        if proteinDeficit > 80 {
-            return "You need \(proteinDeficit)g more protein today. That's about 3 meals worth. Start with a chicken breast (31g), then a protein shake (25g), and finish with salmon for dinner (23g)."
-        } else if proteinDeficit > 50 {
-            return "\(proteinDeficit)g to go. Two solid meals will do it. Try a grilled chicken bowl (45g protein) for lunch and Greek yogurt with hemp seeds (24g) as a snack."
-        } else if proteinDeficit > 20 {
-            return "\(proteinDeficit)g left. A protein shake (25g) or a can of tuna with crackers (30g) would close the gap in one sitting."
-        } else if proteinDeficit > 0 {
-            return "Almost there! Just \(proteinDeficit)g more. A cup of cottage cheese (14g) or a handful of almonds with a string cheese (13g) will do it."
-        } else if water < waterTarget * 0.5 {
-            if isOnGLP1 {
-                return "You're behind on hydration. GLP-1s can suppress thirst, so you may not feel it. Try a glass now."
-            } else {
-                return "You're behind on hydration. Try to get a glass of water in. Staying hydrated helps with energy and focus."
+        // Priority 1: Protein deficit (the core metric)
+        if proteinDeficit > 50 {
+            if worries.contains(.losingMuscle) {
+                return "You're \(proteinDeficit)g short on protein. Since muscle preservation is your focus, this is the one number to close today. A chicken breast (31g) and Greek yogurt (15g) gets you halfway."
             }
-        } else if protein == 0 && hour < 12 {
-            if isOnGLP1 {
-                return "Morning is a great time to start on protein, even if appetite is low. A smoothie or eggs are easy to get down."
-            } else {
-                return "Start your day with protein. Eggs (18g for 3), overnight oats with Greek yogurt (32g), or a smoothie (30g)."
+            return "\(proteinDeficit)g of protein left today. Two solid meals will do it. Try a grilled chicken bowl for lunch and salmon for dinner."
+        }
+
+        if proteinDeficit > 20 {
+            if training == .lifts {
+                return "\(proteinDeficit)g to go. Since you're lifting, getting this in before bed matters. A protein shake (25g) or cottage cheese (14g) will close the gap."
             }
-        } else if protein == 0 && hour >= 12 {
-            return "You haven't logged any protein yet. A quick chicken breast (31g) or tuna wrap (28g) will get you going."
-        } else {
+            return "\(proteinDeficit)g left. A protein shake or a can of tuna with crackers would close the gap in one sitting."
+        }
+
+        // Priority 2: Hydration
+        if water < waterTarget * 0.5 {
+            if isOnMed {
+                return "You're behind on hydration. Your medication can suppress thirst, so you may not feel it. Try a glass now."
+            }
+            if worries.contains(.lowEnergy) {
+                return "You're behind on water. Dehydration is one of the biggest energy killers. A glass now will help more than coffee."
+            }
+            return "You're behind on hydration. Try to get a glass in. It helps with energy, focus, and recovery."
+        }
+
+        // Priority 3: No food logged yet
+        if protein == 0 && hour < 12 {
+            if worries.contains(.nausea) || isOnMed {
+                return "Morning is a great time to start, even if appetite is low. A smoothie or scrambled eggs are easy to get down."
+            }
+            return "Start your day with protein. Eggs (18g for 3), overnight oats with Greek yogurt (32g), or a quick smoothie (30g)."
+        }
+
+        if protein == 0 && hour >= 12 {
+            return "You haven't logged any protein yet. A quick chicken breast (31g) or tuna wrap (28g) will get you started."
+        }
+
+        // Priority 4: Protein hit - personalized encouragement
+        if proteinDeficit <= 0 {
+            if worries.contains(.losingMuscle) {
+                return "Protein target hit. Your muscles are getting what they need today. Focus on hydration and rest."
+            }
+            if worries.contains(.regainingWeight) {
+                return "Great work on protein. Staying consistent with this is how you maintain results long term."
+            }
+            if training == .lifts {
+                return "Protein target hit. If you're training today, you're fueled and ready. Recovery starts with what you ate."
+            }
             return "You've hit your protein target. Focus on hydration and vegetables for the rest of the day."
         }
+
+        return "Almost there! Just \(proteinDeficit)g more. A cup of cottage cheese (14g) or string cheese with almonds (13g) will do it."
     }
 
     // MARK: - Symptom Quick Log
