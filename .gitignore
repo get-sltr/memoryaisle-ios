@@ -30,6 +30,11 @@ Secrets/
 .AppleDouble
 .LSOverride
 
+# CDK
+Infrastructure/CDK/cdk.out/
+Infrastructure/CDK/node_modules/
+Infrastructure/CDK/dist/
+
 # Figma state
 /tmp/dsb-state-*.json
 

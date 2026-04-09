@@ -1,10 +1,9 @@
 #!/usr/bin/env node
-import "source-map-support/register.js";
 import * as cdk from "aws-cdk-lib";
-import { AuthStack } from "../lib/auth-stack.js";
-import { DataStack } from "../lib/data-stack.js";
-import { ApiStack } from "../lib/api-stack.js";
-import { MonitoringStack } from "../lib/monitoring-stack.js";
+import { AuthStack } from "../lib/auth-stack";
+import { DataStack } from "../lib/data-stack";
+import { ApiStack } from "../lib/api-stack";
+import { MonitoringStack } from "../lib/monitoring-stack";
 
 const app = new cdk.App();
 

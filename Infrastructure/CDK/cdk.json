@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --esm bin/app.ts",
+  "app": "npx tsx bin/app.ts",
   "context": {
     "cognitoUserPoolId": "us-east-1_8jluiv1HL",
     "apiGatewayRestApiId": "9n2u3mkkma",
