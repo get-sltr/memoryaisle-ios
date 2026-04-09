@@ -56,7 +56,6 @@ struct RootView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
         .onAppear {
             if profiles.first?.hasCompletedOnboarding == true {
                 appState.hasCompletedOnboarding = true
