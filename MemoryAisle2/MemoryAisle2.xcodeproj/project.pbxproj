@@ -106,6 +106,11 @@
 		12454F8535308F7A818D9EBE /* FoodAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03E0480E826D45F967961DDA /* FoodAnalyzer.swift */; };
 		5E0C42602AB001937310ACDD /* MedicationAnonymizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B063400F8DEEF9650CB5A1DD /* MedicationAnonymizer.swift */; };
 		F38943C5E9883A020A33090E /* BiometricGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86944DC6A9EED733B8636E1E /* BiometricGate.swift */; };
+		2EB343E0724C0705BA78004B /* AppGroupDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9F4378F3CF5B8C81682EE6 /* AppGroupDataProvider.swift */; };
+		68BA43CFC92A6DBF1E211321 /* ProteinWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D64F9FC3988244267887EA /* ProteinWidget.swift */; };
+		DA054BFFA4BAFFA1541C5A60 /* HydrationWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FB4D472EDDF2C0B794426D /* HydrationWidget.swift */; };
+		147A4A8BADF85746B7160391 /* TodaysMealWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001B480DD14913F2AD0B27CA /* TodaysMealWidget.swift */; };
+		D74645EDF0E22282B211B419 /* MemoryAisleWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD54FB20C30C07C74A5AFB8 /* MemoryAisleWidgets.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -244,6 +249,11 @@
 		03E0480E826D45F967961DDA /* FoodAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FoodAnalyzer.swift; path = MemoryAisle2/Services/AI/FoodAnalyzer.swift; sourceTree = SOURCE_ROOT; };
 		B063400F8DEEF9650CB5A1DD /* MedicationAnonymizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MedicationAnonymizer.swift; path = MemoryAisle2/Services/AI/MedicationAnonymizer.swift; sourceTree = SOURCE_ROOT; };
 		86944DC6A9EED733B8636E1E /* BiometricGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BiometricGate.swift; path = MemoryAisle2/DesignSystem/BiometricGate.swift; sourceTree = SOURCE_ROOT; };
+		FA9F4378F3CF5B8C81682EE6 /* AppGroupDataProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppGroupDataProvider.swift; path = MemoryAisle2/Widgets/AppGroupDataProvider.swift; sourceTree = SOURCE_ROOT; };
+		60D64F9FC3988244267887EA /* ProteinWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProteinWidget.swift; path = MemoryAisle2/Widgets/ProteinWidget.swift; sourceTree = SOURCE_ROOT; };
+		C0FB4D472EDDF2C0B794426D /* HydrationWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HydrationWidget.swift; path = MemoryAisle2/Widgets/HydrationWidget.swift; sourceTree = SOURCE_ROOT; };
+		001B480DD14913F2AD0B27CA /* TodaysMealWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TodaysMealWidget.swift; path = MemoryAisle2/Widgets/TodaysMealWidget.swift; sourceTree = SOURCE_ROOT; };
+		DDD54FB20C30C07C74A5AFB8 /* MemoryAisleWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MemoryAisleWidgets.swift; path = MemoryAisle2/Widgets/MemoryAisleWidgets.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -365,6 +375,18 @@
 				9D854D9DFDF7C3B1A5329E6B /* StrengthTracker.swift */,
 			);
 			name = BodyComp;
+			sourceTree = "<group>";
+		};
+		71E9464FBE3B19A5667B9197 /* Widgets */ = {
+			isa = PBXGroup;
+			children = (
+				FA9F4378F3CF5B8C81682EE6 /* AppGroupDataProvider.swift */,
+				60D64F9FC3988244267887EA /* ProteinWidget.swift */,
+				C0FB4D472EDDF2C0B794426D /* HydrationWidget.swift */,
+				001B480DD14913F2AD0B27CA /* TodaysMealWidget.swift */,
+				DDD54FB20C30C07C74A5AFB8 /* MemoryAisleWidgets.swift */,
+			);
+			name = Widgets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -492,6 +514,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2EB343E0724C0705BA78004B /* AppGroupDataProvider.swift in Sources */,
+				68BA43CFC92A6DBF1E211321 /* ProteinWidget.swift in Sources */,
+				DA054BFFA4BAFFA1541C5A60 /* HydrationWidget.swift in Sources */,
+				147A4A8BADF85746B7160391 /* TodaysMealWidget.swift in Sources */,
+				D74645EDF0E22282B211B419 /* MemoryAisleWidgets.swift in Sources */,
 				F38943C5E9883A020A33090E /* BiometricGate.swift in Sources */,
 				5E0C42602AB001937310ACDD /* MedicationAnonymizer.swift in Sources */,
 				2410477201959EF22A1821E3 /* Meal.swift in Sources */,
