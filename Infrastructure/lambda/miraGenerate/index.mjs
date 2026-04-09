@@ -1,4 +1,7 @@
-import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+import {
+  BedrockRuntimeClient,
+  InvokeModelCommand,
+} from "@aws-sdk/client-bedrock-runtime";
 
 const client = new BedrockRuntimeClient({ region: "us-east-1" });
 
@@ -10,6 +13,8 @@ Your personality:
 - Acknowledge uncertainty explicitly
 - Never recommend starting, stopping, or changing medication
 - Always defer to "talk to your prescriber" for medical questions
+- Never reference specific brand names of medications
+- Never ask for or reference the user's real name
 
 Your expertise:
 - Protein-first nutrition for body composition on GLP-1s
@@ -34,10 +39,7 @@ export const handler = async (event) => {
     };
   }
 
-  // Build context-aware prompt
-  const userContext = context
-    ? `\n\nUser context:\n- Medication: ${context.medication || "unknown"}\n- Mode: ${context.mode || "Everyday GLP-1"}\n- Protein target: ${context.proteinTarget || 140}g\n- Protein today: ${context.proteinToday || 0}g\n- Water today: ${context.waterToday || 0}L\n- Training level: ${context.trainingLevel || "unknown"}\n- Nausea level: ${context.nauseaLevel || "unknown"}/5`
-    : "";
+  const userContext = context ? buildAnonymizedContext(context) : "";
 
   try {
     const command = new InvokeModelCommand({
@@ -54,7 +56,9 @@ export const handler = async (event) => {
 
     const response = await client.send(command);
     const result = JSON.parse(new TextDecoder().decode(response.body));
-    const reply = result.content?.[0]?.text || "I'm having trouble right now. Try again in a moment.";
+    const reply =
+      result.content?.[0]?.text ||
+      "I'm having trouble right now. Try again in a moment.";
 
     return {
       statusCode: 200,
@@ -66,14 +70,45 @@ export const handler = async (event) => {
     return {
       statusCode: 500,
       headers: corsHeaders(),
-      body: JSON.stringify({ error: "Mira is temporarily unavailable. Please try again." }),
+      body: JSON.stringify({
+        error: "Mira is temporarily unavailable. Please try again.",
+      }),
     };
   }
 };
 
+function buildAnonymizedContext(ctx) {
+  const lines = ["\n\nUser context (anonymized):"];
+  if (ctx.medicationClass)
+    lines.push(`- Medication class: ${ctx.medicationClass}`);
+  if (ctx.doseTier) lines.push(`- Dose tier: ${ctx.doseTier}`);
+  if (ctx.daysSinceDose != null)
+    lines.push(`- Days since dose: ${ctx.daysSinceDose}`);
+  if (ctx.phase) lines.push(`- Cycle phase: ${ctx.phase}`);
+  if (ctx.symptomState) lines.push(`- Symptom state: ${ctx.symptomState}`);
+  if (ctx.mode) lines.push(`- Mode: ${ctx.mode}`);
+  if (ctx.proteinTarget)
+    lines.push(`- Protein target: ${ctx.proteinTarget}g`);
+  if (ctx.proteinToday != null)
+    lines.push(`- Protein today: ${ctx.proteinToday}g`);
+  if (ctx.waterToday != null)
+    lines.push(`- Water today: ${ctx.waterToday}L`);
+  if (ctx.trainingLevel)
+    lines.push(`- Training level: ${ctx.trainingLevel}`);
+  if (ctx.trainingToday != null)
+    lines.push(`- Training today: ${ctx.trainingToday}`);
+  if (ctx.calorieTarget)
+    lines.push(`- Calorie target: ${ctx.calorieTarget}`);
+  if (ctx.dietaryRestrictions?.length)
+    lines.push(
+      `- Dietary restrictions: ${ctx.dietaryRestrictions.join(", ")}`
+    );
+  return lines.join("\n");
+}
+
 function corsHeaders() {
   return {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": "https://memoryaisle.app",
     "Access-Control-Allow-Headers": "Content-Type,Authorization",
     "Access-Control-Allow-Methods": "POST,OPTIONS",
     "Content-Type": "application/json",
