@@ -61,6 +61,11 @@ struct OnboardingFlow: View {
                             onYes: { step = .medication },
                             onNo: {
                                 profile.isOnGLP1 = false
+                                profile.medication = nil
+                                profile.modality = nil
+                                profile.doseAmount = nil
+                                profile.injectionDay = nil
+                                profile.pillTime = nil
                                 step = .bodyStats
                             }
                         )

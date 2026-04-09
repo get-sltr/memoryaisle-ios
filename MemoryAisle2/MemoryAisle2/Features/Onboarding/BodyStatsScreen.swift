@@ -5,32 +5,89 @@ struct BodyStatsScreen: View {
     @Binding var profile: OnboardingProfile
     let onContinue: () -> Void
 
+    @State private var subStep = 0
+
     var body: some View {
         VStack(spacing: 0) {
-            OnboardingLogo()
-                .padding(.top, 16)
-                .padding(.bottom, 16)
+            Group {
+                switch subStep {
+                case 0: agePage
+                case 1: sexEthnicityPage
+                default: heightWeightPage
+                }
+            }
+            .transition(.asymmetric(
+                insertion: .move(edge: .trailing).combined(with: .opacity),
+                removal: .move(edge: .leading).combined(with: .opacity)
+            ))
+            .animation(Theme.Motion.spring, value: subStep)
+        }
+    }
 
-            Text("Tell us about you")
-                .font(.system(size: 26, weight: .light, design: .serif))
+    // MARK: - Page 1: Age
+
+    private var agePage: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            OnboardingLogo()
+                .padding(.bottom, 32)
+
+            Text("How old are you?")
+                .font(.system(size: 28, weight: .light, design: .serif))
                 .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
             Text("This helps personalize your targets")
                 .font(.system(size: 13))
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                .padding(.top, 6)
-                .padding(.bottom, 20)
+                .padding(.top, 8)
+
+            TextField("e.g. 35", text: Binding(
+                get: { profile.age.map { "\($0)" } ?? "" },
+                set: { profile.age = Int($0) }
+            ))
+            .font(.system(size: 32, weight: .light, design: .monospaced))
+            .foregroundStyle(Theme.Text.primary)
+            .multilineTextAlignment(.center)
+            .keyboardType(.numberPad)
+            .padding(.vertical, 20)
+            .padding(.horizontal, 60)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Theme.Surface.glass(for: scheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+            )
+            .padding(.horizontal, 60)
+            .padding(.top, 40)
+
+            Spacer()
+
+            bottomButtons {
+                withAnimation { subStep = 1 }
+            }
+        }
+    }
+
+    // MARK: - Page 2: Sex + Ethnicity
+
+    private var sexEthnicityPage: some View {
+        VStack(spacing: 0) {
+            OnboardingLogo()
+                .padding(.top, 16)
+                .padding(.bottom, 24)
+
+            Text("About you")
+                .font(.system(size: 28, weight: .light, design: .serif))
+                .foregroundStyle(Theme.Text.primary)
+                .tracking(0.3)
+                .padding(.bottom, 24)
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 16) {
-                    // Age
-                    statField("AGE", value: Binding(
-                        get: { profile.age.map { "\($0)" } ?? "" },
-                        set: { profile.age = Int($0) }
-                    ), placeholder: "e.g. 35", keyboard: .numberPad)
-
-                    // Sex
+                VStack(spacing: 20) {
                     selectionField("BIOLOGICAL SEX") {
                         ForEach(BiologicalSex.allCases, id: \.self) { sex in
                             selectionPill(sex.rawValue, isSelected: profile.sex == sex) {
@@ -39,7 +96,6 @@ struct BodyStatsScreen: View {
                         }
                     }
 
-                    // Ethnicity
                     selectionField("ETHNICITY") {
                         ForEach(Ethnicity.allCases, id: \.self) { eth in
                             selectionPill(eth.rawValue, isSelected: profile.ethnicity == eth) {
@@ -47,70 +103,103 @@ struct BodyStatsScreen: View {
                             }
                         }
                     }
-
-                    // Weight
-                    HStack(spacing: 10) {
-                        statField("CURRENT WEIGHT", value: Binding(
-                            get: { profile.weightLbs.map { "\(Int($0))" } ?? "" },
-                            set: { profile.weightLbs = Double($0) }
-                        ), placeholder: "lbs", keyboard: .numberPad)
-
-                        statField("GOAL WEIGHT", value: Binding(
-                            get: { profile.goalWeightLbs.map { "\(Int($0))" } ?? "" },
-                            set: { profile.goalWeightLbs = Double($0) }
-                        ), placeholder: "lbs", keyboard: .numberPad)
-                    }
-
-                    // Height
-                    HStack(spacing: 10) {
-                        statField("HEIGHT (FT)", value: Binding(
-                            get: {
-                                guard let inches = profile.heightInches else { return "" }
-                                return "\(inches / 12)"
-                            },
-                            set: {
-                                let ft = Int($0) ?? 0
-                                let existingIn = (profile.heightInches ?? 0) % 12
-                                profile.heightInches = ft * 12 + existingIn
-                            }
-                        ), placeholder: "ft", keyboard: .numberPad)
-
-                        statField("HEIGHT (IN)", value: Binding(
-                            get: {
-                                guard let inches = profile.heightInches else { return "" }
-                                return "\(inches % 12)"
-                            },
-                            set: {
-                                let inches = Int($0) ?? 0
-                                let existingFt = (profile.heightInches ?? 0) / 12
-                                profile.heightInches = existingFt * 12 + inches
-                            }
-                        ), placeholder: "in", keyboard: .numberPad)
-                    }
                 }
                 .padding(.horizontal, 28)
             }
 
-            // Skip + Continue
-            VStack(spacing: 10) {
-                GlowButton("Continue") {
-                    onContinue()
-                }
-
-                Button {
-                    onContinue()
-                } label: {
-                    Text("Skip for now")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                }
+            bottomButtons {
+                withAnimation { subStep = 2 }
             }
-            .padding(.horizontal, 32)
-            .padding(.bottom, 50)
         }
     }
 
-    // MARK: - Components
+    // MARK: - Page 3: Height + Weight
+
+    private var heightWeightPage: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            OnboardingLogo()
+                .padding(.bottom, 32)
+
+            Text("Height and weight")
+                .font(.system(size: 28, weight: .light, design: .serif))
+                .foregroundStyle(Theme.Text.primary)
+                .tracking(0.3)
+
+            Text("Used to calculate your protein target")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                .padding(.top, 8)
+                .padding(.bottom, 32)
+
+            VStack(spacing: 16) {
+                HStack(spacing: 10) {
+                    statField("HEIGHT (FT)", value: Binding(
+                        get: {
+                            guard let inches = profile.heightInches else { return "" }
+                            return "\(inches / 12)"
+                        },
+                        set: {
+                            let ft = Int($0) ?? 0
+                            let existingIn = (profile.heightInches ?? 0) % 12
+                            profile.heightInches = ft * 12 + existingIn
+                        }
+                    ), placeholder: "ft", keyboard: .numberPad)
+
+                    statField("HEIGHT (IN)", value: Binding(
+                        get: {
+                            guard let inches = profile.heightInches else { return "" }
+                            return "\(inches % 12)"
+                        },
+                        set: {
+                            let inches = Int($0) ?? 0
+                            let existingFt = (profile.heightInches ?? 0) / 12
+                            profile.heightInches = existingFt * 12 + inches
+                        }
+                    ), placeholder: "in", keyboard: .numberPad)
+                }
+
+                HStack(spacing: 10) {
+                    statField("CURRENT WEIGHT", value: Binding(
+                        get: { profile.weightLbs.map { "\(Int($0))" } ?? "" },
+                        set: { profile.weightLbs = Double($0) }
+                    ), placeholder: "lbs", keyboard: .numberPad)
+
+                    statField("GOAL WEIGHT", value: Binding(
+                        get: { profile.goalWeightLbs.map { "\(Int($0))" } ?? "" },
+                        set: { profile.goalWeightLbs = Double($0) }
+                    ), placeholder: "lbs", keyboard: .numberPad)
+                }
+            }
+            .padding(.horizontal, 28)
+
+            Spacer()
+
+            bottomButtons {
+                onContinue()
+            }
+        }
+    }
+
+    // MARK: - Shared Components
+
+    private func bottomButtons(action: @escaping () -> Void) -> some View {
+        VStack(spacing: 10) {
+            GlowButton("Continue") {
+                action()
+            }
+            Button {
+                action()
+            } label: {
+                Text("Skip for now")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+            }
+        }
+        .padding(.horizontal, 32)
+        .padding(.bottom, 50)
+    }
 
     private func statField(_ label: String, value: Binding<String>, placeholder: String, keyboard: UIKeyboardType) -> some View {
         VStack(spacing: 6) {
