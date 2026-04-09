@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct OnboardingLogo: View {
-    var size: CGFloat = 120
+    var size: CGFloat = 180
 
     var body: some View {
         Image("AppLogo")

@@ -5,16 +5,23 @@ struct OnboardingFlow: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
-    @State private var step: OnboardingStep = .intro
+    @State private var step: OnboardingStep = .welcome
+    @State private var showWelcome = true
     @State private var profile = OnboardingProfile()
 
     var body: some View {
         ZStack {
             Color.clear
 
+            if showWelcome {
+                welcomeScreen
+                    .transition(.scale(scale: 0.01).combined(with: .opacity))
+                    .zIndex(1)
+            }
+
             VStack(spacing: 0) {
                 // Top bar: back button + progress
-                if step != .intro {
+                if step != .intro && step != .welcome {
                     HStack {
                         Button {
                             HapticManager.light()
@@ -45,6 +52,8 @@ struct OnboardingFlow: View {
                 // Content
                 Group {
                     switch step {
+                    case .welcome:
+                        Color.clear
                     case .intro:
                         MiraIntroScreen(onContinue: { step = .glp1Check })
                     case .glp1Check:
@@ -102,11 +111,68 @@ struct OnboardingFlow: View {
         .themeBackground()
     }
 
+    // MARK: - Welcome Screen
+
+    private var welcomeScreen: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            OnboardingLogo(size: 220)
+                .shadow(color: Color.violet.opacity(0.4), radius: 40, y: 10)
+
+            Text("Welcome to")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .padding(.top, 32)
+
+            Text("MemoryAisle")
+                .font(.system(size: 34, weight: .light, design: .serif))
+                .foregroundStyle(Theme.Text.primary)
+                .tracking(1)
+                .padding(.top, 4)
+
+            Text("Lose fat without losing muscle.")
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                .padding(.top, 12)
+
+            Spacer()
+
+            Button {
+                HapticManager.medium()
+                withAnimation(.easeIn(duration: 0.6)) {
+                    showWelcome = false
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation(Theme.Motion.spring) {
+                        step = .intro
+                    }
+                }
+            } label: {
+                Text("Enter")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Theme.Text.primary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        Capsule().fill(Color.violet.opacity(0.25))
+                    )
+                    .overlay(
+                        Capsule().stroke(Color.violet.opacity(0.4), lineWidth: 0.5)
+                    )
+            }
+            .padding(.horizontal, 40)
+            .padding(.bottom, 60)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Theme.background(for: scheme))
+    }
+
     // MARK: - Progress Dots
 
     private var progressDots: some View {
         HStack(spacing: 6) {
-            ForEach(OnboardingStep.allCases.filter { $0 != .intro && $0 != .ready }, id: \.self) { s in
+            ForEach(OnboardingStep.allCases.filter { $0 != .welcome && $0 != .intro && $0 != .ready }, id: \.self) { s in
                 Capsule()
                     .fill(s.rawValue <= step.rawValue ? Color.violet : Theme.Surface.strong(for: scheme))
                     .frame(width: s == step ? 20 : 6, height: 4)
@@ -119,6 +185,7 @@ struct OnboardingFlow: View {
 
     private func goBack() {
         switch step {
+        case .welcome: break
         case .intro: break
         case .glp1Check: step = .intro
         case .medication: step = .glp1Check
@@ -196,6 +263,7 @@ struct OnboardingFlow: View {
 // MARK: - Step Enum
 
 enum OnboardingStep: Int, CaseIterable {
+    case welcome = -1
     case intro = 0
     case glp1Check = 1
     case medication = 2
