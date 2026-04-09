@@ -822,6 +822,7 @@
 					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
+				INFOPLIST_KEY_CFBundleDisplayName = MemoryAisle;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -895,6 +896,7 @@
 					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
 				);
 				MARKETING_VERSION = 1.0;
+				INFOPLIST_KEY_CFBundleDisplayName = MemoryAisle;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
