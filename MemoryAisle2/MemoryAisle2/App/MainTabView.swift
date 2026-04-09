@@ -33,17 +33,16 @@ struct MainTabView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             CustomTabBar(selectedTab: $state.selectedTab)
-
-            // Floating Mira button
+        }
+        .overlay(alignment: .bottomTrailing) {
             if appState.selectedTab != .mira {
                 MiraFloatingButton {
                     withAnimation(Theme.Motion.spring) {
                         appState.selectedTab = .mira
                     }
                 }
-                .padding(.trailing, 16)
-                .padding(.bottom, 70)
-                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 20)
+                .padding(.bottom, 90)
             }
         }
         .ignoresSafeArea(.keyboard)

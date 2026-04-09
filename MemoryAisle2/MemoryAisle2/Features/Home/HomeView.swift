@@ -7,6 +7,7 @@ struct HomeView: View {
     @State private var showProfile = false
     @State private var showFullGrocery = false
     @State private var showCalendar = false
+    @State private var newItemText = ""
     @Query private var profiles: [UserProfile]
     @Query(sort: \PantryItem.addedDate, order: .reverse) private var pantryItems: [PantryItem]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
@@ -216,13 +217,20 @@ struct HomeView: View {
     // MARK: - Grocery Section
 
     private var grocerySection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header
             HStack {
                 Text("GROCERY LIST")
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(1.2)
+
+                Text("\(pantryItems.count) items")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+
                 Spacer()
+
                 Button {
                     showFullGrocery = true
                 } label: {
@@ -231,69 +239,87 @@ struct HomeView: View {
                         .foregroundStyle(Color.violet.opacity(0.6))
                 }
             }
-            .padding(.horizontal, Theme.Spacing.md)
 
-            // Horizontal scroll -- minimal
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(pantryCategoryCounts, id: \.name) { cat in
-                        groceryPill(cat.name, icon: cat.icon, count: cat.count, gradientColors: cat.colors)
-                    }
+            // Inline grocery items
+            if pantryItems.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "cart")
+                        .font(.system(size: 28))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    Text("Your grocery list is empty")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    Text("Add items below or scan a barcode")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
-                .padding(.horizontal, Theme.Spacing.md)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+            } else {
+                ForEach(pantryItems.prefix(8)) { item in
+                    HStack(spacing: 12) {
+                        Image(systemName: item.category.icon)
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.violet.opacity(0.5))
+                            .frame(width: 20)
+
+                        Text(item.name)
+                            .font(.system(size: 15))
+                            .foregroundStyle(Theme.Text.primary)
+
+                        Spacer()
+
+                        Button {
+                            HapticManager.light()
+                            withAnimation {
+                                modelContext.delete(item)
+                            }
+                        } label: {
+                            Image(systemName: "checkmark.circle")
+                                .font(.system(size: 18))
+                                .foregroundStyle(Color.violet.opacity(0.4))
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
             }
+
+            // Add item input
+            HStack(spacing: 10) {
+                Image(systemName: "plus")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.violet.opacity(0.5))
+
+                TextField("Add an item...", text: $newItemText)
+                    .font(.system(size: 15))
+                    .foregroundStyle(Theme.Text.primary)
+                    .onSubmit {
+                        addGroceryItem()
+                    }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(Theme.Surface.glass(for: scheme))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
+        .padding(Theme.Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Theme.Surface.glass(for: scheme))
+        )
+        .padding(.horizontal, Theme.Spacing.md)
         .sheet(isPresented: $showFullGrocery) {
             GroceryListView()
         }
     }
 
-    private func groceryPill(_ name: String, icon: String, count: Int, gradientColors: [Color]) -> some View {
-        Button {
-            showFullGrocery = true
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.white)
-
-                Text(name)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.white)
-
-                Text("\(count)")
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
-                    .foregroundStyle(.white.opacity(0.6))
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(
-                LinearGradient(colors: gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
-                    .opacity(0.25)
-            )
-            .clipShape(Capsule())
-            .overlay(
-                Capsule().stroke(gradientColors[0].opacity(0.3), lineWidth: 0.5)
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var pantryCategoryCounts: [(name: String, icon: String, count: Int, colors: [Color])] {
-        let grouped = Dictionary(grouping: pantryItems, by: \.category)
-        let mapping: [(PantryCategory, String, [Color])] = [
-            (.protein, "flame.fill", [Color(hex: 0xA78BFA), Color(hex: 0x7C3AED)]),
-            (.produce, "carrot.fill", [Color(hex: 0x34D399), Color(hex: 0x059669)]),
-            (.dairy, "cup.and.saucer.fill", [Color(hex: 0x38BDF8), Color(hex: 0x0EA5E9)]),
-            (.grains, "leaf.fill", [Color(hex: 0xFBBF24), Color(hex: 0xD97706)]),
-            (.frozen, "snowflake", [Color(hex: 0x67E8F9), Color(hex: 0x22D3EE)]),
-            (.pantryStaple, "bag.fill", [Color(hex: 0xFCA5A5), Color(hex: 0xF87171)]),
-        ]
-        return mapping.compactMap { cat, icon, colors in
-            let count = grouped[cat]?.count ?? 0
-            guard count > 0 else { return nil }
-            return (name: cat.rawValue, icon: icon, count: count, colors: colors)
-        }
+    private func addGroceryItem() {
+        let text = newItemText.trimmingCharacters(in: .whitespaces)
+        guard !text.isEmpty else { return }
+        let item = PantryItem(name: text)
+        modelContext.insert(item)
+        newItemText = ""
+        HapticManager.light()
     }
 
     // MARK: - Mira Suggestion
