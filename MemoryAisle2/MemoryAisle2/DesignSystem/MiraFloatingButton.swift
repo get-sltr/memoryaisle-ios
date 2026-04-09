@@ -10,7 +10,7 @@ struct MiraFloatingButton: View {
             action()
         } label: {
             ZStack {
-                // Thick gradient ring - hollow center
+                // Outer ring - gradient
                 Circle()
                     .stroke(
                         AngularGradient(
@@ -24,11 +24,16 @@ struct MiraFloatingButton: View {
                             ],
                             center: .center
                         ),
-                        lineWidth: 7
+                        lineWidth: 3
                     )
-                    .frame(width: 54, height: 54)
+                    .frame(width: 58, height: 58)
 
-                // Mira waveform bars in the hollow center
+                // Inner ring - solid violet
+                Circle()
+                    .stroke(Color(hex: 0xA78BFA), lineWidth: 2.5)
+                    .frame(width: 44, height: 44)
+
+                // Mira waveform bars in the center
                 HStack(spacing: 2) {
                     ForEach([7, 12, 16, 10, 8], id: \.self) { h in
                         RoundedRectangle(cornerRadius: 1.5)
