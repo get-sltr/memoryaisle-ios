@@ -3,17 +3,18 @@ import Speech
 import SwiftUI
 
 @Observable
-final class VoiceManager: NSObject {
+final class VoiceManager: NSObject, @unchecked Sendable {
     var isListening = false
     var isSpeaking = false
     var transcribedText = ""
     var error: String?
 
-    private var audioEngine = AVAudioEngine()
+    private let audioEngine = AVAudioEngine()
     private var recognitionTask: SFSpeechRecognitionTask?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
     private let synthesizer = AVSpeechSynthesizer()
+    private let queue = DispatchQueue(label: "com.memoryaisle.voice")
 
     override init() {
         super.init()
@@ -86,8 +87,12 @@ final class VoiceManager: NSObject {
 
             if error != nil || (result?.isFinal == true) {
                 DispatchQueue.main.async {
-                    self.stopListening()
+                    self.isListening = false
                 }
+                self.audioEngine.stop()
+                self.audioEngine.inputNode.removeTap(onBus: 0)
+                self.recognitionRequest?.endAudio()
+                self.recognitionTask?.cancel()
             }
         }
 
@@ -115,7 +120,6 @@ final class VoiceManager: NSObject {
     // MARK: - Speak (Text to Speech)
 
     func speak(_ text: String) {
-        // Stop any current speech
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)
         }
