@@ -45,11 +45,7 @@ struct AuthFlowView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            Image("AppLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 80, height: 80)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            OnboardingLogo(size: 160)
                 .padding(.bottom, 24)
 
             Text("Welcome back")

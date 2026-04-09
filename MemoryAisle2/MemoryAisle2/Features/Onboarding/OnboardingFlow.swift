@@ -5,18 +5,11 @@ struct OnboardingFlow: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
-    @State private var showWelcome = true
-    @State private var showOnboarding = false
+    @State private var showOnboarding = true
     @State private var profile = OnboardingProfile()
 
     var body: some View {
         ZStack {
-            if showWelcome {
-                welcomeScreen
-                    .transition(.scale(scale: 0.01).combined(with: .opacity))
-                    .zIndex(1)
-            }
-
             if showOnboarding {
                 MiraOnboardingView(
                     profile: $profile,
@@ -26,60 +19,6 @@ struct OnboardingFlow: View {
             }
         }
         .themeBackground()
-    }
-
-    // MARK: - Welcome Screen
-
-    private var welcomeScreen: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            OnboardingLogo(size: 220)
-                .shadow(color: Color.violet.opacity(0.4), radius: 40, y: 10)
-
-            Text("Welcome to")
-                .font(.system(size: 16, weight: .regular))
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
-                .padding(.top, 32)
-
-            Text("MemoryAisle")
-                .font(.system(size: 34, weight: .light, design: .serif))
-                .foregroundStyle(Theme.Text.primary)
-                .tracking(1)
-                .padding(.top, 4)
-
-            Text("Smarter groceries. Better nutrition.")
-                .font(.system(size: 14))
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                .padding(.top, 12)
-
-            Spacer()
-
-            Button {
-                HapticManager.medium()
-                withAnimation(.easeIn(duration: 0.6)) {
-                    showWelcome = false
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    withAnimation(Theme.Motion.spring) {
-                        showOnboarding = true
-                    }
-                }
-            } label: {
-                Text("Enter")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(Theme.Text.primary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(
-                        Capsule().fill(Color.violet.opacity(0.25))
-                    )
-            }
-            .padding(.horizontal, 40)
-            .padding(.bottom, 60)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.background(for: scheme))
     }
 
     // MARK: - Complete
