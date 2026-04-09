@@ -48,7 +48,7 @@ struct OnboardingFlow: View {
                 .tracking(1)
                 .padding(.top, 4)
 
-            Text("Lose fat without losing muscle.")
+            Text("Smarter groceries. Better nutrition.")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 12)
