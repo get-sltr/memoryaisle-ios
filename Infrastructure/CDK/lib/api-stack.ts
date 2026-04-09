@@ -47,7 +47,6 @@ export class ApiStack extends cdk.Stack {
 
     // --- miraGenerate Lambda ---
     this.miraFunction = new lambda.Function(this, "MiraGenerate", {
-      functionName: "memoryaisle-mira-generate",
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: "index.handler",
       code: lambda.Code.fromAsset(path.join(lambdaDir, "miraGenerate")),
@@ -66,7 +65,6 @@ export class ApiStack extends cdk.Stack {
 
     // --- syncData Lambda ---
     this.syncFunction = new lambda.Function(this, "SyncData", {
-      functionName: "memoryaisle-sync-data",
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: "index.handler",
       code: lambda.Code.fromAsset(path.join(lambdaDir, "syncData")),
@@ -83,7 +81,6 @@ export class ApiStack extends cdk.Stack {
 
     // --- providerReport Lambda ---
     this.reportFunction = new lambda.Function(this, "ProviderReport", {
-      functionName: "memoryaisle-provider-report",
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: "index.handler",
       code: lambda.Code.fromAsset(

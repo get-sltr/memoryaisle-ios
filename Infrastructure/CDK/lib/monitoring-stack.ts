@@ -3,7 +3,6 @@ import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import * as cloudwatch_actions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as cloudtrail from "aws-cdk-lib/aws-cloudtrail";
-import * as guardduty from "aws-cdk-lib/aws-guardduty";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as sns from "aws-cdk-lib/aws-sns";
@@ -47,10 +46,7 @@ export class MonitoringStack extends cdk.Stack {
       includeGlobalServiceEvents: true,
     });
 
-    // GuardDuty
-    new guardduty.CfnDetector(this, "GuardDuty", {
-      enable: true,
-    });
+    // GuardDuty - already enabled on this account, skip creation
 
     // Lambda error alarms
     const lambdaAlarm = (name: string, fn: lambda.Function) => {
