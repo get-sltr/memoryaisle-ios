@@ -6,115 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		024B4A0F93C333D037F82D35 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0994D298A46D57B88B3C237 /* CalendarView.swift */; };
-		07D948479853B38C01937871 /* MemoryAisleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123744ECA42A55A09346F5E1 /* MemoryAisleApp.swift */; };
-		0D46401AA263700B907CB13D /* DoseTimingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD54425B8FD9D8774489B4E9 /* DoseTimingScreen.swift */; };
-		12454F8535308F7A818D9EBE /* FoodAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03E0480E826D45F967961DDA /* FoodAnalyzer.swift */; };
-		12E741F193DFCB2A948D654F /* MemoryAisle2.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = E40641D89BFFF7D09BE9FEF8 /* MemoryAisle2.entitlements */; };
-		147A4A8BADF85746B7160391 /* TodaysMealWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001B480DD14913F2AD0B27CA /* TodaysMealWidget.swift */; };
-		15D24033A54B0142D21998D0 /* VioletButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68424357A33FA4E35A837E5F /* VioletButton.swift */; };
-		161E4891BEA873A25B0338BF /* MiraChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EC4F0883537C29DC32C1B2 /* MiraChatView.swift */; };
-		165843B493950DBC7100B93E /* TrainingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECA4F149FD027EFC35F2456 /* TrainingScreen.swift */; };
-		166C4B35ADC7F2411924F361 /* PhotoCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52CB487285A6D146939E19E6 /* PhotoCheckInView.swift */; };
-		173E4C99A4A0CDE52B4EDB19 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299B49FB9621C6BB76354F28 /* ScanView.swift */; };
-		1D034913511E0032B3A3743F /* PantryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B234D5394B7EBC3476C6092 /* PantryManager.swift */; };
-		1D644E8027A1D79E4B8E3F95 /* TrainingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75304B4B5C2A91D358FBBFEC /* TrainingSession.swift */; };
-		1F954129BB47E10F320E12BF /* UpgradePrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 216B48748807B1685CA46DEF /* UpgradePrompt.swift */; };
-		2410477201959EF22A1821E3 /* Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93B94B3883E28B0D4F4F6707 /* Meal.swift */; };
-		262D4C0187A0D307BC0D0F33 /* GlowButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC345C68315E39FD1CF0163 /* GlowButton.swift */; };
-		26544BEAC3A55F88DC56A63B /* TaperManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 465E4BC1A7A5D5FFF8F1E4CE /* TaperManager.swift */; };
-		27E4487290A3AD8DEF382E27 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 305B45C49B37D2415184B6FD /* Theme.swift */; };
-		28744E558C6F64F6765EC663 /* HolidayCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B1A425583690D2AC6328F2D /* HolidayCalendar.swift */; };
-		29A1411E95F5333298515471 /* MealsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C892475BA9FF13903B47A6DC /* MealsView.swift */; };
-		2A05425CB0033B8C3B9AF6A4 /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04246C4A0721EB9C05CA6FF /* CloudSyncManager.swift */; };
-		2BE84ED309A709FD95C3B7E6 /* StoreAisleOrganizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033548389345CE60EF495636 /* StoreAisleOrganizer.swift */; };
-		2EB343E0724C0705BA78004B /* AppGroupDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9F4378F3CF5B8C81682EE6 /* AppGroupDataProvider.swift */; };
-		320B45D1BE7C288E7C9271E5 /* GroceryListGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E24BA95862237E4A5A645A /* GroceryListGenerator.swift */; };
-		359B4DFBB5154B349218012A /* CognitoAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA6E4DE8933E6B52543866FD /* CognitoAuthManager.swift */; };
-		35A8469C9F00D674C4F6BA7B /* ProteinCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */; };
-		38E64D72A546975168D6065C /* MiraWaveform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */; };
-		3BDB4570BBD7D86AA103931C /* LegalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */; };
-		3BF24D54AE6060C4539D8A73 /* VoiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 122A423F9B5950624E792205 /* VoiceManager.swift */; };
-		41D94F87A2556F72C519A426 /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5640B3BABC0F505637F2FC /* ProgressBar.swift */; };
-		4BBC465A88A6826533BD009C /* GIToleranceRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4564362A2F998248701E2AC /* GIToleranceRecord.swift */; };
-		50874713BECF1D22DA220658 /* MiraIntroScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */; };
-		513E4C915DB814205DB7A9FE /* StrengthTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D854D9DFDF7C3B1A5329E6B /* StrengthTracker.swift */; };
-		5163413B76C34839B4E22413 /* MedicationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44874D95AE7B2D7FF11721C7 /* MedicationManager.swift */; };
-		561847BA31231DAB63F288E5 /* GroceryList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799C4B6EE6B97D3382B70A75 /* GroceryList.swift */; };
-		5A5941F2BF7AF5ABD2F6515E /* SymptomLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 855E4985B7567EEB6D505C70 /* SymptomLog.swift */; };
-		5DBE41C0681FFCF2778B045E /* MacroTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91F9486858FDC95774D62995 /* MacroTracker.swift */; };
-		5E0C42602AB001937310ACDD /* MedicationAnonymizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B063400F8DEEF9650CB5A1DD /* MedicationAnonymizer.swift */; };
-		5E304051B9F328B7C8F4769C /* InjectionCycleBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08684086A4EF69ABBFB80CB1 /* InjectionCycleBar.swift */; };
-		5E9340EBBA9B4BDE21C0EE5F /* MedicationSelectScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CE14476936BC7AFA255BE8B /* MedicationSelectScreen.swift */; };
-		61FB408C8A563A5351768835 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B294492BE492FD71C0C6523 /* UserProfile.swift */; };
-		62534C576AF434F61EAD11B3 /* MealTimingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 622941A32C26EA69AA8DA5EA /* MealTimingEngine.swift */; };
-		676D45B96BC62F6C6616CCBA /* OralTimingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337F4098B607E945113623A6 /* OralTimingEngine.swift */; };
-		68BA43CFC92A6DBF1E211321 /* ProteinWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D64F9FC3988244267887EA /* ProteinWidget.swift */; };
-		6D194C999E23207924748B5A /* GlassCardStrong.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506240CE835185D510251C6C /* GlassCardStrong.swift */; };
-		724343C0916D4253312DD45D /* GhostButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FC74B4D8A9E864DC85E9D66 /* GhostButton.swift */; };
-		787D402E97B2B3B6C485E349 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BAA4CB08A7717EE5D125AF1 /* HomeView.swift */; };
-		7B714A059CBF9AB2976C2747 /* PantryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF5140E8882E1CFB23214AEF /* PantryView.swift */; };
-		7BB242F786A0701BDC06DF21 /* MealPhotoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E2245E3BD259944113A0C57 /* MealPhotoView.swift */; };
-		82B744599DD7DCD3009C02FE /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D674F82B74DB0A621E6447D /* HealthKitManager.swift */; };
-		82DD49BD8958EAF6F68A1EA9 /* BodyComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A640595FA3C66E99B2E6C2 /* BodyComposition.swift */; };
-		870243C8847C703B75F5AC77 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 849648448FD61E9F718CA956 /* PaywallView.swift */; };
-		8785423BB29E7E1CD9D24401 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4914431A658D0E83910C515 /* Typography.swift */; };
-		889B4BACC8C2D81F72FB5308 /* LeanMassEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D4419B9B8414939AC23D9F /* LeanMassEstimator.swift */; };
-		8E6443079E0C541D56131F79 /* WorriesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C874F039772E554343A8C35 /* WorriesScreen.swift */; };
-		91034E69BBEDEF052E9BA6E2 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788343C2BD56EA9C54361D80 /* ProfileView.swift */; };
-		92B34E16AE21D861A267061A /* VoiceWaveform.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE54345A69DA4E5A1CD11D4 /* VoiceWaveform.swift */; };
-		95EF42A1B7A644AC7283345F /* GIToleranceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36544B5B9A7CC184FBF5AEE7 /* GIToleranceView.swift */; };
-		978043A6B06385D88FBBAF21 /* ProgressDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1B4AE9B7C6E1D574206398 /* ProgressDashboardView.swift */; };
-		97C04ED9A6D7423AEC24030B /* FoodSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52964A289E2145EB658EBD2A /* FoodSearchView.swift */; };
-		990B4593A0784906091DFC78 /* PillBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF045FC987D6FB0515F538B /* PillBadge.swift */; };
-		A0434700FE268AB04BF5B40C /* ProviderReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2F4DD051F2A716FB1EFAF2 /* ProviderReport.swift */; };
-		A37C465BA6D970C8A59E0461 /* DietaryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B84BCDB1ED542FDE2C9CAE /* DietaryScreen.swift */; };
-		A6CB4EACBFA9DB5FC3A5CC97 /* ScanResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57294B48A8131AD09B33F510 /* ScanResultView.swift */; };
-		A8E34207AC7802EDC23F5C3C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B4411BA2BB7A820A97EA91 /* MainTabView.swift */; };
-		AA494640BA532682E9690ADA /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E3147B3BF898D3DDDB5B8C0 /* HapticManager.swift */; };
-		AA8E46EA8D863E63CA3F9F5C /* NutritionAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7C4FC2AFDCB63D2433FDE1 /* NutritionAPIClient.swift */; };
-		AC7E4C7FDB95FCBFDC87320B /* MiraOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BF4BBF368344B7C0C3C512 /* MiraOnboardingView.swift */; };
-		B55B4F0DA22D52DE7EEF5FF6 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */; };
-		B5F3477AA56121DC6861ED7D /* FoodItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA0447A92110601E0A5801C /* FoodItem.swift */; };
-		B669448887D443CEA311B8B0 /* MealPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA747D3176058BF4F1A2580 /* MealPlan.swift */; };
-		BB2D4E6FBCACF3C119FB7E42 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26E44ADA86F30E9569F1575 /* AppState.swift */; };
-		BCF24B22B8770A883AD5E916 /* GIToleranceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E84B36BB085F228FF0EDE8 /* GIToleranceEngine.swift */; };
-		BD02417C8B6FA18051E37504 /* AuthFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CE8428783F05EDD67FF55C2 /* AuthFlowView.swift */; };
-		BDD84966AD845EB0ECC0BDE4 /* MiraAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557840D780BB0DF863C32C36 /* MiraAPIClient.swift */; };
-		BDD84A035952E148E75D474D /* MealGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4289492D9D233B6CBB6D969D /* MealGenerator.swift */; };
-		BF744C58A8F22C3538A63B99 /* ProviderReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E94C5CA5E194DEFA7E5E23 /* ProviderReportView.swift */; };
-		C0774319B3E9AC99B5266310 /* OnboardingLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B94AFC807203D44BBAB8C9 /* OnboardingLogo.swift */; };
-		C0DB47E199B5E0377DF45AF1 /* OnboardingLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 809B46D18E3D24E08209537C /* OnboardingLogo.swift */; };
-		C34B459FE2B199B9B40F9ACC /* BodyCompTrend.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C2499F32B346CFC4F1D7F4 /* BodyCompTrend.swift */; };
-		C5E64D3A845532E38BED40DE /* GLP1CheckScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F2445794B97475876C58CB /* GLP1CheckScreen.swift */; };
-		CB4F48C09299FD5A9FFC2870 /* InjectionCycleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C6489781332BE91C67639C /* InjectionCycleEngine.swift */; };
-		CFF94785A36A6FFACDF2D1A9 /* WeightTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DD84186B7F661DEAD7667B0 /* WeightTrendChart.swift */; };
-		D5354EBE1B53F90B850A51B6 /* MiraEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EF640D9449402DE70E1C93D /* MiraEngine.swift */; };
-		D65C4971B6322037A02C0A25 /* GroceryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B848AC9825476CBEEC85AC /* GroceryListView.swift */; };
-		D74645EDF0E22282B211B419 /* MemoryAisleWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD54FB20C30C07C74A5AFB8 /* MemoryAisleWidgets.swift */; };
-		DA004D7AFFEE6F56FF1BBDAC /* DosePhasePredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469C413DF00D9E7CEACA04AA /* DosePhasePredictor.swift */; };
-		DA054BFFA4BAFFA1541C5A60 /* HydrationWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FB4D472EDDF2C0B794426D /* HydrationWidget.swift */; };
-		DCB045D8B94622A0B133D4BA /* BodyStatsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC45409B9241986F89314CDE /* BodyStatsScreen.swift */; };
-		DCCC4A29A9894D6ADD219F3B /* BarcodeScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1743618E8AE833EBE26DFD /* BarcodeScanner.swift */; };
-		DF984CDAB17532BDAD2256CC /* ReceiptScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43741A583EA394EE6FC0C28 /* ReceiptScannerView.swift */; };
-		DFEF4DE79F20482A798186B5 /* NutritionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772C4DFAAFDE50412197536B /* NutritionLog.swift */; };
-		E0D14E23BF2076C3D705B767 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4B4328BA122E1C6F872308 /* SubscriptionManager.swift */; };
-		E71640C682333D59F85F7705 /* ProviderReportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EB043AD8D83C14C5C0E20BD /* ProviderReportGenerator.swift */; };
-		E7304B41AF2CF0772C6B0C3A /* SymptomQuickLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D3E416CBF0A88F494A4F026 /* SymptomQuickLog.swift */; };
-		E7CF4CFB948DD698D6D6E2BB /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F48444BD84D42196D0CC3E22 /* OnboardingFlow.swift */; };
-		EACC4230A6CA93B3AB8EC58B /* RecipesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84EA4FEE91F2155DF5DDDF5B /* RecipesView.swift */; };
-		EB0D4806AF46797110EB5DD5 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F98A435BA82A219DA009067F /* GlassCard.swift */; };
-		EB7D40AABDD0FBD8D93EFD6C /* MiraReadyScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10F44569B68AC65A05C9817B /* MiraReadyScreen.swift */; };
-		EDED46E8A0834B1A471D14D1 /* RecipeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98A4837B665CBC33CB5BA99 /* RecipeDetailView.swift */; };
-		EF4747C4B0D93092979B5258 /* PantryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FE4DC69474384CFCD38097 /* PantryItem.swift */; };
-		F38943C5E9883A020A33090E /* BiometricGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86944DC6A9EED733B8636E1E /* BiometricGate.swift */; };
-		F97840E5D8CB76BC79F20C92 /* MedicationProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1784DDCF109D5A084A0F7DB /* MedicationProfile.swift */; };
-		FCAA4F8562878FDE07C14749 /* HydrationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E94492992C008B7AD6D0BC /* HydrationTracker.swift */; };
-		FD9440E7AD9FB5A14E8FF442 /* BarcodeInterpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BD1487F95C863AF21AE7D88 /* BarcodeInterpreter.swift */; };
-		3C73467E2B5EA6072F19EEE2 /* MiraFloatingButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = C53847E6629F88E9BAE7A647 /* MiraFloatingButton.swift */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		8BD860982F84549900EEDDAF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -146,118 +37,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		001B480DD14913F2AD0B27CA /* TodaysMealWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TodaysMealWidget.swift; path = MemoryAisle2/Widgets/TodaysMealWidget.swift; sourceTree = SOURCE_ROOT; };
-		033548389345CE60EF495636 /* StoreAisleOrganizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = StoreAisleOrganizer.swift; path = MemoryAisle2/Services/Grocery/StoreAisleOrganizer.swift; sourceTree = SOURCE_ROOT; };
-		03E0480E826D45F967961DDA /* FoodAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FoodAnalyzer.swift; path = MemoryAisle2/Services/AI/FoodAnalyzer.swift; sourceTree = SOURCE_ROOT; };
-		08684086A4EF69ABBFB80CB1 /* InjectionCycleBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InjectionCycleBar.swift; path = MemoryAisle2/Features/Home/InjectionCycleBar.swift; sourceTree = SOURCE_ROOT; };
-		0DD84186B7F661DEAD7667B0 /* WeightTrendChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WeightTrendChart.swift; path = MemoryAisle2/Features/Progress/WeightTrendChart.swift; sourceTree = SOURCE_ROOT; };
-		10F44569B68AC65A05C9817B /* MiraReadyScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraReadyScreen.swift; path = MemoryAisle2/Features/Onboarding/MiraReadyScreen.swift; sourceTree = SOURCE_ROOT; };
-		122A423F9B5950624E792205 /* VoiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VoiceManager.swift; path = MemoryAisle2/Services/System/VoiceManager.swift; sourceTree = SOURCE_ROOT; };
-		123744ECA42A55A09346F5E1 /* MemoryAisleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MemoryAisleApp.swift; path = MemoryAisle2/App/MemoryAisleApp.swift; sourceTree = SOURCE_ROOT; };
-		14B84BCDB1ED542FDE2C9CAE /* DietaryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DietaryScreen.swift; path = MemoryAisle2/Features/Onboarding/DietaryScreen.swift; sourceTree = SOURCE_ROOT; };
-		1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraIntroScreen.swift; path = MemoryAisle2/Features/Onboarding/MiraIntroScreen.swift; sourceTree = SOURCE_ROOT; };
-		1EB043AD8D83C14C5C0E20BD /* ProviderReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProviderReportGenerator.swift; path = MemoryAisle2/Services/System/ProviderReportGenerator.swift; sourceTree = SOURCE_ROOT; };
-		1EF640D9449402DE70E1C93D /* MiraEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraEngine.swift; path = MemoryAisle2/Services/AI/MiraEngine.swift; sourceTree = SOURCE_ROOT; };
-		216B48748807B1685CA46DEF /* UpgradePrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UpgradePrompt.swift; path = MemoryAisle2/Features/Subscription/UpgradePrompt.swift; sourceTree = SOURCE_ROOT; };
-		299B49FB9621C6BB76354F28 /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ScanView.swift; path = MemoryAisle2/Features/Scan/ScanView.swift; sourceTree = SOURCE_ROOT; };
-		2D3E416CBF0A88F494A4F026 /* SymptomQuickLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SymptomQuickLog.swift; path = MemoryAisle2/Features/Home/SymptomQuickLog.swift; sourceTree = SOURCE_ROOT; };
-		2E3147B3BF898D3DDDB5B8C0 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HapticManager.swift; path = MemoryAisle2/DesignSystem/HapticManager.swift; sourceTree = SOURCE_ROOT; };
-		305B45C49B37D2415184B6FD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Theme.swift; path = MemoryAisle2/DesignSystem/Theme.swift; sourceTree = SOURCE_ROOT; };
-		337F4098B607E945113623A6 /* OralTimingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OralTimingEngine.swift; path = MemoryAisle2/Services/Medication/OralTimingEngine.swift; sourceTree = SOURCE_ROOT; };
-		36544B5B9A7CC184FBF5AEE7 /* GIToleranceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GIToleranceView.swift; path = MemoryAisle2/Features/Progress/GIToleranceView.swift; sourceTree = SOURCE_ROOT; };
-		3A2F4DD051F2A716FB1EFAF2 /* ProviderReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProviderReport.swift; path = MemoryAisle2/Models/ProviderReport.swift; sourceTree = SOURCE_ROOT; };
-		422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProteinCalculator.swift; path = MemoryAisle2/Services/Nutrition/ProteinCalculator.swift; sourceTree = SOURCE_ROOT; };
-		4289492D9D233B6CBB6D969D /* MealGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealGenerator.swift; path = MemoryAisle2/Services/AI/MealGenerator.swift; sourceTree = SOURCE_ROOT; };
-		44874D95AE7B2D7FF11721C7 /* MedicationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MedicationManager.swift; path = MemoryAisle2/Services/Medication/MedicationManager.swift; sourceTree = SOURCE_ROOT; };
-		44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraWaveform.swift; path = MemoryAisle2/DesignSystem/MiraWaveform.swift; sourceTree = SOURCE_ROOT; };
-		465E4BC1A7A5D5FFF8F1E4CE /* TaperManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TaperManager.swift; path = MemoryAisle2/Services/Medication/TaperManager.swift; sourceTree = SOURCE_ROOT; };
-		469C413DF00D9E7CEACA04AA /* DosePhasePredictor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DosePhasePredictor.swift; path = MemoryAisle2/Services/Medication/DosePhasePredictor.swift; sourceTree = SOURCE_ROOT; };
-		4B1A425583690D2AC6328F2D /* HolidayCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HolidayCalendar.swift; path = MemoryAisle2/Features/Calendar/HolidayCalendar.swift; sourceTree = SOURCE_ROOT; };
-		4BAA4CB08A7717EE5D125AF1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeView.swift; path = MemoryAisle2/Features/Home/HomeView.swift; sourceTree = SOURCE_ROOT; };
-		4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LegalView.swift; path = MemoryAisle2/Features/Auth/LegalView.swift; sourceTree = SOURCE_ROOT; };
-		4CE8428783F05EDD67FF55C2 /* AuthFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AuthFlowView.swift; path = MemoryAisle2/Features/Auth/AuthFlowView.swift; sourceTree = SOURCE_ROOT; };
-		4D674F82B74DB0A621E6447D /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HealthKitManager.swift; path = MemoryAisle2/Services/Health/HealthKitManager.swift; sourceTree = SOURCE_ROOT; };
-		4DC345C68315E39FD1CF0163 /* GlowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlowButton.swift; path = MemoryAisle2/DesignSystem/GlowButton.swift; sourceTree = SOURCE_ROOT; };
-		4E2245E3BD259944113A0C57 /* MealPhotoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealPhotoView.swift; path = MemoryAisle2/Features/Scan/MealPhotoView.swift; sourceTree = SOURCE_ROOT; };
-		506240CE835185D510251C6C /* GlassCardStrong.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlassCardStrong.swift; path = MemoryAisle2/DesignSystem/GlassCardStrong.swift; sourceTree = SOURCE_ROOT; };
-		52964A289E2145EB658EBD2A /* FoodSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FoodSearchView.swift; path = MemoryAisle2/Features/Scan/FoodSearchView.swift; sourceTree = SOURCE_ROOT; };
-		52C6489781332BE91C67639C /* InjectionCycleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InjectionCycleEngine.swift; path = MemoryAisle2/Services/Medication/InjectionCycleEngine.swift; sourceTree = SOURCE_ROOT; };
-		52CB487285A6D146939E19E6 /* PhotoCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotoCheckInView.swift; path = MemoryAisle2/Features/Progress/PhotoCheckInView.swift; sourceTree = SOURCE_ROOT; };
-		557840D780BB0DF863C32C36 /* MiraAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraAPIClient.swift; path = MemoryAisle2/Services/AI/MiraAPIClient.swift; sourceTree = SOURCE_ROOT; };
-		57294B48A8131AD09B33F510 /* ScanResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ScanResultView.swift; path = MemoryAisle2/Features/Scan/ScanResultView.swift; sourceTree = SOURCE_ROOT; };
-		5B294492BE492FD71C0C6523 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserProfile.swift; path = MemoryAisle2/Models/UserProfile.swift; sourceTree = SOURCE_ROOT; };
-		5CE14476936BC7AFA255BE8B /* MedicationSelectScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MedicationSelectScreen.swift; path = MemoryAisle2/Features/Onboarding/MedicationSelectScreen.swift; sourceTree = SOURCE_ROOT; };
-		60D64F9FC3988244267887EA /* ProteinWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProteinWidget.swift; path = MemoryAisle2/Widgets/ProteinWidget.swift; sourceTree = SOURCE_ROOT; };
-		622941A32C26EA69AA8DA5EA /* MealTimingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealTimingEngine.swift; path = MemoryAisle2/Services/Nutrition/MealTimingEngine.swift; sourceTree = SOURCE_ROOT; };
-		63BF4BBF368344B7C0C3C512 /* MiraOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraOnboardingView.swift; path = MemoryAisle2/Features/Onboarding/MiraOnboardingView.swift; sourceTree = SOURCE_ROOT; };
-		64D4419B9B8414939AC23D9F /* LeanMassEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LeanMassEstimator.swift; path = MemoryAisle2/Services/BodyComp/LeanMassEstimator.swift; sourceTree = SOURCE_ROOT; };
-		68424357A33FA4E35A837E5F /* VioletButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VioletButton.swift; path = MemoryAisle2/DesignSystem/VioletButton.swift; sourceTree = SOURCE_ROOT; };
-		6B234D5394B7EBC3476C6092 /* PantryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PantryManager.swift; path = MemoryAisle2/Services/Grocery/PantryManager.swift; sourceTree = SOURCE_ROOT; };
-		6BD1487F95C863AF21AE7D88 /* BarcodeInterpreter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BarcodeInterpreter.swift; path = MemoryAisle2/Services/Nutrition/BarcodeInterpreter.swift; sourceTree = SOURCE_ROOT; };
-		6C874F039772E554343A8C35 /* WorriesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorriesScreen.swift; path = MemoryAisle2/Features/Onboarding/WorriesScreen.swift; sourceTree = SOURCE_ROOT; };
-		6D7C4FC2AFDCB63D2433FDE1 /* NutritionAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NutritionAPIClient.swift; path = MemoryAisle2/Services/Nutrition/NutritionAPIClient.swift; sourceTree = SOURCE_ROOT; };
-		75304B4B5C2A91D358FBBFEC /* TrainingSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TrainingSession.swift; path = MemoryAisle2/Models/TrainingSession.swift; sourceTree = SOURCE_ROOT; };
-		75E94492992C008B7AD6D0BC /* HydrationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HydrationTracker.swift; path = MemoryAisle2/Services/Nutrition/HydrationTracker.swift; sourceTree = SOURCE_ROOT; };
-		76E24BA95862237E4A5A645A /* GroceryListGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GroceryListGenerator.swift; path = MemoryAisle2/Services/Grocery/GroceryListGenerator.swift; sourceTree = SOURCE_ROOT; };
-		772C4DFAAFDE50412197536B /* NutritionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NutritionLog.swift; path = MemoryAisle2/Models/NutritionLog.swift; sourceTree = SOURCE_ROOT; };
-		788343C2BD56EA9C54361D80 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileView.swift; path = MemoryAisle2/Features/Profile/ProfileView.swift; sourceTree = SOURCE_ROOT; };
-		799C4B6EE6B97D3382B70A75 /* GroceryList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GroceryList.swift; path = MemoryAisle2/Models/GroceryList.swift; sourceTree = SOURCE_ROOT; };
-		7FC74B4D8A9E864DC85E9D66 /* GhostButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GhostButton.swift; path = MemoryAisle2/DesignSystem/GhostButton.swift; sourceTree = SOURCE_ROOT; };
-		809B46D18E3D24E08209537C /* OnboardingLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingLogo.swift; path = MemoryAisle2/DesignSystem/OnboardingLogo.swift; sourceTree = SOURCE_ROOT; };
-		849648448FD61E9F718CA956 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PaywallView.swift; path = MemoryAisle2/Features/Subscription/PaywallView.swift; sourceTree = SOURCE_ROOT; };
-		84EA4FEE91F2155DF5DDDF5B /* RecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RecipesView.swift; path = MemoryAisle2/Features/Recipes/RecipesView.swift; sourceTree = SOURCE_ROOT; };
-		855E4985B7567EEB6D505C70 /* SymptomLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SymptomLog.swift; path = MemoryAisle2/Models/SymptomLog.swift; sourceTree = SOURCE_ROOT; };
-		86944DC6A9EED733B8636E1E /* BiometricGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BiometricGate.swift; path = MemoryAisle2/DesignSystem/BiometricGate.swift; sourceTree = SOURCE_ROOT; };
 		8B3F98F92F849BA000710E33 /* MemoryAisleWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MemoryAisleWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B3F98FB2F849BA000710E33 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		8B3F98FD2F849BA000710E33 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		8BD860882F84549700EEDDAF /* MemoryAisle2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemoryAisle2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BD860972F84549900EEDDAF /* MemoryAisle2Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoryAisle2Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BD860A12F84549900EEDDAF /* MemoryAisle2UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoryAisle2UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		91F9486858FDC95774D62995 /* MacroTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MacroTracker.swift; path = MemoryAisle2/Services/Nutrition/MacroTracker.swift; sourceTree = SOURCE_ROOT; };
-		92E84B36BB085F228FF0EDE8 /* GIToleranceEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GIToleranceEngine.swift; path = MemoryAisle2/Services/Nutrition/GIToleranceEngine.swift; sourceTree = SOURCE_ROOT; };
-		93B94B3883E28B0D4F4F6707 /* Meal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Meal.swift; path = MemoryAisle2/Models/Meal.swift; sourceTree = SOURCE_ROOT; };
-		9AF045FC987D6FB0515F538B /* PillBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PillBadge.swift; path = MemoryAisle2/DesignSystem/PillBadge.swift; sourceTree = SOURCE_ROOT; };
-		9D854D9DFDF7C3B1A5329E6B /* StrengthTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = StrengthTracker.swift; path = MemoryAisle2/Services/BodyComp/StrengthTracker.swift; sourceTree = SOURCE_ROOT; };
-		A1B4411BA2BB7A820A97EA91 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MainTabView.swift; path = MemoryAisle2/App/MainTabView.swift; sourceTree = SOURCE_ROOT; };
-		A1B848AC9825476CBEEC85AC /* GroceryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GroceryListView.swift; path = MemoryAisle2/Features/Scan/GroceryListView.swift; sourceTree = SOURCE_ROOT; };
-		A2A640595FA3C66E99B2E6C2 /* BodyComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BodyComposition.swift; path = MemoryAisle2/Models/BodyComposition.swift; sourceTree = SOURCE_ROOT; };
-		AAA747D3176058BF4F1A2580 /* MealPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealPlan.swift; path = MemoryAisle2/Models/MealPlan.swift; sourceTree = SOURCE_ROOT; };
-		AB4B4328BA122E1C6F872308 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SubscriptionManager.swift; path = MemoryAisle2/Services/Subscription/SubscriptionManager.swift; sourceTree = SOURCE_ROOT; };
-		AD54425B8FD9D8774489B4E9 /* DoseTimingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DoseTimingScreen.swift; path = MemoryAisle2/Features/Onboarding/DoseTimingScreen.swift; sourceTree = SOURCE_ROOT; };
-		B04246C4A0721EB9C05CA6FF /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CloudSyncManager.swift; path = MemoryAisle2/Services/Cloud/CloudSyncManager.swift; sourceTree = SOURCE_ROOT; };
-		B063400F8DEEF9650CB5A1DD /* MedicationAnonymizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MedicationAnonymizer.swift; path = MemoryAisle2/Services/AI/MedicationAnonymizer.swift; sourceTree = SOURCE_ROOT; };
-		B0994D298A46D57B88B3C237 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CalendarView.swift; path = MemoryAisle2/Features/Calendar/CalendarView.swift; sourceTree = SOURCE_ROOT; };
-		B2FE4DC69474384CFCD38097 /* PantryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PantryItem.swift; path = MemoryAisle2/Models/PantryItem.swift; sourceTree = SOURCE_ROOT; };
-		B6B94AFC807203D44BBAB8C9 /* OnboardingLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingLogo.swift; path = MemoryAisle2/DesignSystem/OnboardingLogo.swift; sourceTree = SOURCE_ROOT; };
-		C0FB4D472EDDF2C0B794426D /* HydrationWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HydrationWidget.swift; path = MemoryAisle2/Widgets/HydrationWidget.swift; sourceTree = SOURCE_ROOT; };
-		C4564362A2F998248701E2AC /* GIToleranceRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GIToleranceRecord.swift; path = MemoryAisle2/Models/GIToleranceRecord.swift; sourceTree = SOURCE_ROOT; };
-		C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationScheduler.swift; path = MemoryAisle2/Services/System/NotificationScheduler.swift; sourceTree = SOURCE_ROOT; };
-		C892475BA9FF13903B47A6DC /* MealsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MealsView.swift; path = MemoryAisle2/Features/Meals/MealsView.swift; sourceTree = SOURCE_ROOT; };
-		D1784DDCF109D5A084A0F7DB /* MedicationProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MedicationProfile.swift; path = MemoryAisle2/Models/MedicationProfile.swift; sourceTree = SOURCE_ROOT; };
-		D2E94C5CA5E194DEFA7E5E23 /* ProviderReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProviderReportView.swift; path = MemoryAisle2/Features/Progress/ProviderReportView.swift; sourceTree = SOURCE_ROOT; };
-		D4F2445794B97475876C58CB /* GLP1CheckScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GLP1CheckScreen.swift; path = MemoryAisle2/Features/Onboarding/GLP1CheckScreen.swift; sourceTree = SOURCE_ROOT; };
-		D98A4837B665CBC33CB5BA99 /* RecipeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RecipeDetailView.swift; path = MemoryAisle2/Features/Recipes/RecipeDetailView.swift; sourceTree = SOURCE_ROOT; };
-		DA1743618E8AE833EBE26DFD /* BarcodeScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BarcodeScanner.swift; path = MemoryAisle2/Services/Grocery/BarcodeScanner.swift; sourceTree = SOURCE_ROOT; };
-		DDD54FB20C30C07C74A5AFB8 /* MemoryAisleWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MemoryAisleWidgets.swift; path = MemoryAisle2/Widgets/MemoryAisleWidgets.swift; sourceTree = SOURCE_ROOT; };
-		DECA4F149FD027EFC35F2456 /* TrainingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TrainingScreen.swift; path = MemoryAisle2/Features/Onboarding/TrainingScreen.swift; sourceTree = SOURCE_ROOT; };
-		E40641D89BFFF7D09BE9FEF8 /* MemoryAisle2.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MemoryAisle2.entitlements; path = MemoryAisle2/MemoryAisle2.entitlements; sourceTree = SOURCE_ROOT; };
-		E4914431A658D0E83910C515 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Typography.swift; path = MemoryAisle2/DesignSystem/Typography.swift; sourceTree = SOURCE_ROOT; };
-		E6EC4F0883537C29DC32C1B2 /* MiraChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraChatView.swift; path = MemoryAisle2/Features/Mira/MiraChatView.swift; sourceTree = SOURCE_ROOT; };
-		EA6E4DE8933E6B52543866FD /* CognitoAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CognitoAuthManager.swift; path = MemoryAisle2/Services/Cloud/CognitoAuthManager.swift; sourceTree = SOURCE_ROOT; };
-		EB5640B3BABC0F505637F2FC /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProgressBar.swift; path = MemoryAisle2/DesignSystem/ProgressBar.swift; sourceTree = SOURCE_ROOT; };
-		EF1B4AE9B7C6E1D574206398 /* ProgressDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProgressDashboardView.swift; path = MemoryAisle2/Features/Progress/ProgressDashboardView.swift; sourceTree = SOURCE_ROOT; };
-		EF5140E8882E1CFB23214AEF /* PantryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PantryView.swift; path = MemoryAisle2/Features/Scan/PantryView.swift; sourceTree = SOURCE_ROOT; };
-		EFE54345A69DA4E5A1CD11D4 /* VoiceWaveform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VoiceWaveform.swift; path = MemoryAisle2/DesignSystem/VoiceWaveform.swift; sourceTree = SOURCE_ROOT; };
-		F26E44ADA86F30E9569F1575 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppState.swift; path = MemoryAisle2/App/AppState.swift; sourceTree = SOURCE_ROOT; };
-		F43741A583EA394EE6FC0C28 /* ReceiptScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReceiptScannerView.swift; path = MemoryAisle2/Features/Recipes/ReceiptScannerView.swift; sourceTree = SOURCE_ROOT; };
-		F48444BD84D42196D0CC3E22 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingFlow.swift; path = MemoryAisle2/Features/Onboarding/OnboardingFlow.swift; sourceTree = SOURCE_ROOT; };
-		F98A435BA82A219DA009067F /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlassCard.swift; path = MemoryAisle2/DesignSystem/GlassCard.swift; sourceTree = SOURCE_ROOT; };
-		F9C2499F32B346CFC4F1D7F4 /* BodyCompTrend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BodyCompTrend.swift; path = MemoryAisle2/Services/BodyComp/BodyCompTrend.swift; sourceTree = SOURCE_ROOT; };
-		FA9F4378F3CF5B8C81682EE6 /* AppGroupDataProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppGroupDataProvider.swift; path = MemoryAisle2/Widgets/AppGroupDataProvider.swift; sourceTree = SOURCE_ROOT; };
-		FAA0447A92110601E0A5801C /* FoodItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FoodItem.swift; path = MemoryAisle2/Models/FoodItem.swift; sourceTree = SOURCE_ROOT; };
-		FC45409B9241986F89314CDE /* BodyStatsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BodyStatsScreen.swift; path = MemoryAisle2/Features/Onboarding/BodyStatsScreen.swift; sourceTree = SOURCE_ROOT; };
-		C53847E6629F88E9BAE7A647 /* MiraFloatingButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiraFloatingButton.swift; path = MemoryAisle2/DesignSystem/MiraFloatingButton.swift; sourceTree = SOURCE_ROOT; };
+		D2854FF99EE7B55E725B8555 /* JourneyProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = JourneyProfileView.swift; path = MemoryAisle2/Features/Profile/JourneyProfileView.swift; sourceTree = SOURCE_ROOT; };
+		6C5545FDDF5F300E304B72EA /* SafeSpaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafeSpaceView.swift; path = MemoryAisle2/Features/SafeSpace/SafeSpaceView.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -288,45 +75,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		8BB646552F878695000F97FA /* Recovered References */ = {
-			isa = PBXGroup;
-			children = (
-				FA9F4378F3CF5B8C81682EE6 /* AppGroupDataProvider.swift */,
-				60D64F9FC3988244267887EA /* ProteinWidget.swift */,
-				C0FB4D472EDDF2C0B794426D /* HydrationWidget.swift */,
-				001B480DD14913F2AD0B27CA /* TodaysMealWidget.swift */,
-				DDD54FB20C30C07C74A5AFB8 /* MemoryAisleWidgets.swift */,
-				86944DC6A9EED733B8636E1E /* BiometricGate.swift */,
-				B063400F8DEEF9650CB5A1DD /* MedicationAnonymizer.swift */,
-				93B94B3883E28B0D4F4F6707 /* Meal.swift */,
-				AAA747D3176058BF4F1A2580 /* MealPlan.swift */,
-				FAA0447A92110601E0A5801C /* FoodItem.swift */,
-				799C4B6EE6B97D3382B70A75 /* GroceryList.swift */,
-				D1784DDCF109D5A084A0F7DB /* MedicationProfile.swift */,
-				75304B4B5C2A91D358FBBFEC /* TrainingSession.swift */,
-				A2A640595FA3C66E99B2E6C2 /* BodyComposition.swift */,
-				3A2F4DD051F2A716FB1EFAF2 /* ProviderReport.swift */,
-				44874D95AE7B2D7FF11721C7 /* MedicationManager.swift */,
-				337F4098B607E945113623A6 /* OralTimingEngine.swift */,
-				469C413DF00D9E7CEACA04AA /* DosePhasePredictor.swift */,
-				465E4BC1A7A5D5FFF8F1E4CE /* TaperManager.swift */,
-				91F9486858FDC95774D62995 /* MacroTracker.swift */,
-				75E94492992C008B7AD6D0BC /* HydrationTracker.swift */,
-				622941A32C26EA69AA8DA5EA /* MealTimingEngine.swift */,
-				64D4419B9B8414939AC23D9F /* LeanMassEstimator.swift */,
-				F9C2499F32B346CFC4F1D7F4 /* BodyCompTrend.swift */,
-				9D854D9DFDF7C3B1A5329E6B /* StrengthTracker.swift */,
-				6B234D5394B7EBC3476C6092 /* PantryManager.swift */,
-				76E24BA95862237E4A5A645A /* GroceryListGenerator.swift */,
-				033548389345CE60EF495636 /* StoreAisleOrganizer.swift */,
-				1EF640D9449402DE70E1C93D /* MiraEngine.swift */,
-				4289492D9D233B6CBB6D969D /* MealGenerator.swift */,
-				03E0480E826D45F967961DDA /* FoodAnalyzer.swift */,
-				63BF4BBF368344B7C0C3C512 /* MiraOnboardingView.swift */,
-			);
-			name = "Recovered References";
-			sourceTree = "<group>";
-		};
 		8BD8607F2F84549700EEDDAF = {
 			isa = PBXGroup;
 			children = (
@@ -335,80 +83,6 @@
 				8BD860A42F84549900EEDDAF /* MemoryAisle2UITests */,
 				8B3F98FA2F849BA000710E33 /* Frameworks */,
 				8BD860892F84549700EEDDAF /* Products */,
-				E4914431A658D0E83910C515 /* Typography.swift */,
-				7FC74B4D8A9E864DC85E9D66 /* GhostButton.swift */,
-				2E3147B3BF898D3DDDB5B8C0 /* HapticManager.swift */,
-				F98A435BA82A219DA009067F /* GlassCard.swift */,
-				9AF045FC987D6FB0515F538B /* PillBadge.swift */,
-				EB5640B3BABC0F505637F2FC /* ProgressBar.swift */,
-				EFE54345A69DA4E5A1CD11D4 /* VoiceWaveform.swift */,
-				44C248E08E9AA60A7305A3C6 /* MiraWaveform.swift */,
-				68424357A33FA4E35A837E5F /* VioletButton.swift */,
-				305B45C49B37D2415184B6FD /* Theme.swift */,
-				506240CE835185D510251C6C /* GlassCardStrong.swift */,
-				F26E44ADA86F30E9569F1575 /* AppState.swift */,
-				A1B4411BA2BB7A820A97EA91 /* MainTabView.swift */,
-				123744ECA42A55A09346F5E1 /* MemoryAisleApp.swift */,
-				4BAA4CB08A7717EE5D125AF1 /* HomeView.swift */,
-				EF1B4AE9B7C6E1D574206398 /* ProgressDashboardView.swift */,
-				E6EC4F0883537C29DC32C1B2 /* MiraChatView.swift */,
-				299B49FB9621C6BB76354F28 /* ScanView.swift */,
-				C892475BA9FF13903B47A6DC /* MealsView.swift */,
-				52C6489781332BE91C67639C /* InjectionCycleEngine.swift */,
-				422B4FB18280E567E3AC2431 /* ProteinCalculator.swift */,
-				08684086A4EF69ABBFB80CB1 /* InjectionCycleBar.swift */,
-				A1B848AC9825476CBEEC85AC /* GroceryListView.swift */,
-				F48444BD84D42196D0CC3E22 /* OnboardingFlow.swift */,
-				1ACA4F318F8CE8FB52EB4349 /* MiraIntroScreen.swift */,
-				D4F2445794B97475876C58CB /* GLP1CheckScreen.swift */,
-				5CE14476936BC7AFA255BE8B /* MedicationSelectScreen.swift */,
-				AD54425B8FD9D8774489B4E9 /* DoseTimingScreen.swift */,
-				6C874F039772E554343A8C35 /* WorriesScreen.swift */,
-				DECA4F149FD027EFC35F2456 /* TrainingScreen.swift */,
-				14B84BCDB1ED542FDE2C9CAE /* DietaryScreen.swift */,
-				10F44569B68AC65A05C9817B /* MiraReadyScreen.swift */,
-				788343C2BD56EA9C54361D80 /* ProfileView.swift */,
-				2D3E416CBF0A88F494A4F026 /* SymptomQuickLog.swift */,
-				5B294492BE492FD71C0C6523 /* UserProfile.swift */,
-				772C4DFAAFDE50412197536B /* NutritionLog.swift */,
-				855E4985B7567EEB6D505C70 /* SymptomLog.swift */,
-				4DC345C68315E39FD1CF0163 /* GlowButton.swift */,
-				DA1743618E8AE833EBE26DFD /* BarcodeScanner.swift */,
-				57294B48A8131AD09B33F510 /* ScanResultView.swift */,
-				4D674F82B74DB0A621E6447D /* HealthKitManager.swift */,
-				C4F34CE68E708E9C7A175CA2 /* NotificationScheduler.swift */,
-				E40641D89BFFF7D09BE9FEF8 /* MemoryAisle2.entitlements */,
-				AB4B4328BA122E1C6F872308 /* SubscriptionManager.swift */,
-				849648448FD61E9F718CA956 /* PaywallView.swift */,
-				216B48748807B1685CA46DEF /* UpgradePrompt.swift */,
-				1EB043AD8D83C14C5C0E20BD /* ProviderReportGenerator.swift */,
-				6D7C4FC2AFDCB63D2433FDE1 /* NutritionAPIClient.swift */,
-				6BD1487F95C863AF21AE7D88 /* BarcodeInterpreter.swift */,
-				52964A289E2145EB658EBD2A /* FoodSearchView.swift */,
-				B2FE4DC69474384CFCD38097 /* PantryItem.swift */,
-				C4564362A2F998248701E2AC /* GIToleranceRecord.swift */,
-				EF5140E8882E1CFB23214AEF /* PantryView.swift */,
-				4E2245E3BD259944113A0C57 /* MealPhotoView.swift */,
-				0DD84186B7F661DEAD7667B0 /* WeightTrendChart.swift */,
-				36544B5B9A7CC184FBF5AEE7 /* GIToleranceView.swift */,
-				D2E94C5CA5E194DEFA7E5E23 /* ProviderReportView.swift */,
-				92E84B36BB085F228FF0EDE8 /* GIToleranceEngine.swift */,
-				557840D780BB0DF863C32C36 /* MiraAPIClient.swift */,
-				EA6E4DE8933E6B52543866FD /* CognitoAuthManager.swift */,
-				4CE8428783F05EDD67FF55C2 /* AuthFlowView.swift */,
-				84EA4FEE91F2155DF5DDDF5B /* RecipesView.swift */,
-				D98A4837B665CBC33CB5BA99 /* RecipeDetailView.swift */,
-				F43741A583EA394EE6FC0C28 /* ReceiptScannerView.swift */,
-				4BC24A1BAF4FDBFD91EC9E09 /* LegalView.swift */,
-				B0994D298A46D57B88B3C237 /* CalendarView.swift */,
-				4B1A425583690D2AC6328F2D /* HolidayCalendar.swift */,
-				B6B94AFC807203D44BBAB8C9 /* OnboardingLogo.swift */,
-				FC45409B9241986F89314CDE /* BodyStatsScreen.swift */,
-				52CB487285A6D146939E19E6 /* PhotoCheckInView.swift */,
-				809B46D18E3D24E08209537C /* OnboardingLogo.swift */,
-				B04246C4A0721EB9C05CA6FF /* CloudSyncManager.swift */,
-				122A423F9B5950624E792205 /* VoiceManager.swift */,
-				8BB646552F878695000F97FA /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -537,7 +211,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				12E741F193DFCB2A948D654F /* MemoryAisle2.entitlements in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -548,111 +221,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3C73467E2B5EA6072F19EEE2 /* MiraFloatingButton.swift in Sources */,
-				AC7E4C7FDB95FCBFDC87320B /* MiraOnboardingView.swift in Sources */,
-				2EB343E0724C0705BA78004B /* AppGroupDataProvider.swift in Sources */,
-				68BA43CFC92A6DBF1E211321 /* ProteinWidget.swift in Sources */,
-				DA054BFFA4BAFFA1541C5A60 /* HydrationWidget.swift in Sources */,
-				147A4A8BADF85746B7160391 /* TodaysMealWidget.swift in Sources */,
-				D74645EDF0E22282B211B419 /* MemoryAisleWidgets.swift in Sources */,
-				F38943C5E9883A020A33090E /* BiometricGate.swift in Sources */,
-				5E0C42602AB001937310ACDD /* MedicationAnonymizer.swift in Sources */,
-				2410477201959EF22A1821E3 /* Meal.swift in Sources */,
-				B669448887D443CEA311B8B0 /* MealPlan.swift in Sources */,
-				B5F3477AA56121DC6861ED7D /* FoodItem.swift in Sources */,
-				561847BA31231DAB63F288E5 /* GroceryList.swift in Sources */,
-				F97840E5D8CB76BC79F20C92 /* MedicationProfile.swift in Sources */,
-				1D644E8027A1D79E4B8E3F95 /* TrainingSession.swift in Sources */,
-				82DD49BD8958EAF6F68A1EA9 /* BodyComposition.swift in Sources */,
-				A0434700FE268AB04BF5B40C /* ProviderReport.swift in Sources */,
-				5163413B76C34839B4E22413 /* MedicationManager.swift in Sources */,
-				676D45B96BC62F6C6616CCBA /* OralTimingEngine.swift in Sources */,
-				DA004D7AFFEE6F56FF1BBDAC /* DosePhasePredictor.swift in Sources */,
-				26544BEAC3A55F88DC56A63B /* TaperManager.swift in Sources */,
-				5DBE41C0681FFCF2778B045E /* MacroTracker.swift in Sources */,
-				FCAA4F8562878FDE07C14749 /* HydrationTracker.swift in Sources */,
-				62534C576AF434F61EAD11B3 /* MealTimingEngine.swift in Sources */,
-				889B4BACC8C2D81F72FB5308 /* LeanMassEstimator.swift in Sources */,
-				C34B459FE2B199B9B40F9ACC /* BodyCompTrend.swift in Sources */,
-				513E4C915DB814205DB7A9FE /* StrengthTracker.swift in Sources */,
-				1D034913511E0032B3A3743F /* PantryManager.swift in Sources */,
-				320B45D1BE7C288E7C9271E5 /* GroceryListGenerator.swift in Sources */,
-				2BE84ED309A709FD95C3B7E6 /* StoreAisleOrganizer.swift in Sources */,
-				D5354EBE1B53F90B850A51B6 /* MiraEngine.swift in Sources */,
-				BDD84A035952E148E75D474D /* MealGenerator.swift in Sources */,
-				12454F8535308F7A818D9EBE /* FoodAnalyzer.swift in Sources */,
-				8785423BB29E7E1CD9D24401 /* Typography.swift in Sources */,
-				724343C0916D4253312DD45D /* GhostButton.swift in Sources */,
-				AA494640BA532682E9690ADA /* HapticManager.swift in Sources */,
-				EB0D4806AF46797110EB5DD5 /* GlassCard.swift in Sources */,
-				990B4593A0784906091DFC78 /* PillBadge.swift in Sources */,
-				41D94F87A2556F72C519A426 /* ProgressBar.swift in Sources */,
-				92B34E16AE21D861A267061A /* VoiceWaveform.swift in Sources */,
-				38E64D72A546975168D6065C /* MiraWaveform.swift in Sources */,
-				15D24033A54B0142D21998D0 /* VioletButton.swift in Sources */,
-				27E4487290A3AD8DEF382E27 /* Theme.swift in Sources */,
-				6D194C999E23207924748B5A /* GlassCardStrong.swift in Sources */,
-				BB2D4E6FBCACF3C119FB7E42 /* AppState.swift in Sources */,
-				A8E34207AC7802EDC23F5C3C /* MainTabView.swift in Sources */,
-				07D948479853B38C01937871 /* MemoryAisleApp.swift in Sources */,
-				787D402E97B2B3B6C485E349 /* HomeView.swift in Sources */,
-				978043A6B06385D88FBBAF21 /* ProgressDashboardView.swift in Sources */,
-				161E4891BEA873A25B0338BF /* MiraChatView.swift in Sources */,
-				173E4C99A4A0CDE52B4EDB19 /* ScanView.swift in Sources */,
-				29A1411E95F5333298515471 /* MealsView.swift in Sources */,
-				CB4F48C09299FD5A9FFC2870 /* InjectionCycleEngine.swift in Sources */,
-				35A8469C9F00D674C4F6BA7B /* ProteinCalculator.swift in Sources */,
-				5E304051B9F328B7C8F4769C /* InjectionCycleBar.swift in Sources */,
-				D65C4971B6322037A02C0A25 /* GroceryListView.swift in Sources */,
-				E7CF4CFB948DD698D6D6E2BB /* OnboardingFlow.swift in Sources */,
-				50874713BECF1D22DA220658 /* MiraIntroScreen.swift in Sources */,
-				C5E64D3A845532E38BED40DE /* GLP1CheckScreen.swift in Sources */,
-				5E9340EBBA9B4BDE21C0EE5F /* MedicationSelectScreen.swift in Sources */,
-				0D46401AA263700B907CB13D /* DoseTimingScreen.swift in Sources */,
-				8E6443079E0C541D56131F79 /* WorriesScreen.swift in Sources */,
-				165843B493950DBC7100B93E /* TrainingScreen.swift in Sources */,
-				A37C465BA6D970C8A59E0461 /* DietaryScreen.swift in Sources */,
-				EB7D40AABDD0FBD8D93EFD6C /* MiraReadyScreen.swift in Sources */,
-				91034E69BBEDEF052E9BA6E2 /* ProfileView.swift in Sources */,
-				E7304B41AF2CF0772C6B0C3A /* SymptomQuickLog.swift in Sources */,
-				61FB408C8A563A5351768835 /* UserProfile.swift in Sources */,
-				DFEF4DE79F20482A798186B5 /* NutritionLog.swift in Sources */,
-				5A5941F2BF7AF5ABD2F6515E /* SymptomLog.swift in Sources */,
-				262D4C0187A0D307BC0D0F33 /* GlowButton.swift in Sources */,
-				DCCC4A29A9894D6ADD219F3B /* BarcodeScanner.swift in Sources */,
-				A6CB4EACBFA9DB5FC3A5CC97 /* ScanResultView.swift in Sources */,
-				82B744599DD7DCD3009C02FE /* HealthKitManager.swift in Sources */,
-				B55B4F0DA22D52DE7EEF5FF6 /* NotificationScheduler.swift in Sources */,
-				E0D14E23BF2076C3D705B767 /* SubscriptionManager.swift in Sources */,
-				870243C8847C703B75F5AC77 /* PaywallView.swift in Sources */,
-				1F954129BB47E10F320E12BF /* UpgradePrompt.swift in Sources */,
-				E71640C682333D59F85F7705 /* ProviderReportGenerator.swift in Sources */,
-				AA8E46EA8D863E63CA3F9F5C /* NutritionAPIClient.swift in Sources */,
-				FD9440E7AD9FB5A14E8FF442 /* BarcodeInterpreter.swift in Sources */,
-				97C04ED9A6D7423AEC24030B /* FoodSearchView.swift in Sources */,
-				EF4747C4B0D93092979B5258 /* PantryItem.swift in Sources */,
-				4BBC465A88A6826533BD009C /* GIToleranceRecord.swift in Sources */,
-				7B714A059CBF9AB2976C2747 /* PantryView.swift in Sources */,
-				7BB242F786A0701BDC06DF21 /* MealPhotoView.swift in Sources */,
-				CFF94785A36A6FFACDF2D1A9 /* WeightTrendChart.swift in Sources */,
-				95EF42A1B7A644AC7283345F /* GIToleranceView.swift in Sources */,
-				BF744C58A8F22C3538A63B99 /* ProviderReportView.swift in Sources */,
-				BCF24B22B8770A883AD5E916 /* GIToleranceEngine.swift in Sources */,
-				BDD84966AD845EB0ECC0BDE4 /* MiraAPIClient.swift in Sources */,
-				359B4DFBB5154B349218012A /* CognitoAuthManager.swift in Sources */,
-				BD02417C8B6FA18051E37504 /* AuthFlowView.swift in Sources */,
-				EACC4230A6CA93B3AB8EC58B /* RecipesView.swift in Sources */,
-				EDED46E8A0834B1A471D14D1 /* RecipeDetailView.swift in Sources */,
-				DF984CDAB17532BDAD2256CC /* ReceiptScannerView.swift in Sources */,
-				3BDB4570BBD7D86AA103931C /* LegalView.swift in Sources */,
-				024B4A0F93C333D037F82D35 /* CalendarView.swift in Sources */,
-				28744E558C6F64F6765EC663 /* HolidayCalendar.swift in Sources */,
-				C0774319B3E9AC99B5266310 /* OnboardingLogo.swift in Sources */,
-				DCB045D8B94622A0B133D4BA /* BodyStatsScreen.swift in Sources */,
-				166C4B35ADC7F2411924F361 /* PhotoCheckInView.swift in Sources */,
-				C0DB47E199B5E0377DF45AF1 /* OnboardingLogo.swift in Sources */,
-				2A05425CB0033B8C3B9AF6A4 /* CloudSyncManager.swift in Sources */,
-				3BF24D54AE6060C4539D8A73 /* VoiceManager.swift in Sources */,
+				B92F46DC84C74668C861F64C /* SafeSpaceView.swift in Sources */,
+				73BD4A811902C15B7AB9B916 /* JourneyProfileView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -825,39 +395,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/MemoryAisle2/DesignSystem",
-					"$(SRCROOT)/MemoryAisle2/App",
-					"$(SRCROOT)/MemoryAisle2/Features/Home",
-					"$(SRCROOT)/MemoryAisle2/Features/Progress",
-					"$(SRCROOT)/MemoryAisle2/Features/Mira",
-					"$(SRCROOT)/MemoryAisle2/Features/Scan",
-					"$(SRCROOT)/MemoryAisle2/Features/Meals",
-					"$(SRCROOT)/Models",
-					"$(SRCROOT)/Features/Home",
-					"$(SRCROOT)/Features/Progress",
-					"$(SRCROOT)/Features/Mira",
-					"$(SRCROOT)/Features/Scan",
-					"$(SRCROOT)/Features/Profile",
-					"$(SRCROOT)/Features/Meals",
-					"$(SRCROOT)/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Services/Medication",
-					"$(SRCROOT)/MemoryAisle2/Services/Nutrition",
-					"$(SRCROOT)/MemoryAisle2/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Features/Profile",
-					"$(SRCROOT)/MemoryAisle2/Models",
-					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
-					"$(SRCROOT)/MemoryAisle2/Services/Health",
-					"$(SRCROOT)/MemoryAisle2/Services/System",
-					"$(SRCROOT)/MemoryAisle2",
-					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Services/AI",
-					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
-					"$(SRCROOT)/MemoryAisle2/Features/Auth",
-					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
-					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
-				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -899,39 +436,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/MemoryAisle2/DesignSystem",
-					"$(SRCROOT)/MemoryAisle2/App",
-					"$(SRCROOT)/MemoryAisle2/Features/Home",
-					"$(SRCROOT)/MemoryAisle2/Features/Progress",
-					"$(SRCROOT)/MemoryAisle2/Features/Mira",
-					"$(SRCROOT)/MemoryAisle2/Features/Scan",
-					"$(SRCROOT)/MemoryAisle2/Features/Meals",
-					"$(SRCROOT)/Models",
-					"$(SRCROOT)/Features/Home",
-					"$(SRCROOT)/Features/Progress",
-					"$(SRCROOT)/Features/Mira",
-					"$(SRCROOT)/Features/Scan",
-					"$(SRCROOT)/Features/Profile",
-					"$(SRCROOT)/Features/Meals",
-					"$(SRCROOT)/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Services/Medication",
-					"$(SRCROOT)/MemoryAisle2/Services/Nutrition",
-					"$(SRCROOT)/MemoryAisle2/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Features/Profile",
-					"$(SRCROOT)/MemoryAisle2/Models",
-					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
-					"$(SRCROOT)/MemoryAisle2/Services/Health",
-					"$(SRCROOT)/MemoryAisle2/Services/System",
-					"$(SRCROOT)/MemoryAisle2",
-					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Services/AI",
-					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
-					"$(SRCROOT)/MemoryAisle2/Features/Auth",
-					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
-					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
-				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -955,39 +459,6 @@
 				DEVELOPMENT_TEAM = A2RL4W62BR;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
-				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/MemoryAisle2/DesignSystem",
-					"$(SRCROOT)/MemoryAisle2/App",
-					"$(SRCROOT)/MemoryAisle2/Features/Home",
-					"$(SRCROOT)/MemoryAisle2/Features/Progress",
-					"$(SRCROOT)/MemoryAisle2/Features/Mira",
-					"$(SRCROOT)/MemoryAisle2/Features/Scan",
-					"$(SRCROOT)/MemoryAisle2/Features/Meals",
-					"$(SRCROOT)/Models",
-					"$(SRCROOT)/Features/Home",
-					"$(SRCROOT)/Features/Progress",
-					"$(SRCROOT)/Features/Mira",
-					"$(SRCROOT)/Features/Scan",
-					"$(SRCROOT)/Features/Profile",
-					"$(SRCROOT)/Features/Meals",
-					"$(SRCROOT)/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Services/Medication",
-					"$(SRCROOT)/MemoryAisle2/Services/Nutrition",
-					"$(SRCROOT)/MemoryAisle2/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Features/Profile",
-					"$(SRCROOT)/MemoryAisle2/Models",
-					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
-					"$(SRCROOT)/MemoryAisle2/Services/Health",
-					"$(SRCROOT)/MemoryAisle2/Services/System",
-					"$(SRCROOT)/MemoryAisle2",
-					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Services/AI",
-					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
-					"$(SRCROOT)/MemoryAisle2/Features/Auth",
-					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
-					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
-				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1010,39 +481,6 @@
 				DEVELOPMENT_TEAM = A2RL4W62BR;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
-				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/MemoryAisle2/DesignSystem",
-					"$(SRCROOT)/MemoryAisle2/App",
-					"$(SRCROOT)/MemoryAisle2/Features/Home",
-					"$(SRCROOT)/MemoryAisle2/Features/Progress",
-					"$(SRCROOT)/MemoryAisle2/Features/Mira",
-					"$(SRCROOT)/MemoryAisle2/Features/Scan",
-					"$(SRCROOT)/MemoryAisle2/Features/Meals",
-					"$(SRCROOT)/Models",
-					"$(SRCROOT)/Features/Home",
-					"$(SRCROOT)/Features/Progress",
-					"$(SRCROOT)/Features/Mira",
-					"$(SRCROOT)/Features/Scan",
-					"$(SRCROOT)/Features/Profile",
-					"$(SRCROOT)/Features/Meals",
-					"$(SRCROOT)/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Services/Medication",
-					"$(SRCROOT)/MemoryAisle2/Services/Nutrition",
-					"$(SRCROOT)/MemoryAisle2/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Features/Profile",
-					"$(SRCROOT)/MemoryAisle2/Models",
-					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
-					"$(SRCROOT)/MemoryAisle2/Services/Health",
-					"$(SRCROOT)/MemoryAisle2/Services/System",
-					"$(SRCROOT)/MemoryAisle2",
-					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Services/AI",
-					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
-					"$(SRCROOT)/MemoryAisle2/Features/Auth",
-					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
-					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
-				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1063,39 +501,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = A2RL4W62BR;
 				GENERATE_INFOPLIST_FILE = YES;
-				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/MemoryAisle2/DesignSystem",
-					"$(SRCROOT)/MemoryAisle2/App",
-					"$(SRCROOT)/MemoryAisle2/Features/Home",
-					"$(SRCROOT)/MemoryAisle2/Features/Progress",
-					"$(SRCROOT)/MemoryAisle2/Features/Mira",
-					"$(SRCROOT)/MemoryAisle2/Features/Scan",
-					"$(SRCROOT)/MemoryAisle2/Features/Meals",
-					"$(SRCROOT)/Models",
-					"$(SRCROOT)/Features/Home",
-					"$(SRCROOT)/Features/Progress",
-					"$(SRCROOT)/Features/Mira",
-					"$(SRCROOT)/Features/Scan",
-					"$(SRCROOT)/Features/Profile",
-					"$(SRCROOT)/Features/Meals",
-					"$(SRCROOT)/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Services/Medication",
-					"$(SRCROOT)/MemoryAisle2/Services/Nutrition",
-					"$(SRCROOT)/MemoryAisle2/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Features/Profile",
-					"$(SRCROOT)/MemoryAisle2/Models",
-					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
-					"$(SRCROOT)/MemoryAisle2/Services/Health",
-					"$(SRCROOT)/MemoryAisle2/Services/System",
-					"$(SRCROOT)/MemoryAisle2",
-					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Services/AI",
-					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
-					"$(SRCROOT)/MemoryAisle2/Features/Auth",
-					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
-					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
-				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1116,39 +521,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = A2RL4W62BR;
 				GENERATE_INFOPLIST_FILE = YES;
-				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/MemoryAisle2/DesignSystem",
-					"$(SRCROOT)/MemoryAisle2/App",
-					"$(SRCROOT)/MemoryAisle2/Features/Home",
-					"$(SRCROOT)/MemoryAisle2/Features/Progress",
-					"$(SRCROOT)/MemoryAisle2/Features/Mira",
-					"$(SRCROOT)/MemoryAisle2/Features/Scan",
-					"$(SRCROOT)/MemoryAisle2/Features/Meals",
-					"$(SRCROOT)/Models",
-					"$(SRCROOT)/Features/Home",
-					"$(SRCROOT)/Features/Progress",
-					"$(SRCROOT)/Features/Mira",
-					"$(SRCROOT)/Features/Scan",
-					"$(SRCROOT)/Features/Profile",
-					"$(SRCROOT)/Features/Meals",
-					"$(SRCROOT)/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Services/Medication",
-					"$(SRCROOT)/MemoryAisle2/Services/Nutrition",
-					"$(SRCROOT)/MemoryAisle2/Features/Onboarding",
-					"$(SRCROOT)/MemoryAisle2/Features/Profile",
-					"$(SRCROOT)/MemoryAisle2/Models",
-					"$(SRCROOT)/MemoryAisle2/Services/Grocery",
-					"$(SRCROOT)/MemoryAisle2/Services/Health",
-					"$(SRCROOT)/MemoryAisle2/Services/System",
-					"$(SRCROOT)/MemoryAisle2",
-					"$(SRCROOT)/MemoryAisle2/Services/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Features/Subscription",
-					"$(SRCROOT)/MemoryAisle2/Services/AI",
-					"$(SRCROOT)/MemoryAisle2/Services/Cloud",
-					"$(SRCROOT)/MemoryAisle2/Features/Auth",
-					"$(SRCROOT)/MemoryAisle2/Features/Recipes",
-					"$(SRCROOT)/MemoryAisle2/Features/Calendar",
-				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sltrdigital.MemoryAisle2UITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

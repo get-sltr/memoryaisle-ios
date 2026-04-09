@@ -13,7 +13,7 @@ final class AppState {
         case home
         case recipes
         case scan
-        case mira
+        case safeSpace
         case progress
 
         var title: String {
@@ -21,18 +21,18 @@ final class AppState {
             case .home: "Home"
             case .recipes: "Recipes"
             case .scan: "Scan"
-            case .mira: "Mira"
-            case .progress: "Progress"
+            case .safeSpace: "Safe Space"
+            case .progress: "Me"
             }
         }
 
         var icon: String {
             switch self {
-            case .home: "house.fill"
+            case .home: "cart.fill"
             case .recipes: "book.fill"
             case .scan: "barcode.viewfinder"
-            case .mira: "waveform"
-            case .progress: "chart.line.uptrend.xyaxis"
+            case .safeSpace: "lock.shield.fill"
+            case .progress: "person.fill"
             }
         }
     }
@@ -42,6 +42,5 @@ final class AppState {
     var selectedTab: Tab = .home
     var homePath = NavigationPath()
     var recipesPath = NavigationPath()
-    var miraPath = NavigationPath()
     var progressPath = NavigationPath()
 }

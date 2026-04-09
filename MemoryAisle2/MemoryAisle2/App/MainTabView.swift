@@ -3,6 +3,7 @@ import SwiftUI
 struct MainTabView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.colorScheme) private var scheme
+    @State private var showMira = false
 
     var body: some View {
         @Bindable var state = appState
@@ -20,13 +21,11 @@ struct MainTabView: View {
                     }
                 case .scan:
                     ScanView()
-                case .mira:
-                    NavigationStack(path: $state.miraPath) {
-                        MiraChatView()
-                    }
+                case .safeSpace:
+                    SafeSpaceView()
                 case .progress:
                     NavigationStack(path: $state.progressPath) {
-                        ProgressDashboardView()
+                        JourneyProfileView()
                     }
                 }
             }
@@ -35,14 +34,15 @@ struct MainTabView: View {
             CustomTabBar(selectedTab: $state.selectedTab)
         }
         .overlay {
-            if appState.selectedTab != .mira {
+            if appState.selectedTab != .safeSpace {
                 MiraFloatingButton {
-                    withAnimation(Theme.Motion.spring) {
-                        appState.selectedTab = .mira
-                    }
+                    showMira = true
                 }
                 .allowsHitTesting(true)
             }
+        }
+        .sheet(isPresented: $showMira) {
+            MiraChatView()
         }
         .ignoresSafeArea(.keyboard)
     }
