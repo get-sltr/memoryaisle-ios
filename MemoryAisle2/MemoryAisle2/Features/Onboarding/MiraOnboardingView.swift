@@ -270,12 +270,10 @@ struct MiraOnboardingView: View {
     // MARK: - Conversation Flow
 
     private func startConversation() {
-        Task {
-            _ = await voice.requestPermissions()
-            await miraSpeak(
-                "Welcome to MemoryAisle. I'm Mira, and I'll help you get set up.",
-                step: .intro
-            )
+        miraText = "Welcome to MemoryAisle. I'm Mira, and I'll help you get set up."
+        step = .intro
+        withAnimation(.easeOut(duration: 0.6).delay(0.5)) {
+            showChoices = true
         }
     }
 
@@ -295,7 +293,11 @@ struct MiraOnboardingView: View {
         case .ready: buildReadySummary()
         }
 
-        Task { await miraSpeak(text, step: next) }
+        miraText = text
+        step = next
+        withAnimation(.easeOut(duration: 0.4)) {
+            showChoices = true
+        }
     }
 
     private func buildReadySummary() -> String {
