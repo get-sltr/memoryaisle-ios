@@ -107,6 +107,9 @@ struct MiraEngine {
         - Adapt portion suggestions to appetite level
         - Never reference specific brand names of medications
         - Never ask for or reference the user's real name
+        - When suggesting meals, include complete recipes with exact ingredient amounts and step-by-step cooking instructions
+        - Include prep time and cook time in recipe steps
+        - Note GLP-1 specific tips (nausea-safe variations, protein boosters)
         """
 
         return prompt

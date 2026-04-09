@@ -108,11 +108,16 @@ final class MealGenerator {
 
         request += """
 
-        For each meal respond in this exact format:
+        For each meal, provide a COMPLETE cookbook-style recipe.
+        Respond in this exact format for each meal:
         MEAL|type|name|protein_g|calories|carbs_g|fat_g|fiber_g|\
-        prep_minutes|nausea_safe|ingredients(comma-separated)|\
-        cooking_instructions
+        prep_minutes|nausea_safe|ingredients(semicolon-separated with amounts)|\
+        cooking_instructions(numbered steps separated by semicolons)
         Types: breakfast, lunch, dinner, snack, pre-workout, post-workout
+
+        For ingredients, include exact measurements (e.g., "8oz chicken breast;1 cup brown rice;2 cups broccoli florets;1 tbsp olive oil;salt and pepper to taste").
+        For instructions, write detailed numbered steps (e.g., "1. Preheat oven to 400F;2. Season chicken with salt and pepper;3. Sear 3 min per side;4. Bake 15 min at 400F;5. Rest 5 min before slicing").
+        Include a GLP-1 tip at the end of instructions if relevant.
         """
 
         return request
@@ -159,8 +164,9 @@ final class MealGenerator {
 
             let ingredients: [String]
             if parts.count > 10 {
-                ingredients = parts[10].components(separatedBy: ",")
+                ingredients = parts[10].components(separatedBy: ";")
                     .map { $0.trimmingCharacters(in: .whitespaces) }
+                    .filter { !$0.isEmpty }
             } else {
                 ingredients = []
             }

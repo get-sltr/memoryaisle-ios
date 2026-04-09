@@ -8,6 +8,7 @@ struct MealsView: View {
     @Query(sort: \MealPlan.date, order: .reverse) private var plans: [MealPlan]
     @State private var isGenerating = false
     @State private var errorMessage: String?
+    @State private var expandedMealId: String?
 
     private var profile: UserProfile? { profiles.first }
 
@@ -155,62 +156,104 @@ struct MealsView: View {
     // MARK: - Meal Card
 
     private func mealCard(_ meal: Meal) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(meal.mealType.rawValue.uppercased())
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.3))
-                    .tracking(0.5)
-                Spacer()
-                if meal.isNauseaSafe {
-                    HStack(spacing: 4) {
-                        Image(systemName: "leaf.fill")
-                            .font(.system(size: 9))
-                        Text("Nausea-safe")
-                            .font(.system(size: 10, weight: .medium))
+        Button {
+            HapticManager.light()
+            withAnimation(Theme.Motion.spring) {
+                expandedMealId = expandedMealId == meal.id ? nil : meal.id
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text(meal.mealType.rawValue.uppercased())
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.3))
+                        .tracking(0.5)
+                    Spacer()
+                    if meal.isNauseaSafe {
+                        HStack(spacing: 4) {
+                            Image(systemName: "leaf.fill")
+                                .font(.system(size: 9))
+                            Text("Nausea-safe")
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .foregroundStyle(Color(hex: 0x34D399).opacity(0.7))
                     }
-                    .foregroundStyle(Color(hex: 0x34D399).opacity(0.7))
+                }
+
+                Text(meal.name)
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.white)
+
+                HStack(spacing: 16) {
+                    macroTag(Color.violet, "\(Int(meal.proteinGrams))g protein")
+                    macroTag(.white.opacity(0.3), "\(Int(meal.caloriesTotal)) cal")
+                    Spacer()
+                    Text("\(meal.prepTimeMinutes) min")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.white.opacity(0.25))
+                }
+
+                if expandedMealId == meal.id {
+                    if !meal.ingredients.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("INGREDIENTS")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                                .tracking(1)
+                            ForEach(meal.ingredients, id: \.self) { ingredient in
+                                HStack(alignment: .top, spacing: 8) {
+                                    Circle()
+                                        .fill(Color.violet.opacity(0.4))
+                                        .frame(width: 4, height: 4)
+                                        .padding(.top, 6)
+                                    Text(ingredient)
+                                        .font(.system(size: 13))
+                                        .foregroundStyle(Theme.Text.secondary(for: scheme))
+                                }
+                            }
+                        }
+                        .padding(.top, 8)
+                    }
+
+                    if let instructions = meal.cookingInstructions,
+                       !instructions.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("INSTRUCTIONS")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                                .tracking(1)
+                            let steps = instructions.components(separatedBy: ";")
+                                .map { $0.trimmingCharacters(in: .whitespaces) }
+                                .filter { !$0.isEmpty }
+                            ForEach(Array(steps.enumerated()), id: \.offset) { _, step in
+                                Text(step)
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(Theme.Text.secondary(for: scheme))
+                            }
+                        }
+                        .padding(.top, 8)
+                    }
+                } else {
+                    if !meal.ingredients.isEmpty {
+                        Text(meal.ingredients.joined(separator: ", "))
+                            .font(.system(size: 11))
+                            .foregroundStyle(.white.opacity(0.25))
+                            .lineLimit(1)
+                    }
                 }
             }
-
-            Text(meal.name)
-                .font(.system(size: 17, weight: .medium))
-                .foregroundStyle(.white)
-
-            if let instructions = meal.cookingInstructions,
-               !instructions.isEmpty {
-                Text(instructions)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.white.opacity(0.4))
-                    .lineLimit(2)
-            }
-
-            HStack(spacing: 16) {
-                macroTag(Color.violet, "\(Int(meal.proteinGrams))g protein")
-                macroTag(.white.opacity(0.3), "\(Int(meal.caloriesTotal)) cal")
-                Spacer()
-                Text("\(meal.prepTimeMinutes) min")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.white.opacity(0.25))
-            }
-
-            if !meal.ingredients.isEmpty {
-                Text(meal.ingredients.joined(separator: ", "))
-                    .font(.system(size: 11))
-                    .foregroundStyle(.white.opacity(0.25))
-                    .lineLimit(1)
-            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(.white.opacity(0.03))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(.white.opacity(0.06), lineWidth: 0.5)
+            )
+            .padding(.horizontal, 20)
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.white.opacity(0.03))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(.white.opacity(0.06), lineWidth: 0.5)
-        )
-        .padding(.horizontal, 20)
+        .buttonStyle(.plain)
     }
 
     private func macroTag(_ color: Color, _ text: String) -> some View {
