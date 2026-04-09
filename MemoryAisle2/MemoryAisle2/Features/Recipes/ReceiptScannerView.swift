@@ -18,16 +18,14 @@ struct ReceiptScannerView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                        .frame(width: 32, height: 32)
-                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
+                        .foregroundStyle(Color.violet.opacity(0.6))
                 }
                 Spacer()
                 Text("Receipt Scanner")
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(Theme.Text.primary)
                 Spacer()
-                Color.clear.frame(width: 32, height: 32)
+                Color.clear
             }
             .padding(.horizontal, 16)
             .padding(.top, 12)
@@ -85,11 +83,6 @@ struct ReceiptScannerView: View {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .fill(Color(hex: 0xA78BFA).opacity(0.12))
                     )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(Color(hex: 0xA78BFA).opacity(0.3), lineWidth: 0.5)
-                    )
-                    .shadow(color: Color(hex: 0xA78BFA).opacity(0.25), radius: 20, y: 4)
                 }
                 .padding(.horizontal, 32)
                 .onChange(of: selectedPhoto) { _, newValue in

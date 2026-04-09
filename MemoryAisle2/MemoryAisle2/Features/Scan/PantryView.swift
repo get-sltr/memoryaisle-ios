@@ -27,9 +27,7 @@ struct PantryView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                        .frame(width: 32, height: 32)
-                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
+                        .foregroundStyle(Color.violet.opacity(0.6))
                 }
 
                 Spacer()
@@ -44,9 +42,9 @@ struct PantryView: View {
                     showAddItem = true
                 } label: {
                     Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(Color.violet)
-                        .frame(width: 32, height: 32)
+                        
                         .background(Circle().fill(Color.violet.opacity(0.1)))
                 }
             }

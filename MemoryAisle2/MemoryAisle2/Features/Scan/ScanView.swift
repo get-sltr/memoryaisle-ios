@@ -119,20 +119,14 @@ struct ScanView: View {
                         break
                     }
                 } label: {
-                    ZStack {
-                        Circle()
-                            .stroke(Color.violet.opacity(0.3), lineWidth: 2)
-                            .frame(width: 68, height: 68)
-
-                        Circle()
-                            .fill(Color.violet.opacity(0.1))
-                            .frame(width: 56, height: 56)
-
-                        Image(systemName: "viewfinder")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundStyle(Color.violet.opacity(0.8))
-                    }
-                    .shadow(color: Color.violet.opacity(0.15), radius: 16, y: 4)
+                    Circle()
+                        .fill(Color.violet.opacity(0.12))
+                        .frame(width: 64, height: 64)
+                        .overlay(
+                            Image(systemName: "viewfinder")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundStyle(Color.violet.opacity(0.8))
+                        )
                 }
                 .buttonStyle(GlassPressStyle())
                 .padding(.top, 24)

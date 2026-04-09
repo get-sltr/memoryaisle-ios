@@ -65,9 +65,7 @@ struct ScanResultView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                        .frame(width: 32, height: 32)
-                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
+                        .foregroundStyle(Color.violet.opacity(0.6))
                 }
             }
             .padding(.horizontal, 20)

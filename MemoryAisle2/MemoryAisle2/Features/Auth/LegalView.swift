@@ -30,16 +30,14 @@ struct LegalView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                        .frame(width: 32, height: 32)
-                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
+                        .foregroundStyle(Color.violet.opacity(0.6))
                 }
                 Spacer()
                 Text(page.rawValue)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(Theme.Text.primary)
                 Spacer()
-                Color.clear.frame(width: 32, height: 32)
+                Color.clear
             }
             .padding(.horizontal, 16)
             .padding(.top, 12)

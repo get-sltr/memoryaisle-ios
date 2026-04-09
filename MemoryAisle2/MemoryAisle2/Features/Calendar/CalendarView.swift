@@ -29,9 +29,7 @@ struct CalendarView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                        .frame(width: 32, height: 32)
-                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
+                        .foregroundStyle(Color.violet.opacity(0.6))
                 }
                 Spacer()
                 Text("Meal Calendar")
@@ -40,9 +38,9 @@ struct CalendarView: View {
                 Spacer()
                 Button { showPlanGenerator = true } label: {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(Color(hex: 0xA78BFA))
-                        .frame(width: 32, height: 32)
+                        
                         .background(Circle().fill(Color(hex: 0xA78BFA).opacity(0.1)))
                 }
             }
@@ -234,7 +232,7 @@ struct CalendarView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(holiday.name)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(Theme.Text.secondary(for: scheme))
                 Text(formatDate(holiday.date))
                     .font(.system(size: 11))
@@ -266,7 +264,7 @@ struct CalendarView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(meal.name)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(Theme.Text.primary)
                 Text("\(meal.protein)g protein · \(meal.calories) cal")
                     .font(.system(size: 11, design: .monospaced))
@@ -349,9 +347,7 @@ struct MealPlanGeneratorView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                        .frame(width: 32, height: 32)
-                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
+                        .foregroundStyle(Color.violet.opacity(0.6))
                 }
                 Spacer()
             }
