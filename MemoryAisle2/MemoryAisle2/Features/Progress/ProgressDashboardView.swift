@@ -45,7 +45,7 @@ struct ProgressDashboardView: View {
                 HStack {
                     Text("Progress")
                         .font(.system(size: 26, weight: .light, design: .serif))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Theme.Text.primary)
                         .tracking(0.3)
                     Spacer()
                 }
@@ -64,22 +64,22 @@ struct ProgressDashboardView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     Text("TODAY")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.25))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .tracking(1.2)
 
                     macroRow("Protein", current: todayLog?.proteinGrams ?? 0, target: Double(profile?.proteinTargetGrams ?? 140), unit: "g", color: Color.violet)
                     macroRow("Water", current: todayLog?.waterLiters ?? 0, target: profile?.waterTargetLiters ?? 2.5, unit: "L", color: Color(hex: 0x38BDF8))
                     macroRow("Fiber", current: todayLog?.fiberGrams ?? 0, target: Double(profile?.fiberTargetGrams ?? 25), unit: "g", color: Color(hex: 0xFBBF24))
-                    macroRow("Calories", current: todayLog?.caloriesConsumed ?? 0, target: Double(profile?.calorieTarget ?? 1800), unit: "", color: .white.opacity(0.4))
+                    macroRow("Calories", current: todayLog?.caloriesConsumed ?? 0, target: Double(profile?.calorieTarget ?? 1800), unit: "", color: Theme.Text.secondary(for: scheme))
                 }
                 .padding(16)
                 .background(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(.white.opacity(0.03))
+                        .fill(Theme.Surface.glass(for: scheme))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                        .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                 )
                 .padding(.horizontal, 20)
 
@@ -88,7 +88,7 @@ struct ProgressDashboardView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("7-DAY PROTEIN")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.25))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .tracking(1.2)
 
                         HStack(alignment: .bottom, spacing: 6) {
@@ -109,7 +109,7 @@ struct ProgressDashboardView: View {
 
                                     Text(dayLabel(log.date))
                                         .font(.system(size: 9))
-                                        .foregroundStyle(.white.opacity(0.2))
+                                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                                 }
                                 .frame(maxWidth: .infinity)
                             }
@@ -119,11 +119,11 @@ struct ProgressDashboardView: View {
                     .padding(16)
                     .background(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(.white.opacity(0.03))
+                            .fill(Theme.Surface.glass(for: scheme))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                     )
                     .padding(.horizontal, 20)
                 }
@@ -178,11 +178,11 @@ struct ProgressDashboardView: View {
         VStack(spacing: 8) {
             Text(value)
                 .font(.system(size: 22, weight: .medium, design: .monospaced))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
 
             Text(label)
                 .font(.system(size: 10))
-                .foregroundStyle(.white.opacity(0.3))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
@@ -203,7 +203,7 @@ struct ProgressDashboardView: View {
             HStack {
                 Text(label)
                     .font(.system(size: 13))
-                    .foregroundStyle(.white.opacity(0.5))
+                    .foregroundStyle(Theme.Text.secondary(for: scheme))
                 Spacer()
                 Text("\(Int(current))/\(Int(target))\(unit)")
                     .font(.system(size: 12, design: .monospaced))
@@ -234,14 +234,14 @@ struct ProgressDashboardView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("BODY COMPOSITION")
                 .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
 
             HStack(spacing: 10) {
                 statCard(
                     "Weight",
                     value: "\(Int(latest.weightLbs)) lbs",
-                    color: .white.opacity(0.4)
+                    color: Theme.Text.secondary(for: scheme)
                 )
                 statCard(
                     "Lean Mass",
@@ -270,11 +270,11 @@ struct ProgressDashboardView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.white.opacity(0.03))
+                .fill(Theme.Surface.glass(for: scheme))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
         )
         .padding(.horizontal, 20)
     }
@@ -292,7 +292,7 @@ struct ProgressDashboardView: View {
                 .font(.system(size: 11, design: .monospaced))
             Text(label)
                 .font(.system(size: 11))
-                .foregroundStyle(.white.opacity(0.4))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
         }
         .foregroundStyle(color)
     }
@@ -306,7 +306,7 @@ struct ProgressDashboardView: View {
         return VStack(alignment: .leading, spacing: 12) {
             Text("TRAINING THIS WEEK")
                 .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
 
             HStack(spacing: 10) {
@@ -318,11 +318,11 @@ struct ProgressDashboardView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.white.opacity(0.03))
+                .fill(Theme.Surface.glass(for: scheme))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
         )
         .padding(.horizontal, 20)
     }
@@ -338,17 +338,17 @@ struct ProgressDashboardView: View {
                     .foregroundStyle(Color.violet)
                 Text(label)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(Theme.Text.secondary(for: scheme))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(.white.opacity(0.03))
+                    .fill(Theme.Surface.glass(for: scheme))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                    .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
             )
         }
         .buttonStyle(.plain)

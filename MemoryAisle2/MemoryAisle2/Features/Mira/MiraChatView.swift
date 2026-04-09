@@ -85,12 +85,12 @@ struct MiraChatView: View {
 
             Text("How can I help?")
                 .font(.system(size: 28, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
             Text("Tap the mic to talk, or choose below.")
                 .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.35))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 10)
 
             // Mic button
@@ -168,7 +168,7 @@ struct MiraChatView: View {
 
                 Image(systemName: micPressed ? "waveform" : "mic.fill")
                     .font(.system(size: 22, weight: .medium))
-                    .foregroundStyle(.white.opacity(micPressed ? 1 : 0.7))
+                    .foregroundStyle(micPressed ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
             }
             .scaleEffect(micPressed ? 1.05 : 1.0)
             .animation(.easeOut(duration: 0.15), value: micPressed)
@@ -191,23 +191,23 @@ struct MiraChatView: View {
 
                 Text(text)
                     .font(.system(size: 15))
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(Theme.Text.secondary(for: scheme))
 
                 Spacer()
 
                 Image(systemName: "arrow.up.right")
                     .font(.system(size: 10))
-                    .foregroundStyle(.white.opacity(0.2))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 13)
             .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(.white.opacity(0.03))
+                    .fill(Theme.Surface.glass(for: scheme))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                    .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
             )
         }
         .buttonStyle(.plain)

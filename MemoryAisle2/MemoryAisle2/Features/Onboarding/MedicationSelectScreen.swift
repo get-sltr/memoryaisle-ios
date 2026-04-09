@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MedicationSelectScreen: View {
+    @Environment(\.colorScheme) private var scheme
     @Binding var selection: Medication?
     let onContinue: () -> Void
 
@@ -12,7 +13,7 @@ struct MedicationSelectScreen: View {
 
             Text("Which medication\nare you on?")
                 .font(.system(size: 26, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
                 .tracking(0.3)
@@ -31,12 +32,12 @@ struct MedicationSelectScreen: View {
                         } label: {
                             Text(med.rawValue)
                                 .font(.system(size: 15, weight: isSelected ? .medium : .regular))
-                                .foregroundStyle(.white.opacity(isSelected ? 1 : 0.6))
+                                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 13)
                                 .background(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .fill(isSelected ? Color.violet.opacity(0.18) : .white.opacity(0.03))
+                                        .fill(isSelected ? Color.violet.opacity(0.18) : Theme.Surface.glass(for: scheme))
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)

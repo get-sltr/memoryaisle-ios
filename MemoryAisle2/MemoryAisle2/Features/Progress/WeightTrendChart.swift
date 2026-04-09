@@ -2,6 +2,7 @@ import Charts
 import SwiftUI
 
 struct WeightTrendChart: View {
+    @Environment(\.colorScheme) private var scheme
     let data: [(date: Date, value: Double)]
 
     private var minWeight: Double {
@@ -22,7 +23,7 @@ struct WeightTrendChart: View {
             HStack {
                 Text("WEIGHT TREND")
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.25))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(1.2)
 
                 Spacer()
@@ -50,11 +51,11 @@ struct WeightTrendChart: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.white.opacity(0.03))
+                .fill(Theme.Surface.glass(for: scheme))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
         )
     }
 
@@ -87,15 +88,15 @@ struct WeightTrendChart: View {
         .chartXAxis {
             AxisMarks(values: .stride(by: .day, count: 7)) { _ in
                 AxisValueLabel(format: .dateTime.month(.abbreviated).day())
-                    .foregroundStyle(.white.opacity(0.2))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
         }
         .chartYAxis {
             AxisMarks(position: .trailing, values: .automatic(desiredCount: 4)) { _ in
                 AxisValueLabel()
-                    .foregroundStyle(.white.opacity(0.2))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 AxisGridLine()
-                    .foregroundStyle(.white.opacity(0.04))
+                    .foregroundStyle(Theme.Border.glass(for: scheme))
             }
         }
         .frame(height: 160)
@@ -109,7 +110,7 @@ struct WeightTrendChart: View {
 
             Text("Connect HealthKit to see your trend")
                 .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.3))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
         }
         .frame(maxWidth: .infinity)
         .frame(height: 120)

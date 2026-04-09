@@ -49,6 +49,7 @@ struct ScannedProduct: Identifiable {
 }
 
 struct ScanResultView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     let product: ScannedProduct
@@ -64,9 +65,9 @@ struct ScanResultView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
             }
             .padding(.horizontal, 20)
@@ -82,7 +83,7 @@ struct ScanResultView: View {
 
                         Text(product.verdict.title)
                             .font(.system(size: 24, weight: .light, design: .serif))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Theme.Text.primary)
                             .tracking(0.3)
                     }
                     .padding(.top, 12)
@@ -91,22 +92,22 @@ struct ScanResultView: View {
                     VStack(spacing: 4) {
                         Text(product.name)
                             .font(.system(size: 17, weight: .medium))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Theme.Text.primary)
                             .multilineTextAlignment(.center)
 
                         Text(product.brand)
                             .font(.system(size: 13))
-                            .foregroundStyle(.white.opacity(0.35))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
                         Text(product.servingSize)
                             .font(.system(size: 12))
-                            .foregroundStyle(.white.opacity(0.25))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     }
 
                     // Reason
                     Text(product.reason)
                         .font(.system(size: 15))
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
 
@@ -137,7 +138,7 @@ struct ScanResultView: View {
                     VStack(spacing: 0) {
                         Text("NUTRITION")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.25))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .tracking(1.2)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.bottom, 12)
@@ -148,21 +149,21 @@ struct ScanResultView: View {
                             GridItem(.flexible())
                         ], spacing: 12) {
                             nutrientCell("Protein", "\(product.protein)g", Color.violet)
-                            nutrientCell("Calories", "\(product.calories)", .white.opacity(0.4))
-                            nutrientCell("Fat", "\(product.fat)g", .white.opacity(0.3))
-                            nutrientCell("Carbs", "\(product.carbs)g", .white.opacity(0.3))
+                            nutrientCell("Calories", "\(product.calories)", Theme.Text.secondary(for: scheme))
+                            nutrientCell("Fat", "\(product.fat)g", Theme.Text.tertiary(for: scheme))
+                            nutrientCell("Carbs", "\(product.carbs)g", Theme.Text.tertiary(for: scheme))
                             nutrientCell("Fiber", "\(product.fiber)g", Color(hex: 0xFBBF24))
-                            nutrientCell("Sodium", "\(product.sodium)mg", .white.opacity(0.3))
+                            nutrientCell("Sodium", "\(product.sodium)mg", Theme.Text.tertiary(for: scheme))
                         }
                     }
                     .padding(16)
                     .background(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(.white.opacity(0.03))
+                            .fill(Theme.Surface.glass(for: scheme))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                     )
                     .padding(.horizontal, 20)
 
@@ -179,7 +180,7 @@ struct ScanResultView: View {
                     } label: {
                         Text("Scan another")
                             .font(.system(size: 15))
-                            .foregroundStyle(.white.opacity(0.4))
+                            .foregroundStyle(Theme.Text.secondary(for: scheme))
                     }
 
                     Spacer(minLength: 40)
@@ -211,7 +212,7 @@ struct ScanResultView: View {
 
             Text(label)
                 .font(.system(size: 10))
-                .foregroundStyle(.white.opacity(0.3))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)

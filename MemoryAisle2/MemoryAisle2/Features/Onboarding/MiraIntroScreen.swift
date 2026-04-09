@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MiraIntroScreen: View {
+    @Environment(\.colorScheme) private var scheme
     let onContinue: () -> Void
     @State private var miraState: MiraState = .idle
     @State private var showGreeting = false
@@ -24,7 +25,7 @@ struct MiraIntroScreen: View {
                 // Greeting
                 Text("Hello. I'm Mira.")
                     .font(.system(size: 34, weight: .light, design: .serif))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                     .tracking(0.5)
                     .opacity(showGreeting ? 1 : 0)
                     .offset(y: showGreeting ? 0 : 20)
@@ -35,7 +36,7 @@ struct MiraIntroScreen: View {
                 // Subtitle
                 Text("Your personal nutrition companion\nfor this journey.")
                     .font(.system(size: 16, weight: .regular))
-                    .foregroundStyle(.white.opacity(0.45))
+                    .foregroundStyle(Theme.Text.secondary(for: scheme))
                     .multilineTextAlignment(.center)
                     .lineSpacing(5)
                     .opacity(showSubtitle ? 1 : 0)
@@ -52,7 +53,7 @@ struct MiraIntroScreen: View {
 
                     Text("Takes about 2 minutes")
                         .font(.system(size: 12, weight: .regular))
-                        .foregroundStyle(.white.opacity(0.2))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
                 .padding(.horizontal, 32)
                 .opacity(showButton ? 1 : 0)

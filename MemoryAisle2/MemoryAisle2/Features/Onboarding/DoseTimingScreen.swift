@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DoseTimingScreen: View {
+    @Environment(\.colorScheme) private var scheme
     @Binding var profile: OnboardingProfile
     let onContinue: () -> Void
 
@@ -24,7 +25,7 @@ struct DoseTimingScreen: View {
 
             Text("Dose and timing")
                 .font(.system(size: 26, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
                 .padding(.bottom, 24)
 
@@ -34,7 +35,7 @@ struct DoseTimingScreen: View {
                     VStack(spacing: 8) {
                         Text("CURRENT DOSE")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.25))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .tracking(1.2)
 
                         TextField("e.g. 0.5mg", text: Binding(
@@ -42,17 +43,17 @@ struct DoseTimingScreen: View {
                             set: { profile.doseAmount = $0 }
                         ))
                         .font(.system(size: 17))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Theme.Text.primary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(.white.opacity(0.04))
+                                .fill(Theme.Surface.glass(for: scheme))
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(.white.opacity(0.08), lineWidth: 0.5)
+                                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                         )
                         .keyboardType(.decimalPad)
                     }
@@ -71,7 +72,7 @@ struct DoseTimingScreen: View {
                             ? "I'll adjust your meals based on where you are in your cycle."
                             : "I'll plan meals around your pill timing for best absorption.")
                             .font(.system(size: 13))
-                            .foregroundStyle(.white.opacity(0.35))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     }
                 }
                 .padding(.horizontal, 28)
@@ -95,7 +96,7 @@ struct DoseTimingScreen: View {
             VStack(spacing: 8) {
                 Text("HOW OFTEN")
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.25))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(1.2)
 
                 HStack(spacing: 6) {
@@ -108,7 +109,7 @@ struct DoseTimingScreen: View {
             VStack(spacing: 8) {
                 Text("INJECTION DAY")
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.25))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(1.2)
 
                 HStack(spacing: 4) {
@@ -123,12 +124,12 @@ struct DoseTimingScreen: View {
                         } label: {
                             Text(label)
                                 .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
-                                .foregroundStyle(.white.opacity(isSelected ? 1 : 0.35))
+                                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.tertiary(for: scheme))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
                                 .background(
                                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                        .fill(isSelected ? Color.violet.opacity(0.2) : .white.opacity(0.03))
+                                        .fill(isSelected ? Color.violet.opacity(0.2) : Theme.Surface.glass(for: scheme))
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -154,12 +155,12 @@ struct DoseTimingScreen: View {
         } label: {
             Text(label)
                 .font(.system(size: 14, weight: isSelected ? .medium : .regular))
-                .foregroundStyle(.white.opacity(isSelected ? 1 : 0.5))
+                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(isSelected ? Color.violet.opacity(0.18) : .white.opacity(0.03))
+                        .fill(isSelected ? Color.violet.opacity(0.18) : Theme.Surface.glass(for: scheme))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -178,7 +179,7 @@ struct DoseTimingScreen: View {
             VStack(spacing: 8) {
                 Text("HOW MANY TIMES A DAY")
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.25))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(1.2)
 
                 HStack(spacing: 6) {
@@ -193,7 +194,7 @@ struct DoseTimingScreen: View {
                 VStack(spacing: 8) {
                     Text("WHAT TIME DO YOU TAKE IT")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.25))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .tracking(1.2)
 
                     DatePicker(
@@ -212,7 +213,7 @@ struct DoseTimingScreen: View {
 
                     Text("Take on empty stomach. Wait 30 minutes before eating.")
                         .font(.system(size: 13))
-                        .foregroundStyle(.white.opacity(0.3))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .multilineTextAlignment(.center)
                 }
             } else {
@@ -224,7 +225,7 @@ struct DoseTimingScreen: View {
 
                     Text("No fasting required. Take with or without food.")
                         .font(.system(size: 14))
-                        .foregroundStyle(.white.opacity(0.55))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                 }
                 .padding(16)
                 .background(
@@ -250,12 +251,12 @@ struct DoseTimingScreen: View {
         } label: {
             Text(label)
                 .font(.system(size: 13, weight: isSelected ? .medium : .regular))
-                .foregroundStyle(.white.opacity(isSelected ? 1 : 0.5))
+                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(isSelected ? Color.violet.opacity(0.18) : .white.opacity(0.03))
+                        .fill(isSelected ? Color.violet.opacity(0.18) : Theme.Surface.glass(for: scheme))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)

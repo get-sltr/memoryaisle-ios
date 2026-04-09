@@ -2,6 +2,7 @@ import StoreKit
 import SwiftUI
 
 struct PaywallView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @State private var subscriptionManager = SubscriptionManager()
     @State private var isPurchasing = false
@@ -17,9 +18,9 @@ struct PaywallView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
                 Spacer()
             }
@@ -35,13 +36,13 @@ struct PaywallView: View {
 
                         Text("Unlock the\nfull experience")
                             .font(.system(size: 30, weight: .light, design: .serif))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Theme.Text.primary)
                             .multilineTextAlignment(.center)
                             .tracking(0.3)
 
                         Text("Everything Mira can do, unlocked.")
                             .font(.system(size: 15))
-                            .foregroundStyle(.white.opacity(0.4))
+                            .foregroundStyle(Theme.Text.secondary(for: scheme))
                     }
                     .padding(.top, 16)
 
@@ -65,11 +66,11 @@ struct PaywallView: View {
                         if let product = subscriptionManager.products.first {
                             Text(product.displayPrice)
                                 .font(.system(size: 36, weight: .medium, design: .monospaced))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(Theme.Text.primary)
 
                             Text("per year")
                                 .font(.system(size: 14))
-                                .foregroundStyle(.white.opacity(0.35))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
                             Text("That's less than $1/week")
                                 .font(.system(size: 13))
@@ -77,11 +78,11 @@ struct PaywallView: View {
                         } else {
                             Text("$49.99")
                                 .font(.system(size: 36, weight: .medium, design: .monospaced))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(Theme.Text.primary)
 
                             Text("per year")
                                 .font(.system(size: 14))
-                                .foregroundStyle(.white.opacity(0.35))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         }
                     }
                     .padding(.vertical, 20)
@@ -109,7 +110,7 @@ struct PaywallView: View {
                         } label: {
                             Text("Restore purchase")
                                 .font(.system(size: 13))
-                                .foregroundStyle(.white.opacity(0.3))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         }
                     }
 
@@ -117,7 +118,7 @@ struct PaywallView: View {
                     VStack(spacing: 4) {
                         Text("Payment charged to your Apple ID. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period.")
                             .font(.system(size: 10))
-                            .foregroundStyle(.white.opacity(0.15))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .multilineTextAlignment(.center)
 
                         HStack(spacing: 12) {
@@ -125,7 +126,7 @@ struct PaywallView: View {
                             Link("Privacy", destination: URL(string: "https://memoryaisle.app/privacy")!)
                         }
                         .font(.system(size: 10))
-                        .foregroundStyle(.white.opacity(0.2))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     }
                     .padding(.horizontal, 32)
                     .padding(.top, 8)
@@ -157,7 +158,7 @@ struct PaywallView: View {
 
             Text(text)
                 .font(.system(size: 15))
-                .foregroundStyle(.white.opacity(0.7))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
 
             Spacer()
 
@@ -169,7 +170,7 @@ struct PaywallView: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.white.opacity(0.03))
+                .fill(Theme.Surface.glass(for: scheme))
         )
     }
 

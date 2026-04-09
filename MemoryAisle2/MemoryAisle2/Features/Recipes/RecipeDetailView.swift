@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RecipeDetailView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     let recipe: RecipeItem
 
@@ -10,7 +11,7 @@ struct RecipeDetailView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 44, height: 44)
                 }
                 Spacer()
@@ -33,13 +34,13 @@ struct RecipeDetailView: View {
                     VStack(spacing: 8) {
                         Text(recipe.name)
                             .font(.system(size: 24, weight: .light, design: .serif))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Theme.Text.primary)
                             .tracking(0.3)
                             .multilineTextAlignment(.center)
 
                         Text(recipe.description)
                             .font(.system(size: 14))
-                            .foregroundStyle(.white.opacity(0.4))
+                            .foregroundStyle(Theme.Text.secondary(for: scheme))
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 24)
                     }
@@ -48,19 +49,19 @@ struct RecipeDetailView: View {
                     // Stats
                     HStack(spacing: 0) {
                         statCell("\(recipe.protein)g", label: "Protein", color: Color(hex: 0xA78BFA))
-                        statCell("\(recipe.calories)", label: "Calories", color: .white.opacity(0.4))
-                        statCell(recipe.prepTime, label: "Prep", color: .white.opacity(0.3))
-                        statCell(recipe.cookTime, label: "Cook", color: .white.opacity(0.3))
-                        statCell("\(recipe.servings)", label: "Serves", color: .white.opacity(0.3))
+                        statCell("\(recipe.calories)", label: "Calories", color: Theme.Text.secondary(for: scheme))
+                        statCell(recipe.prepTime, label: "Prep", color: Theme.Text.tertiary(for: scheme))
+                        statCell(recipe.cookTime, label: "Cook", color: Theme.Text.tertiary(for: scheme))
+                        statCell("\(recipe.servings)", label: "Serves", color: Theme.Text.tertiary(for: scheme))
                     }
                     .padding(12)
                     .background(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(.white.opacity(0.03))
+                            .fill(Theme.Surface.glass(for: scheme))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                     )
                     .padding(.horizontal, 20)
 
@@ -68,7 +69,7 @@ struct RecipeDetailView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("INGREDIENTS")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.25))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .tracking(1.2)
 
                         ForEach(recipe.ingredients) { item in
@@ -82,11 +83,11 @@ struct RecipeDetailView: View {
                                     HStack {
                                         Text(item.name)
                                             .font(.system(size: 15))
-                                            .foregroundStyle(.white.opacity(0.7))
+                                            .foregroundStyle(Theme.Text.secondary(for: scheme))
                                         Spacer()
                                         Text(item.amount)
                                             .font(.system(size: 13, design: .monospaced))
-                                            .foregroundStyle(.white.opacity(0.35))
+                                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                                     }
                                     if let prep = item.prep {
                                         Text(prep)
@@ -100,11 +101,11 @@ struct RecipeDetailView: View {
                     .padding(16)
                     .background(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(.white.opacity(0.03))
+                            .fill(Theme.Surface.glass(for: scheme))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                     )
                     .padding(.horizontal, 20)
 
@@ -112,7 +113,7 @@ struct RecipeDetailView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         Text("HOW TO MAKE IT")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.25))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .tracking(1.2)
 
                         ForEach(recipe.steps) { step in
@@ -126,7 +127,7 @@ struct RecipeDetailView: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(step.instruction)
                                             .font(.system(size: 15))
-                                            .foregroundStyle(.white.opacity(0.75))
+                                            .foregroundStyle(Theme.Text.primary)
 
                                         if let duration = step.duration {
                                             HStack(spacing: 4) {
@@ -135,7 +136,7 @@ struct RecipeDetailView: View {
                                                 Text(duration)
                                                     .font(.system(size: 12))
                                             }
-                                            .foregroundStyle(.white.opacity(0.25))
+                                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                                         }
 
                                         if let tip = step.tip {
@@ -154,7 +155,7 @@ struct RecipeDetailView: View {
 
                                 if step.number < recipe.steps.count {
                                     Rectangle()
-                                        .fill(.white.opacity(0.04))
+                                        .fill(Theme.Border.glass(for: scheme))
                                         .frame(height: 0.5)
                                         .padding(.leading, 30)
                                 }
@@ -164,11 +165,11 @@ struct RecipeDetailView: View {
                     .padding(16)
                     .background(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(.white.opacity(0.03))
+                            .fill(Theme.Surface.glass(for: scheme))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                     )
                     .padding(.horizontal, 20)
 
@@ -181,12 +182,12 @@ struct RecipeDetailView: View {
 
                         Text(recipe.miraTip)
                             .font(.system(size: 13))
-                            .foregroundStyle(.white.opacity(0.4))
+                            .foregroundStyle(Theme.Text.secondary(for: scheme))
                     }
                     .padding(16)
                     .background(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(.white.opacity(0.03))
+                            .fill(Theme.Surface.glass(for: scheme))
                     )
                     .padding(.horizontal, 20)
 
@@ -210,7 +211,7 @@ struct RecipeDetailView: View {
                 .foregroundStyle(color)
             Text(label)
                 .font(.system(size: 9))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
         }
         .frame(maxWidth: .infinity)
     }

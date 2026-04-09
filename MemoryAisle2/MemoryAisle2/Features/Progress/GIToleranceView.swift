@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct GIToleranceView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \GIToleranceRecord.date, order: .reverse) private var records: [GIToleranceRecord]
@@ -21,14 +22,14 @@ struct GIToleranceView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
                 Spacer()
                 Text("GI Tolerance")
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                 Spacer()
                 Button { showLogFood = true } label: {
                     Image(systemName: "plus")
@@ -46,13 +47,13 @@ struct GIToleranceView: View {
                     Spacer()
                     Image(systemName: "leaf.fill")
                         .font(.system(size: 32))
-                        .foregroundStyle(.white.opacity(0.15))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     Text("No food reactions logged yet")
                         .font(.system(size: 15))
-                        .foregroundStyle(.white.opacity(0.35))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     Text("Log foods that cause symptoms.\nMira will learn to avoid them.")
                         .font(.system(size: 13))
-                        .foregroundStyle(.white.opacity(0.2))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .multilineTextAlignment(.center)
                     Spacer()
                 }
@@ -81,10 +82,10 @@ struct GIToleranceView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(risk.foodName)
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                 Text("\(risk.primarySymptom) · \(risk.triggerCount)/\(risk.totalExposures) times")
                     .font(.system(size: 11))
-                    .foregroundStyle(.white.opacity(0.3))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
 
             Spacer()
@@ -102,7 +103,7 @@ struct GIToleranceView: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.white.opacity(0.03))
+                .fill(Theme.Surface.glass(for: scheme))
         )
     }
 

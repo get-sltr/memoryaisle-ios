@@ -2,6 +2,7 @@ import PhotosUI
 import SwiftUI
 
 struct PhotoCheckInView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
@@ -14,14 +15,14 @@ struct PhotoCheckInView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
                 Spacer()
                 Text("Weekly Check-in")
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                 Spacer()
                 Color.clear.frame(width: 32, height: 32)
             }
@@ -50,17 +51,21 @@ struct PhotoCheckInView: View {
 
                 Text("How's this week?")
                     .font(.system(size: 24, weight: .light, design: .serif))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                     .tracking(0.3)
 
                 // Photo
                 VStack(spacing: 10) {
                     Text("PROGRESS PHOTO")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.25))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .tracking(1.2)
 
                     let currentPhotoData = photoData
+                    let textTertiary = Theme.Text.tertiary(for: scheme)
+                    let surfaceGlass = Theme.Surface.glass(for: scheme)
+                    let borderGlass = Theme.Border.glass(for: scheme)
+                    let borderWidth = Theme.glassBorderWidth
                     PhotosPicker(selection: $selectedPhoto, matching: .images) {
                         if let currentPhotoData, let uiImage = UIImage(data: currentPhotoData) {
                             Image(uiImage: uiImage)
@@ -79,19 +84,19 @@ struct PhotoCheckInView: View {
                                     .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.4))
                                 Text("Add photo")
                                     .font(.system(size: 14))
-                                    .foregroundStyle(.white.opacity(0.35))
+                                    .foregroundStyle(textTertiary)
                                 Text("Optional")
                                     .font(.system(size: 11))
-                                    .foregroundStyle(.white.opacity(0.15))
+                                    .foregroundStyle(textTertiary)
                             }
                             .frame(width: 160, height: 220)
                             .background(
                                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .fill(.white.opacity(0.03))
+                                    .fill(surfaceGlass)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                                    .stroke(borderGlass, lineWidth: borderWidth)
                             )
                         }
                     }
@@ -109,37 +114,37 @@ struct PhotoCheckInView: View {
                         Text("Photos stay on your device only. Never uploaded.")
                             .font(.system(size: 11))
                     }
-                    .foregroundStyle(.white.opacity(0.2))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
 
                 // Weight
                 VStack(spacing: 8) {
                     Text("CURRENT WEIGHT")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.25))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .tracking(1.2)
 
                     HStack(spacing: 8) {
                         TextField("", text: $weight)
                             .font(.system(size: 28, weight: .medium, design: .monospaced))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Theme.Text.primary)
                             .multilineTextAlignment(.center)
                             .keyboardType(.decimalPad)
                             .frame(width: 120)
 
                         Text("lbs")
                             .font(.system(size: 16))
-                            .foregroundStyle(.white.opacity(0.3))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     }
                     .padding(.vertical, 12)
                     .frame(maxWidth: .infinity)
                     .background(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(.white.opacity(0.03))
+                            .fill(Theme.Surface.glass(for: scheme))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                     )
                     .padding(.horizontal, 60)
                 }
@@ -152,7 +157,7 @@ struct PhotoCheckInView: View {
                 Button { dismiss() } label: {
                     Text("Skip this week")
                         .font(.system(size: 14))
-                        .foregroundStyle(.white.opacity(0.3))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
 
                 Spacer(minLength: 40)
@@ -172,12 +177,12 @@ struct PhotoCheckInView: View {
 
             Text("Check-in saved")
                 .font(.system(size: 24, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
             Text("Keep going. Every week of consistency\ngets you closer to your goal.")
                 .font(.system(size: 15))
-                .foregroundStyle(.white.opacity(0.4))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
                 .multilineTextAlignment(.center)
 
             Spacer()

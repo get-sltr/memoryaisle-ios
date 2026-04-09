@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MiraReadyScreen: View {
+    @Environment(\.colorScheme) private var scheme
     let profile: OnboardingProfile
     let onComplete: () -> Void
     @State private var miraState: MiraState = .thinking
@@ -19,7 +20,7 @@ struct MiraReadyScreen: View {
                 VStack(spacing: 28) {
                     Text("You're all set.")
                         .font(.system(size: 30, weight: .light, design: .serif))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Theme.Text.primary)
                         .tracking(0.5)
 
                     VStack(spacing: 10) {
@@ -35,17 +36,17 @@ struct MiraReadyScreen: View {
                     .padding(20)
                     .background(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(.white.opacity(0.03))
+                            .fill(Theme.Surface.glass(for: scheme))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                     )
                     .padding(.horizontal, 36)
 
                     Text(closingMessage)
                         .font(.system(size: 15))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
                 }
@@ -84,11 +85,11 @@ struct MiraReadyScreen: View {
         HStack {
             Text(label)
                 .font(.system(size: 12))
-                .foregroundStyle(.white.opacity(0.35))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
             Spacer()
             Text(value)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(Theme.Text.primary)
                 .lineLimit(1)
         }
     }

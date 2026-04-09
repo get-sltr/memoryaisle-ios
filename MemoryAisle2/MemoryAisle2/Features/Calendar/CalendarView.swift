@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct CalendarView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]
     @State private var selectedDate: Date = .now
@@ -28,14 +29,14 @@ struct CalendarView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
                 Spacer()
                 Text("Meal Calendar")
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                 Spacer()
                 Button { showPlanGenerator = true } label: {
                     Image(systemName: "sparkles")
@@ -65,7 +66,7 @@ struct CalendarView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("MEAL PLAN")
                                 .font(.system(size: 10, weight: .medium))
-                                .foregroundStyle(.white.opacity(0.25))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                                 .tracking(1.2)
 
                             ForEach(meals) { meal in
@@ -78,10 +79,10 @@ struct CalendarView: View {
                         VStack(spacing: 16) {
                             Image(systemName: "calendar.badge.plus")
                                 .font(.system(size: 28))
-                                .foregroundStyle(.white.opacity(0.15))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             Text("No meal plan for this day")
                                 .font(.system(size: 14))
-                                .foregroundStyle(.white.opacity(0.3))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             GlowButton("Generate with Mira") {
                                 showPlanGenerator = true
                             }
@@ -95,7 +96,7 @@ struct CalendarView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("UPCOMING HOLIDAYS")
                                 .font(.system(size: 10, weight: .medium))
-                                .foregroundStyle(.white.opacity(0.25))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                                 .tracking(1.2)
                                 .padding(.horizontal, 20)
 
@@ -148,11 +149,11 @@ struct CalendarView: View {
                         VStack(spacing: 4) {
                             Text(dayOfWeek(day))
                                 .font(.system(size: 10, weight: .medium))
-                                .foregroundStyle(.white.opacity(isSelected ? 0.8 : 0.3))
+                                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.tertiary(for: scheme))
 
                             Text("\(calendar.component(.day, from: day))")
                                 .font(.system(size: 16, weight: isSelected ? .semibold : .regular))
-                                .foregroundStyle(isSelected ? .white : .white.opacity(0.5))
+                                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
 
                             // Dots for holidays/plans
                             HStack(spacing: 2) {
@@ -168,7 +169,7 @@ struct CalendarView: View {
                         .frame(width: 44, height: 64)
                         .background(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(isSelected ? Color(hex: 0xA78BFA).opacity(0.2) : isToday ? .white.opacity(0.04) : .clear)
+                                .fill(isSelected ? Color(hex: 0xA78BFA).opacity(0.2) : isToday ? Theme.Surface.glass(for: scheme) : .clear)
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -191,7 +192,7 @@ struct CalendarView: View {
                     .font(.system(size: 16))
                 Text(holiday.name)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                 Spacer()
                 if holiday.fasting {
                     Text("Fasting")
@@ -207,7 +208,7 @@ struct CalendarView: View {
             if let note = holiday.mealNote {
                 Text(note)
                     .font(.system(size: 13))
-                    .foregroundStyle(.white.opacity(0.45))
+                    .foregroundStyle(Theme.Text.secondary(for: scheme))
                     .lineSpacing(3)
             }
         }
@@ -234,10 +235,10 @@ struct CalendarView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(holiday.name)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(Theme.Text.secondary(for: scheme))
                 Text(formatDate(holiday.date))
                     .font(.system(size: 11))
-                    .foregroundStyle(.white.opacity(0.25))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
 
             Spacer()
@@ -260,13 +261,13 @@ struct CalendarView: View {
         HStack(spacing: 10) {
             Text(meal.time)
                 .font(.system(size: 11, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.3))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .frame(width: 50, alignment: .leading)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(meal.name)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                 Text("\(meal.protein)g protein · \(meal.calories) cal")
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.5))
@@ -277,11 +278,11 @@ struct CalendarView: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.white.opacity(0.03))
+                .fill(Theme.Surface.glass(for: scheme))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
         )
     }
 
@@ -336,6 +337,7 @@ struct PlannedMeal: Identifiable {
 // MARK: - Meal Plan Generator Sheet
 
 struct MealPlanGeneratorView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Binding var planDays: Int
 
@@ -347,9 +349,9 @@ struct MealPlanGeneratorView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
                 Spacer()
             }
@@ -364,12 +366,12 @@ struct MealPlanGeneratorView: View {
 
             Text("Generate meal plan")
                 .font(.system(size: 24, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
             Text("Mira will create a personalized plan\nbased on your profile and goals.")
                 .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.35))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .multilineTextAlignment(.center)
                 .padding(.top, 8)
                 .padding(.bottom, 32)
@@ -378,7 +380,7 @@ struct MealPlanGeneratorView: View {
             VStack(spacing: 10) {
                 Text("HOW MANY DAYS")
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.25))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(1.2)
 
                 HStack(spacing: 6) {
@@ -391,12 +393,12 @@ struct MealPlanGeneratorView: View {
                         } label: {
                             Text("\(days)")
                                 .font(.system(size: 15, weight: isSelected ? .semibold : .regular))
-                                .foregroundStyle(.white.opacity(isSelected ? 1 : 0.4))
+                                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .fill(isSelected ? Color(hex: 0xA78BFA).opacity(0.2) : .white.opacity(0.03))
+                                        .fill(isSelected ? Color(hex: 0xA78BFA).opacity(0.2) : Theme.Surface.glass(for: scheme))
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10, style: .continuous)

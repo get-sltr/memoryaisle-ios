@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WorriesScreen: View {
+    @Environment(\.colorScheme) private var scheme
     @Binding var selected: [Worry]
     let onContinue: () -> Void
     @State private var otherText = ""
@@ -14,14 +15,14 @@ struct WorriesScreen: View {
 
             Text("What worries you\nmost right now?")
                 .font(.system(size: 26, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
                 .tracking(0.3)
 
             Text("Select all that apply")
                 .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 8)
                 .padding(.bottom, 20)
 
@@ -42,12 +43,12 @@ struct WorriesScreen: View {
                         } label: {
                             Text(worry.rawValue)
                                 .font(.system(size: 15, weight: isSelected ? .medium : .regular))
-                                .foregroundStyle(.white.opacity(isSelected ? 1 : 0.6))
+                                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 13)
                                 .background(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .fill(isSelected ? Color.violet.opacity(0.18) : .white.opacity(0.03))
+                                        .fill(isSelected ? Color.violet.opacity(0.18) : Theme.Surface.glass(for: scheme))
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -67,12 +68,12 @@ struct WorriesScreen: View {
                     } label: {
                         Text("Something else")
                             .font(.system(size: 15, weight: showOtherField ? .medium : .regular))
-                            .foregroundStyle(.white.opacity(showOtherField ? 1 : 0.6))
+                            .foregroundStyle(showOtherField ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 13)
                             .background(
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(showOtherField ? Color.violet.opacity(0.18) : .white.opacity(0.03))
+                                    .fill(showOtherField ? Color.violet.opacity(0.18) : Theme.Surface.glass(for: scheme))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -85,16 +86,16 @@ struct WorriesScreen: View {
                     if showOtherField {
                         TextField("Tell us what's on your mind...", text: $otherText, axis: .vertical)
                             .font(.system(size: 15))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Theme.Text.primary)
                             .lineLimit(3)
                             .padding(14)
                             .background(
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(.white.opacity(0.04))
+                                    .fill(Theme.Surface.glass(for: scheme))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(.white.opacity(0.08), lineWidth: 0.5)
+                                    .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                             )
                             .transition(.opacity.combined(with: .move(edge: .top)))
                     }

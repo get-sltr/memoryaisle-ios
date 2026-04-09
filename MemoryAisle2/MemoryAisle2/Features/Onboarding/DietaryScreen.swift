@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DietaryScreen: View {
+    @Environment(\.colorScheme) private var scheme
     @Binding var selected: [DietaryRestriction]
     let onContinue: () -> Void
 
@@ -12,14 +13,14 @@ struct DietaryScreen: View {
 
             Text("Any dietary\nrestrictions?")
                 .font(.system(size: 26, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
                 .tracking(0.3)
 
             Text("Select all that apply")
                 .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 8)
                 .padding(.bottom, 20)
 
@@ -40,12 +41,12 @@ struct DietaryScreen: View {
                         } label: {
                             Text(restriction.rawValue)
                                 .font(.system(size: 15, weight: isSelected ? .medium : .regular))
-                                .foregroundStyle(.white.opacity(isSelected ? 1 : 0.6))
+                                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 13)
                                 .background(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .fill(isSelected ? Color.violet.opacity(0.18) : .white.opacity(0.03))
+                                        .fill(isSelected ? Color.violet.opacity(0.18) : Theme.Surface.glass(for: scheme))
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)

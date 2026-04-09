@@ -20,6 +20,7 @@ enum LegalPage: String, Identifiable {
 }
 
 struct LegalView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     let page: LegalPage
 
@@ -29,14 +30,14 @@ struct LegalView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
                 Spacer()
                 Text(page.rawValue)
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                 Spacer()
                 Color.clear.frame(width: 32, height: 32)
             }
@@ -454,27 +455,27 @@ struct LegalView: View {
     private var legalDate: some View {
         Text("Last Updated: April 6, 2026")
             .font(.system(size: 11))
-            .foregroundStyle(.white.opacity(0.2))
+            .foregroundStyle(Theme.Text.tertiary(for: scheme))
     }
 
     private func legalHeading(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 16, weight: .semibold))
-            .foregroundStyle(.white.opacity(0.8))
+            .foregroundStyle(Theme.Text.primary)
             .padding(.top, 4)
     }
 
     private func legalSubheading(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(.white.opacity(0.65))
+            .foregroundStyle(Theme.Text.secondary(for: scheme))
             .padding(.top, 2)
     }
 
     private func legalBody(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 14))
-            .foregroundStyle(.white.opacity(0.5))
+            .foregroundStyle(Theme.Text.secondary(for: scheme))
             .lineSpacing(4)
     }
 
@@ -498,11 +499,11 @@ struct LegalView: View {
         HStack(alignment: .top, spacing: 8) {
             Text("•")
                 .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.3))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 1)
             Text(text)
                 .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
                 .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -512,10 +513,10 @@ struct LegalView: View {
         VStack(spacing: 4) {
             Text("SLTR Digital LLC")
                 .font(.system(size: 11))
-                .foregroundStyle(.white.opacity(0.15))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
             Text("Los Angeles, California")
                 .font(.system(size: 11))
-                .foregroundStyle(.white.opacity(0.15))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
             Text("legal@memoryaisle.app")
                 .font(.system(size: 11))
                 .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.3))

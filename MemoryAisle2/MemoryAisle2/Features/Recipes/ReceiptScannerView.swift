@@ -4,6 +4,7 @@ import SwiftUI
 @preconcurrency import Vision
 
 struct ReceiptScannerView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @State private var selectedPhoto: PhotosPickerItem?
@@ -17,14 +18,14 @@ struct ReceiptScannerView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
                 Spacer()
                 Text("Receipt Scanner")
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                 Spacer()
                 Color.clear.frame(width: 32, height: 32)
             }
@@ -51,7 +52,7 @@ struct ReceiptScannerView: View {
                     .frame(height: 60)
                 Text("Reading your receipt...")
                     .font(.system(size: 16))
-                    .foregroundStyle(.white.opacity(0.4))
+                    .foregroundStyle(Theme.Text.secondary(for: scheme))
             } else {
                 MiraWaveform(state: .idle, size: .hero)
                     .frame(height: 60)
@@ -59,12 +60,12 @@ struct ReceiptScannerView: View {
 
                 Text("Scan a receipt")
                     .font(.system(size: 24, weight: .light, design: .serif))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                     .tracking(0.3)
 
                 Text("I'll extract the items and add\nthem to your pantry.")
                     .font(.system(size: 14))
-                    .foregroundStyle(.white.opacity(0.35))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .multilineTextAlignment(.center)
 
                 Spacer()
@@ -115,7 +116,7 @@ struct ReceiptScannerView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(extractedItems.count) items found")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Theme.Text.primary)
                     if let total = totalSpend {
                         Text("Total: \(total)")
                             .font(.system(size: 13, design: .monospaced))
@@ -134,14 +135,14 @@ struct ReceiptScannerView: View {
                         HStack {
                             Text(item.name)
                                 .font(.system(size: 15))
-                                .foregroundStyle(.white.opacity(0.8))
+                                .foregroundStyle(Theme.Text.primary)
 
                             Spacer()
 
                             if let price = item.price {
                                 Text(price)
                                     .font(.system(size: 13, design: .monospaced))
-                                    .foregroundStyle(.white.opacity(0.35))
+                                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             }
 
                             Button {
@@ -149,14 +150,14 @@ struct ReceiptScannerView: View {
                             } label: {
                                 Image(systemName: "minus.circle")
                                     .font(.system(size: 16))
-                                    .foregroundStyle(.white.opacity(0.15))
+                                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             }
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 11)
                         .background(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(.white.opacity(0.03))
+                                .fill(Theme.Surface.glass(for: scheme))
                         )
                     }
                 }
@@ -180,7 +181,7 @@ struct ReceiptScannerView: View {
                         Text("Export item list")
                             .font(.system(size: 14))
                     }
-                    .foregroundStyle(.white.opacity(0.4))
+                    .foregroundStyle(Theme.Text.secondary(for: scheme))
                 }
             }
             .padding(.horizontal, 32)

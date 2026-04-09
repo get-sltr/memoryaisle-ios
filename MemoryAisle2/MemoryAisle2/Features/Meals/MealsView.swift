@@ -67,13 +67,13 @@ struct MealsView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Today's Meals")
                     .font(.system(size: 26, weight: .light, design: .serif))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                     .tracking(0.3)
 
                 if !meals.isEmpty {
                     Text("\(totalProtein)g protein  ·  \(totalCal) cal")
                         .font(.system(size: 13, weight: .regular, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.35))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
             }
             Spacer()
@@ -117,7 +117,7 @@ struct MealsView: View {
                 .frame(height: 40)
             Text("Mira is building your meal plan...")
                 .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 60)
@@ -129,10 +129,10 @@ struct MealsView: View {
                 .frame(height: 40)
             Text("No meal plan for today yet")
                 .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(.white.opacity(0.6))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
             Text("Mira will generate a personalized plan based on your goals, medication phase, and dietary needs.")
                 .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.35))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
 
@@ -141,7 +141,7 @@ struct MealsView: View {
             } label: {
                 Text("Generate Today's Plan")
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                     .padding(.horizontal, 28)
                     .padding(.vertical, 12)
                     .background(Color.violet.opacity(0.3))
@@ -166,7 +166,7 @@ struct MealsView: View {
                 HStack {
                     Text(meal.mealType.rawValue.uppercased())
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.3))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .tracking(0.5)
                     Spacer()
                     if meal.isNauseaSafe {
@@ -182,15 +182,15 @@ struct MealsView: View {
 
                 Text(meal.name)
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
 
                 HStack(spacing: 16) {
                     macroTag(Color.violet, "\(Int(meal.proteinGrams))g protein")
-                    macroTag(.white.opacity(0.3), "\(Int(meal.caloriesTotal)) cal")
+                    macroTag(Theme.Text.tertiary(for: scheme), "\(Int(meal.caloriesTotal)) cal")
                     Spacer()
                     Text("\(meal.prepTimeMinutes) min")
                         .font(.system(size: 11))
-                        .foregroundStyle(.white.opacity(0.25))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
 
                 if expandedMealId == meal.id {
@@ -237,7 +237,7 @@ struct MealsView: View {
                     if !meal.ingredients.isEmpty {
                         Text(meal.ingredients.joined(separator: ", "))
                             .font(.system(size: 11))
-                            .foregroundStyle(.white.opacity(0.25))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .lineLimit(1)
                     }
                 }
@@ -245,11 +245,11 @@ struct MealsView: View {
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(.white.opacity(0.03))
+                    .fill(Theme.Surface.glass(for: scheme))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                    .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
             )
             .padding(.horizontal, 20)
         }
@@ -261,7 +261,7 @@ struct MealsView: View {
             Circle().fill(color).frame(width: 5, height: 5)
             Text(text)
                 .font(.system(size: 12, weight: .regular, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.6))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
         }
     }
 

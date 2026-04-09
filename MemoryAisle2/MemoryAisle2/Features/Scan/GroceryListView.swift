@@ -18,6 +18,7 @@ struct GroceryItem: Identifiable {
 }
 
 struct GroceryListView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @State private var categories: [GroceryCategory]
     @State private var inputText = ""
@@ -44,16 +45,16 @@ struct GroceryListView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
 
                 Spacer()
 
                 Text("Grocery List")
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
 
                 Spacer()
 
@@ -206,14 +207,14 @@ struct GroceryListView: View {
                     .foregroundStyle(
                         micActive
                             ? Color(hex: 0xA78BFA)
-                            : .white.opacity(0.4)
+                            : Theme.Text.secondary(for: scheme)
                     )
                     .frame(width: 36, height: 36)
                     .background(
                         Circle().fill(
                             micActive
                                 ? Color(hex: 0xA78BFA).opacity(0.15)
-                                : .white.opacity(0.04)
+                                : Theme.Surface.glass(for: scheme)
                         )
                     )
             }
@@ -221,17 +222,17 @@ struct GroceryListView: View {
             // Text field
             TextField("Add item...", text: $inputText)
                 .font(.system(size: 16))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .focused($inputFocused)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(.white.opacity(0.04))
+                        .fill(Theme.Surface.glass(for: scheme))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(.white.opacity(0.08), lineWidth: 0.5)
+                        .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                 )
                 .onSubmit {
                     addItem(inputText)
@@ -249,7 +250,7 @@ struct GroceryListView: View {
                     .font(.system(size: 28))
                     .foregroundStyle(
                         inputText.isEmpty
-                            ? .white.opacity(0.15)
+                            ? Theme.Text.tertiary(for: scheme)
                             : Color(hex: 0xA78BFA)
                     )
             }
@@ -260,7 +261,7 @@ struct GroceryListView: View {
         .background(.ultraThinMaterial)
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(.white.opacity(0.04))
+                .fill(Theme.Surface.glass(for: scheme))
                 .frame(height: 0.5)
         }
     }
@@ -415,6 +416,7 @@ extension GroceryListView {
 // MARK: - Grocery Item Row (extracted for compiler performance)
 
 struct GroceryItemRow: View {
+    @Environment(\.colorScheme) private var scheme
     let item: GroceryItem
     let categoryColor: UInt
     let onToggle: () -> Void
@@ -457,15 +459,15 @@ struct GroceryItemRow: View {
     private var nameLabel: some View {
         Text(item.name)
             .font(.system(size: 15, weight: item.isChecked ? .regular : .medium))
-            .foregroundStyle(.white.opacity(item.isChecked ? 0.3 : 0.85))
-            .strikethrough(item.isChecked, color: .white.opacity(0.15))
+            .foregroundStyle(item.isChecked ? Theme.Text.tertiary(for: scheme) : Theme.Text.primary)
+            .strikethrough(item.isChecked, color: Theme.Text.tertiary(for: scheme))
     }
 
     private var detailLabels: some View {
         VStack(alignment: .trailing, spacing: 1) {
             Text(item.quantity)
                 .font(.system(size: 11))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
             if let protein = item.proteinPer {
                 Text(protein)
                     .font(.system(size: 10, design: .monospaced))

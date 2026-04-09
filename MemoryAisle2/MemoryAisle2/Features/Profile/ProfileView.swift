@@ -22,10 +22,10 @@ struct ProfileView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 36, height: 36)
                         .background(
-                            Circle().fill(.white.opacity(0.05))
+                            Circle().fill(Theme.Surface.strong(for: scheme))
                         )
                 }
 
@@ -33,7 +33,7 @@ struct ProfileView: View {
 
                 Text("Profile")
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
 
                 Spacer()
 
@@ -97,7 +97,7 @@ struct ProfileView: View {
                                 } label: {
                                     Text(mode.rawValue)
                                         .font(.system(size: 14, weight: isSelected ? .medium : .regular))
-                                        .foregroundStyle(.white.opacity(isSelected ? 1 : 0.5))
+                                        .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 10)
                                         .background(
@@ -118,7 +118,7 @@ struct ProfileView: View {
                     section("Daily Targets") {
                         if let profile {
                             targetRow("Protein", value: "\(profile.proteinTargetGrams)g", color: Color.violet)
-                            targetRow("Calories", value: "\(profile.calorieTarget)", color: .white.opacity(0.4))
+                            targetRow("Calories", value: "\(profile.calorieTarget)", color: Theme.Text.secondary(for: scheme))
                             targetRow("Water", value: String(format: "%.1fL", profile.waterTargetLiters), color: Color(hex: 0x38BDF8))
                             targetRow("Fiber", value: "\(profile.fiberTargetGrams)g", color: Color(hex: 0xFBBF24))
                         }
@@ -151,7 +151,7 @@ struct ProfileView: View {
                             HStack {
                                 Text("Sync now")
                                     .font(.system(size: 14))
-                                    .foregroundStyle(.white.opacity(0.5))
+                                    .foregroundStyle(Theme.Text.secondary(for: scheme))
                                 Spacer()
                                 Image(systemName: "arrow.triangle.2.circlepath")
                                     .font(.system(size: 13))
@@ -169,7 +169,7 @@ struct ProfileView: View {
                     } label: {
                         Text("Sign Out")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.5))
+                            .foregroundStyle(Theme.Text.secondary(for: scheme))
                     }
                     .padding(.top, 12)
 
@@ -220,11 +220,11 @@ struct ProfileView: View {
             HStack {
                 Text(page.rawValue)
                     .font(.system(size: 14))
-                    .foregroundStyle(.white.opacity(0.5))
+                    .foregroundStyle(Theme.Text.secondary(for: scheme))
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 11))
-                    .foregroundStyle(.white.opacity(0.15))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
             .padding(.vertical, 2)
         }
@@ -237,7 +237,7 @@ struct ProfileView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title.uppercased())
                 .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
 
             VStack(spacing: 6) {
@@ -247,11 +247,11 @@ struct ProfileView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.white.opacity(0.03))
+                .fill(Theme.Surface.glass(for: scheme))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
         )
     }
 
@@ -259,11 +259,11 @@ struct ProfileView: View {
         HStack {
             Text(label)
                 .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.4))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
             Spacer()
             Text(value)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(Theme.Text.primary)
         }
         .padding(.vertical, 2)
     }
@@ -275,11 +275,11 @@ struct ProfileView: View {
                 .frame(width: 6, height: 6)
             Text(label)
                 .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.4))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
             Spacer()
             Text(value)
                 .font(.system(size: 14, weight: .medium, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(Theme.Text.primary)
         }
         .padding(.vertical, 2)
     }

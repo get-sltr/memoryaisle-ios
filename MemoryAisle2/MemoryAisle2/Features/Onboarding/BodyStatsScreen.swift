@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct BodyStatsScreen: View {
+    @Environment(\.colorScheme) private var scheme
     @Binding var profile: OnboardingProfile
     let onContinue: () -> Void
 
@@ -12,12 +13,12 @@ struct BodyStatsScreen: View {
 
             Text("Tell us about you")
                 .font(.system(size: 26, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
             Text("This helps personalize your targets")
                 .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 6)
                 .padding(.bottom, 20)
 
@@ -101,7 +102,7 @@ struct BodyStatsScreen: View {
                 } label: {
                     Text("Skip for now")
                         .font(.system(size: 14))
-                        .foregroundStyle(.white.opacity(0.3))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
             }
             .padding(.horizontal, 32)
@@ -115,24 +116,24 @@ struct BodyStatsScreen: View {
         VStack(spacing: 6) {
             Text(label)
                 .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             TextField(placeholder, text: value)
                 .font(.system(size: 17))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .multilineTextAlignment(.center)
                 .keyboardType(keyboard)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 13)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(.white.opacity(0.04))
+                        .fill(Theme.Surface.glass(for: scheme))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(.white.opacity(0.08), lineWidth: 0.5)
+                        .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                 )
         }
     }
@@ -142,7 +143,7 @@ struct BodyStatsScreen: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
                 .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
 
             FlowLayout(spacing: 6) {
@@ -158,12 +159,12 @@ struct BodyStatsScreen: View {
         } label: {
             Text(text)
                 .font(.system(size: 13, weight: isSelected ? .medium : .regular))
-                .foregroundStyle(.white.opacity(isSelected ? 1 : 0.5))
+                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 9)
                 .background(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(isSelected ? Color(hex: 0xA78BFA).opacity(0.18) : .white.opacity(0.03))
+                        .fill(isSelected ? Color(hex: 0xA78BFA).opacity(0.18) : Theme.Surface.glass(for: scheme))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)

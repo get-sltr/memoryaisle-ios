@@ -7,6 +7,7 @@ enum AuthScreen {
 }
 
 struct AuthFlowView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(AppState.self) private var appState
     @State private var authManager = CognitoAuthManager()
     @State private var screen: AuthScreen = .signIn
@@ -16,7 +17,7 @@ struct AuthFlowView: View {
 
     var body: some View {
         ZStack {
-            Color.indigoBlack.ignoresSafeArea()
+            Color.clear
 
             VStack(spacing: 0) {
                 switch screen {
@@ -29,6 +30,7 @@ struct AuthFlowView: View {
                 }
             }
         }
+        .themeBackground()
         .task {
             await authManager.restoreSession()
             if authManager.isSignedIn {
@@ -52,7 +54,7 @@ struct AuthFlowView: View {
 
             Text("Welcome back")
                 .font(.system(size: 28, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
                 .padding(.bottom, 32)
 
@@ -88,7 +90,7 @@ struct AuthFlowView: View {
                 } label: {
                     Text("Don't have an account? **Sign up**")
                         .font(.system(size: 14))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                 }
             }
             .padding(.horizontal, 32)
@@ -108,7 +110,7 @@ struct AuthFlowView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 44, height: 44)
                 }
                 Spacer()
@@ -124,7 +126,7 @@ struct AuthFlowView: View {
 
             Text("Create your account")
                 .font(.system(size: 28, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
                 .padding(.bottom, 32)
 
@@ -136,7 +138,7 @@ struct AuthFlowView: View {
 
             Text("8+ characters, uppercase, lowercase, number")
                 .font(.system(size: 11))
-                .foregroundStyle(.white.opacity(0.2))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 8)
 
             if let error = authManager.error {
@@ -165,7 +167,7 @@ struct AuthFlowView: View {
                 } label: {
                     Text("Already have an account? **Sign in**")
                         .font(.system(size: 14))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                 }
             }
             .padding(.horizontal, 32)
@@ -184,7 +186,7 @@ struct AuthFlowView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 44, height: 44)
                 }
                 Spacer()
@@ -200,12 +202,12 @@ struct AuthFlowView: View {
 
             Text("Check your email")
                 .font(.system(size: 28, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
             Text("We sent a verification code to\n\(email)")
                 .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.4))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
                 .multilineTextAlignment(.center)
                 .padding(.top, 8)
                 .padding(.bottom, 32)
@@ -258,16 +260,16 @@ struct AuthFlowView: View {
             }
         }
         .font(.system(size: 16))
-        .foregroundStyle(.white)
+        .foregroundStyle(Theme.Text.primary)
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.white.opacity(0.04))
+                .fill(Theme.Surface.glass(for: scheme))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(.white.opacity(0.08), lineWidth: 0.5)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
         )
     }
 }

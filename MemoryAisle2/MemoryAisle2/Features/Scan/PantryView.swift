@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct PantryView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \PantryItem.addedDate, order: .reverse) private var items: [PantryItem]
@@ -26,16 +27,16 @@ struct PantryView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
 
                 Spacer()
 
                 Text("My Pantry")
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
 
                 Spacer()
 
@@ -85,15 +86,15 @@ struct PantryView: View {
             Spacer()
             Image(systemName: "refrigerator.fill")
                 .font(.system(size: 36))
-                .foregroundStyle(.white.opacity(0.15))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
             Text("Your pantry is empty")
                 .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(.white.opacity(0.4))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
 
             Text("Scan barcodes or add items manually.\nMira uses your pantry to suggest meals.")
                 .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .multilineTextAlignment(.center)
 
             GlowButton("Add first item") {
@@ -114,7 +115,7 @@ struct PantryView: View {
                     .foregroundStyle(Color.violet.opacity(0.6))
                 Text(category.rawValue.uppercased())
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.25))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(1.2)
             }
             .padding(.horizontal, 20)
@@ -124,11 +125,11 @@ struct PantryView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(item.name)
                             .font(.system(size: 15))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Theme.Text.primary)
                         if !item.brand.isEmpty {
                             Text(item.brand)
                                 .font(.system(size: 11))
-                                .foregroundStyle(.white.opacity(0.25))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         }
                     }
 
@@ -146,14 +147,14 @@ struct PantryView: View {
                     } label: {
                         Image(systemName: "minus.circle")
                             .font(.system(size: 16))
-                            .foregroundStyle(.white.opacity(0.15))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(.white.opacity(0.03))
+                        .fill(Theme.Surface.glass(for: scheme))
                 )
                 .padding(.horizontal, 16)
             }

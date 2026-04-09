@@ -68,7 +68,7 @@ struct RecipesView: View {
                 HStack {
                     Text("Recipes")
                         .font(.system(size: 26, weight: .light, design: .serif))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Theme.Text.primary)
                         .tracking(0.3)
                     Spacer()
                     Button {
@@ -130,7 +130,7 @@ struct RecipesView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("TODAY'S PLAN")
                 .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -153,11 +153,11 @@ struct RecipesView: View {
                     .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.5))
                 Text(time)
                     .font(.system(size: 10))
-                    .foregroundStyle(.white.opacity(0.3))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
             Text(name)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .lineLimit(1)
             Text("\(protein)g protein")
                 .font(.system(size: 11, design: .monospaced))
@@ -167,11 +167,11 @@ struct RecipesView: View {
         .frame(width: 140)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.white.opacity(0.03))
+                .fill(Theme.Surface.glass(for: scheme))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
         )
     }
 
@@ -188,11 +188,11 @@ struct RecipesView: View {
         } label: {
             Text(label)
                 .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                .foregroundStyle(isSelected ? .white : .white.opacity(0.4))
+                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
                 .background(
-                    Capsule().fill(isSelected ? Color(hex: 0xA78BFA).opacity(0.2) : .white.opacity(0.04))
+                    Capsule().fill(isSelected ? Color(hex: 0xA78BFA).opacity(0.2) : Theme.Surface.glass(for: scheme))
                 )
                 .overlay(
                     Capsule().stroke(isSelected ? Color(hex: 0xA78BFA).opacity(0.3) : .clear, lineWidth: 0.5)
@@ -215,7 +215,7 @@ struct RecipesView: View {
                         .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.5))
                     Text(recipe.category.rawValue.uppercased())
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.25))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .tracking(0.8)
                     Spacer()
                     if recipe.nauseaSafe {
@@ -231,11 +231,11 @@ struct RecipesView: View {
 
                 Text(recipe.name)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
 
                 Text(recipe.description)
                     .font(.system(size: 13))
-                    .foregroundStyle(.white.opacity(0.35))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .lineLimit(2)
 
                 HStack(spacing: 14) {
@@ -243,28 +243,28 @@ struct RecipesView: View {
                         Circle().fill(Color(hex: 0xA78BFA)).frame(width: 4, height: 4)
                         Text("\(recipe.protein)g protein")
                             .font(.system(size: 11, design: .monospaced))
-                            .foregroundStyle(.white.opacity(0.5))
+                            .foregroundStyle(Theme.Text.secondary(for: scheme))
                     }
                     HStack(spacing: 3) {
-                        Circle().fill(.white.opacity(0.2)).frame(width: 4, height: 4)
+                        Circle().fill(Theme.Text.tertiary(for: scheme)).frame(width: 4, height: 4)
                         Text("\(recipe.calories) cal")
                             .font(.system(size: 11, design: .monospaced))
-                            .foregroundStyle(.white.opacity(0.35))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     }
                     Spacer()
                     Text(recipe.prepTime)
                         .font(.system(size: 11))
-                        .foregroundStyle(.white.opacity(0.2))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(.white.opacity(0.03))
+                    .fill(Theme.Surface.glass(for: scheme))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                    .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
             )
         }
         .buttonStyle(.plain)

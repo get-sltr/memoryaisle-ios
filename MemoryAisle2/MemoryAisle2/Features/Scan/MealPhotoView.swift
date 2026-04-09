@@ -2,6 +2,7 @@ import PhotosUI
 import SwiftUI
 
 struct MealPhotoView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
@@ -17,14 +18,14 @@ struct MealPhotoView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
                 Spacer()
                 Text("Meal Photo")
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                 Spacer()
                 Color.clear.frame(width: 32, height: 32)
             }
@@ -53,12 +54,12 @@ struct MealPhotoView: View {
 
             Text("Snap your meal")
                 .font(.system(size: 24, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
             Text("Mira will estimate the macros\nfrom your photo.")
                 .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.35))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .multilineTextAlignment(.center)
 
             Spacer()
@@ -122,7 +123,7 @@ struct MealPhotoView: View {
 
             Text("Analyzing your meal...")
                 .font(.system(size: 16))
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
 
             Spacer()
         }
@@ -144,14 +145,14 @@ struct MealPhotoView: View {
 
                 Text(r.mealName)
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
 
                 // Macros
                 HStack(spacing: 16) {
                     macroCell("Protein", "\(r.protein)g", Color(hex: 0xA78BFA))
-                    macroCell("Calories", "\(r.calories)", .white.opacity(0.4))
-                    macroCell("Fat", "\(r.fat)g", .white.opacity(0.3))
-                    macroCell("Carbs", "\(r.carbs)g", .white.opacity(0.3))
+                    macroCell("Calories", "\(r.calories)", Theme.Text.secondary(for: scheme))
+                    macroCell("Fat", "\(r.fat)g", Theme.Text.tertiary(for: scheme))
+                    macroCell("Carbs", "\(r.carbs)g", Theme.Text.tertiary(for: scheme))
                 }
                 .padding(.horizontal, 20)
 
@@ -162,12 +163,12 @@ struct MealPhotoView: View {
                         .frame(width: 30, height: 14)
                     Text(r.miraNote)
                         .font(.system(size: 14))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                 }
                 .padding(16)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(.white.opacity(0.03))
+                        .fill(Theme.Surface.glass(for: scheme))
                 )
                 .padding(.horizontal, 20)
 
@@ -184,7 +185,7 @@ struct MealPhotoView: View {
                 } label: {
                     Text("Retake photo")
                         .font(.system(size: 14))
-                        .foregroundStyle(.white.opacity(0.35))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
 
                 Spacer(minLength: 40)
@@ -200,7 +201,7 @@ struct MealPhotoView: View {
                 .foregroundStyle(color)
             Text(label)
                 .font(.system(size: 10))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
         }
         .frame(maxWidth: .infinity)
     }

@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct ProviderReportView: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
@@ -26,14 +27,14 @@ struct ProviderReportView: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.white.opacity(0.05)))
+                        .background(Circle().fill(Theme.Surface.strong(for: scheme)))
                 }
                 Spacer()
                 Text("Provider Report")
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                 Spacer()
                 Color.clear.frame(width: 32, height: 32)
             }
@@ -50,12 +51,12 @@ struct ProviderReportView: View {
 
                         Text("Weekly Report")
                             .font(.system(size: 24, weight: .light, design: .serif))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Theme.Text.primary)
                             .tracking(0.3)
 
                         Text("Share a summary of your week\nwith your healthcare provider.")
                             .font(.system(size: 14))
-                            .foregroundStyle(.white.opacity(0.35))
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .multilineTextAlignment(.center)
                     }
                     .padding(.top, 20)
@@ -91,7 +92,7 @@ struct ProviderReportView: View {
 
                     Text("PDF includes a medical disclaimer.\nNo personal data is shared with third parties.")
                         .font(.system(size: 11))
-                        .foregroundStyle(.white.opacity(0.15))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .multilineTextAlignment(.center)
 
                     Spacer(minLength: 40)
@@ -108,18 +109,18 @@ struct ProviderReportView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title.uppercased())
                 .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
             content()
         }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.white.opacity(0.03))
+                .fill(Theme.Surface.glass(for: scheme))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(.white.opacity(0.06), lineWidth: 0.5)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
         )
         .padding(.horizontal, 20)
     }
@@ -128,11 +129,11 @@ struct ProviderReportView: View {
         HStack {
             Text(label)
                 .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.4))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
             Spacer()
             Text(value)
                 .font(.system(size: 13, weight: .medium, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.7))
+                .foregroundStyle(Theme.Text.primary)
         }
     }
 

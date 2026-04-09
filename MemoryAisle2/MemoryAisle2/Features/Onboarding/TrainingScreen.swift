@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct TrainingScreen: View {
+    @Environment(\.colorScheme) private var scheme
     @Binding var selection: TrainingLevel
     let onContinue: () -> Void
 
@@ -22,7 +23,7 @@ struct TrainingScreen: View {
 
             Text("Do you train or\nexercise regularly?")
                 .font(.system(size: 26, weight: .light, design: .serif))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Text.primary)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
                 .tracking(0.3)
@@ -41,18 +42,18 @@ struct TrainingScreen: View {
                         HStack(spacing: 12) {
                             Image(systemName: iconFor(level))
                                 .font(.system(size: 14))
-                                .foregroundStyle(isSelected ? Color.violet : .white.opacity(0.25))
+                                .foregroundStyle(isSelected ? Color.violet : Theme.Text.tertiary(for: scheme))
                                 .frame(width: 20)
 
                             Text(level.rawValue)
                                 .font(.system(size: 15, weight: isSelected ? .medium : .regular))
-                                .foregroundStyle(.white.opacity(isSelected ? 1 : 0.6))
+                                .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(isSelected ? Color.violet.opacity(0.18) : .white.opacity(0.03))
+                                .fill(isSelected ? Color.violet.opacity(0.18) : Theme.Surface.glass(for: scheme))
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)

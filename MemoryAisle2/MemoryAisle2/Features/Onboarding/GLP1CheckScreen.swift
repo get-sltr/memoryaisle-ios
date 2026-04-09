@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct GLP1CheckScreen: View {
+    @Environment(\.colorScheme) private var scheme
     let onYes: () -> Void
     let onNo: () -> Void
 
@@ -15,7 +16,7 @@ struct GLP1CheckScreen: View {
 
                 Text("Are you on\nGLP-1 medication?")
                     .font(.system(size: 28, weight: .light, design: .serif))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.Text.primary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(5)
                     .tracking(0.3)
@@ -33,7 +34,7 @@ struct GLP1CheckScreen: View {
                     } label: {
                         Text("No, I just want smarter nutrition")
                             .font(.system(size: 15, weight: .regular))
-                            .foregroundStyle(.white.opacity(0.45))
+                            .foregroundStyle(Theme.Text.secondary(for: scheme))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                     }

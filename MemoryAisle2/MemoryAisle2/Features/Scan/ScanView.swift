@@ -13,14 +13,14 @@ struct ScanView: View {
 
     var body: some View {
         ZStack {
-            Color.indigoBlack.ignoresSafeArea()
+            Color.clear
 
             VStack(spacing: 0) {
                 // Header
                 HStack {
                     Text("Scan")
                         .font(.system(size: 26, weight: .light, design: .serif))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Theme.Text.primary)
                         .tracking(0.3)
 
                     Spacer()
@@ -82,7 +82,7 @@ struct ScanView: View {
 
                             Text("Tap capture to start")
                                 .font(.system(size: 14))
-                                .foregroundStyle(.white.opacity(0.3))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         }
                     }
                 }
@@ -101,7 +101,7 @@ struct ScanView: View {
                 .padding(3)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(.white.opacity(0.04))
+                        .fill(Theme.Surface.glass(for: scheme))
                 )
                 .padding(.horizontal, 40)
 
@@ -141,6 +141,7 @@ struct ScanView: View {
                 Spacer(minLength: 80)
             }
         }
+        .themeBackground()
     }
 
     // MARK: - Barcode Handler
@@ -218,7 +219,7 @@ struct ScanView: View {
                 Text(title)
                     .font(.system(size: 12, weight: .medium))
             }
-            .foregroundStyle(isSelected ? .white : .white.opacity(0.35))
+            .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.tertiary(for: scheme))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 9)
             .background(

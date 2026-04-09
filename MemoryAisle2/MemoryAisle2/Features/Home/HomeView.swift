@@ -218,7 +218,7 @@ struct HomeView: View {
             HStack {
                 Text("GROCERY LIST")
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.25))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(1.2)
                 Spacer()
                 Button {

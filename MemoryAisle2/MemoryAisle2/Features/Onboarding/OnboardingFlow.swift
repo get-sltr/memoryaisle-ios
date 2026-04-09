@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct OnboardingFlow: View {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
     @State private var step: OnboardingStep = .intro
@@ -9,7 +10,7 @@ struct OnboardingFlow: View {
 
     var body: some View {
         ZStack {
-            Color.indigoBlack.ignoresSafeArea()
+            Color.clear
 
             VStack(spacing: 0) {
                 // Top bar: back button + progress
@@ -23,7 +24,7 @@ struct OnboardingFlow: View {
                         } label: {
                             Image(systemName: "chevron.left")
                                 .font(.system(size: 16, weight: .medium))
-                                .foregroundStyle(.white.opacity(0.5))
+                                .foregroundStyle(Theme.Text.secondary(for: scheme))
                                 .frame(width: 44, height: 44)
                         }
 
@@ -98,6 +99,7 @@ struct OnboardingFlow: View {
                 .animation(Theme.Motion.spring, value: step)
             }
         }
+        .themeBackground()
     }
 
     // MARK: - Progress Dots
@@ -106,7 +108,7 @@ struct OnboardingFlow: View {
         HStack(spacing: 6) {
             ForEach(OnboardingStep.allCases.filter { $0 != .intro && $0 != .ready }, id: \.self) { s in
                 Capsule()
-                    .fill(s.rawValue <= step.rawValue ? Color.violet : Color.white.opacity(0.1))
+                    .fill(s.rawValue <= step.rawValue ? Color.violet : Theme.Surface.strong(for: scheme))
                     .frame(width: s == step ? 20 : 6, height: 4)
                     .animation(.easeInOut(duration: 0.25), value: step)
             }

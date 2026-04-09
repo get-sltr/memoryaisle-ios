@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct UpgradePrompt: View {
+    @Environment(\.colorScheme) private var scheme
     let feature: String
     @State private var showPaywall = false
 
@@ -12,11 +13,11 @@ struct UpgradePrompt: View {
 
             Text("Pro feature")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.white.opacity(0.6))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
 
             Text(feature)
                 .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.35))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .multilineTextAlignment(.center)
 
             Button {
