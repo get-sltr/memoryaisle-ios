@@ -10,33 +10,29 @@ struct MiraFloatingButton: View {
             action()
         } label: {
             ZStack {
-                // Outer gradient ring
+                // Thick gradient ring - hollow center
                 Circle()
                     .stroke(
                         AngularGradient(
                             colors: [
-                                Color(hex: 0xA78BFA),
-                                Color(hex: 0x7C3AED),
-                                Color(hex: 0xC4B5FD),
-                                Color(hex: 0x8B5CF6),
-                                Color(hex: 0xA78BFA),
+                                Color(hex: 0xC084FC),
+                                Color(hex: 0x818CF8),
+                                Color(hex: 0x38BDF8),
+                                Color(hex: 0x22D3EE),
+                                Color(hex: 0x818CF8),
+                                Color(hex: 0xC084FC),
                             ],
                             center: .center
                         ),
-                        lineWidth: 2.5
+                        lineWidth: 7
                     )
-                    .frame(width: 56, height: 56)
+                    .frame(width: 54, height: 54)
 
-                // Inner solid violet circle
-                Circle()
-                    .fill(Color(hex: 0x7C3AED))
-                    .frame(width: 46, height: 46)
-
-                // Mira icon (waveform bars)
+                // Mira waveform bars in the hollow center
                 HStack(spacing: 2) {
-                    ForEach([8, 14, 18, 12, 9], id: \.self) { h in
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(.white)
+                    ForEach([7, 12, 16, 10, 8], id: \.self) { h in
+                        RoundedRectangle(cornerRadius: 1.5)
+                            .fill(.white.opacity(0.9))
                             .frame(width: 2.5, height: CGFloat(h))
                     }
                 }
