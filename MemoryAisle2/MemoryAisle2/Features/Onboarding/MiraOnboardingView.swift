@@ -5,23 +5,16 @@ struct MiraOnboardingView: View {
     @Binding var profile: OnboardingProfile
     let onComplete: () -> Void
 
-    @State private var voice = VoiceManager()
     @State private var step: MiraQuestion = .intro
     @State private var showChoices = false
     @State private var miraText = ""
-    @State private var isListening = false
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
             // Mira waveform
-            MiraWaveform(
-                state: voice.isSpeaking ? .speaking
-                    : isListening ? .speaking
-                    : .idle,
-                size: .hero
-            )
+            MiraWaveform(state: .idle, size: .hero)
             .frame(height: 60)
             .padding(.bottom, 32)
 
@@ -36,17 +29,9 @@ struct MiraOnboardingView: View {
 
             Spacer()
 
-            // Choices or listening state
-            if isListening {
-                listeningView
-            } else if showChoices {
+            // Choices
+            if showChoices {
                 choicesForCurrentStep
-            }
-
-            // Mic button
-            if !voice.isSpeaking && showChoices && !isListening {
-                micButton
-                    .padding(.bottom, 20)
             }
 
             Spacer()
@@ -54,46 +39,6 @@ struct MiraOnboardingView: View {
         }
         .themeBackground()
         .onAppear { startConversation() }
-    }
-
-    // MARK: - Listening State
-
-    private var listeningView: some View {
-        VStack(spacing: 12) {
-            Text(voice.transcribedText.isEmpty ? "Listening..." : voice.transcribedText)
-                .font(.system(size: 16))
-                .foregroundStyle(voice.transcribedText.isEmpty
-                    ? Theme.Text.tertiary(for: scheme)
-                    : Theme.Text.primary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-
-            Button {
-                stopAndProcess()
-            } label: {
-                Text("Done")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(Color.violet)
-            }
-        }
-        .padding(.bottom, 20)
-    }
-
-    // MARK: - Mic Button
-
-    private var micButton: some View {
-        Button {
-            HapticManager.medium()
-            startListening()
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 14))
-                Text("Tap to speak")
-                    .font(.system(size: 13))
-            }
-            .foregroundStyle(Color.violet.opacity(0.6))
-        }
     }
 
     // MARK: - Choices Per Step
@@ -323,77 +268,6 @@ struct MiraOnboardingView: View {
         return parts.joined(separator: " ")
     }
 
-    @MainActor
-    private func miraSpeak(_ text: String, step: MiraQuestion) async {
-        miraText = text
-        self.step = step
-        voice.speak(text)
-
-        while voice.isSpeaking {
-            try? await Task.sleep(for: .milliseconds(100))
-        }
-
-        withAnimation(.easeOut(duration: 0.4)) {
-            showChoices = true
-        }
-    }
-
-    private func startListening() {
-        isListening = true
-        voice.startListening()
-    }
-
-    private func stopAndProcess() {
-        voice.stopListening()
-        let response = voice.transcribedText
-        isListening = false
-        processVoiceResponse(response)
-    }
-
-    private func processVoiceResponse(_ text: String) {
-        let lower = text.lowercased()
-
-        switch step {
-        case .medication:
-            if lower.contains("yes") {
-                profile.isOnGLP1 = true
-                advanceTo(.whichMed)
-            } else if lower.contains("no") {
-                profile.isOnGLP1 = false
-                profile.medication = nil
-                advanceTo(.ready)
-            }
-        case .age:
-            if let age = Int(text.filter(\.isNumber)) {
-                profile.age = age
-                advanceTo(.sex)
-            }
-        case .sex:
-            if lower.contains("male") && !lower.contains("female") {
-                profile.sex = .male
-                advanceTo(.heightWeight)
-            } else if lower.contains("female") {
-                profile.sex = .female
-                advanceTo(.heightWeight)
-            }
-        case .training:
-            if lower.contains("lift") || lower.contains("weight") {
-                profile.trainingLevel = .lifts
-                advanceTo(.dietary)
-            } else if lower.contains("cardio") || lower.contains("run") {
-                profile.trainingLevel = .cardio
-                advanceTo(.dietary)
-            } else if lower.contains("sometimes") {
-                profile.trainingLevel = .sometimes
-                advanceTo(.dietary)
-            } else if lower.contains("no") || lower.contains("not") {
-                profile.trainingLevel = .none
-                advanceTo(.dietary)
-            }
-        default:
-            break
-        }
-    }
 }
 
 // MARK: - Question Steps (reordered: goals first, medication last)
