@@ -125,9 +125,20 @@ final class VoiceManager: NSObject, @unchecked Sendable {
         }
 
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.95
-        utterance.pitchMultiplier = 1.05
+        // Use premium Siri-quality voice (Samantha Enhanced or Zoe)
+        let preferredVoices = [
+            "com.apple.voice.premium.en-US.Zoe",
+            "com.apple.voice.enhanced.en-US.Samantha",
+            "com.apple.voice.premium.en-US.Samantha",
+            "com.apple.voice.enhanced.en-US.Zoe",
+        ]
+        utterance.voice = preferredVoices
+            .lazy
+            .compactMap { AVSpeechSynthesisVoice(identifier: $0) }
+            .first
+            ?? AVSpeechSynthesisVoice(language: "en-US")
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.92
+        utterance.pitchMultiplier = 1.0
         utterance.preUtteranceDelay = 0.2
 
         do {
