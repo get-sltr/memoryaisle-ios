@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 
 enum AuthScreen {
@@ -14,6 +15,7 @@ struct AuthFlowView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var verifyCode = ""
+    @State private var showLegal: LegalPage?
 
     var body: some View {
         ZStack {
@@ -31,6 +33,7 @@ struct AuthFlowView: View {
             }
         }
         .themeBackground()
+        .sheet(item: $showLegal) { page in LegalView(page: page) }
         .task {
             await authManager.restoreSession()
             if authManager.isSignedIn {
@@ -71,7 +74,31 @@ struct AuthFlowView: View {
             Spacer()
 
             VStack(spacing: 14) {
-                GlowButton(authManager.isLoading ? "Signing in..." : "Sign in") {
+                // Apple Sign In
+                SignInWithAppleButton(.signIn) { request in
+                    request.requestedScopes = [.email, .fullName]
+                } onCompletion: { result in
+                    handleAppleSignIn(result)
+                }
+                .signInWithAppleButtonStyle(.white)
+                .frame(height: 50)
+                .clipShape(Capsule())
+
+                // Divider
+                HStack {
+                    Rectangle()
+                        .fill(Theme.Text.tertiary(for: scheme))
+                        .frame(height: 0.5)
+                    Text("or")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    Rectangle()
+                        .fill(Theme.Text.tertiary(for: scheme))
+                        .frame(height: 0.5)
+                }
+
+                // Email Sign In
+                GlowButton(authManager.isLoading ? "Signing in..." : "Sign in with email") {
                     Task {
                         if await authManager.signIn(email: email, password: password) {
                             HapticManager.success()
@@ -136,6 +163,32 @@ struct AuthFlowView: View {
                 .font(.system(size: 11))
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 8)
+
+            VStack(spacing: 2) {
+                Text("By signing up, you agree to our")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                HStack(spacing: 4) {
+                    Button { showLegal = .terms } label: {
+                        Text("Terms of Service")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Color.violet)
+                            .underline()
+                    }
+                    .accessibilityLabel("View Terms of Service")
+                    Text("and")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    Button { showLegal = .privacy } label: {
+                        Text("Privacy Policy")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Color.violet)
+                            .underline()
+                    }
+                    .accessibilityLabel("View Privacy Policy")
+                }
+            }
+            .padding(.top, 4)
 
             if let error = authManager.error {
                 Text(error)
@@ -267,5 +320,35 @@ struct AuthFlowView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
         )
+    }
+
+    // MARK: - Apple Sign In
+
+    private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
+        switch result {
+        case .success(let auth):
+            if let credential = auth.credential as? ASAuthorizationAppleIDCredential {
+                let userId = credential.user
+                let email = credential.email ?? ""
+                let name = [
+                    credential.fullName?.givenName,
+                    credential.fullName?.familyName
+                ].compactMap { $0 }.joined(separator: " ")
+
+                // Store Apple user ID
+                UserDefaults.standard.set(userId, forKey: "ma_apple_user_id")
+                if !email.isEmpty {
+                    UserDefaults.standard.set(email, forKey: "ma_email")
+                }
+                if !name.isEmpty {
+                    UserDefaults.standard.set(name, forKey: "ma_name")
+                }
+
+                HapticManager.success()
+                appState.authStatus = .signedIn
+            }
+        case .failure:
+            authManager.error = "Apple Sign In failed. Please try again."
+        }
     }
 }

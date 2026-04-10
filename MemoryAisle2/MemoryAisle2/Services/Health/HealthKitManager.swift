@@ -7,6 +7,8 @@ final class HealthKitManager {
 
     var isAuthorized = false
     var latestWeight: Double?
+    var latestBodyFatPercent: Double?
+    var latestLeanBodyMassLbs: Double?
     var weightUnit: String = "lbs"
     var weightHistory: [(date: Date, value: Double)] = []
 
@@ -19,19 +21,26 @@ final class HealthKitManager {
     func requestAuthorization() async {
         guard isAvailable else { return }
 
-        let readTypes: Set<HKObjectType> = [
-            HKObjectType.quantityType(forIdentifier: .bodyMass)!,
-            HKObjectType.quantityType(forIdentifier: .leanBodyMass)!,
-            HKObjectType.quantityType(forIdentifier: .bodyFatPercentage)!,
-            HKObjectType.quantityType(forIdentifier: .stepCount)!,
-            HKObjectType.workoutType()
-        ]
+        var readTypes: Set<HKObjectType> = []
+        if let bodyMass = HKQuantityType.quantityType(forIdentifier: .bodyMass) {
+            readTypes.insert(bodyMass)
+        }
+        if let leanBodyMass = HKQuantityType.quantityType(forIdentifier: .leanBodyMass) {
+            readTypes.insert(leanBodyMass)
+        }
+        if let bodyFat = HKQuantityType.quantityType(forIdentifier: .bodyFatPercentage) {
+            readTypes.insert(bodyFat)
+        }
+
+        guard !readTypes.isEmpty else { return }
 
         do {
             try await store.requestAuthorization(toShare: [], read: readTypes)
             isAuthorized = true
             await fetchLatestWeight()
             await fetchWeightHistory()
+            await fetchLatestBodyFatPercentage()
+            await fetchLatestLeanBodyMass()
         } catch {
             isAuthorized = false
         }
@@ -40,41 +49,91 @@ final class HealthKitManager {
     // MARK: - Weight
 
     func fetchLatestWeight() async {
-        guard let type = HKQuantityType.quantityType(forIdentifier: .bodyMass) else { return }
-
-        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-        let query = HKSampleQuery(sampleType: type, predicate: nil, limit: 1, sortDescriptors: [sortDescriptor]) { [weak self] _, samples, _ in
-            guard let sample = samples?.first as? HKQuantitySample else { return }
-
-            let lbs = sample.quantity.doubleValue(for: .pound())
-
-            DispatchQueue.main.async {
-                self?.latestWeight = lbs
-            }
+        guard let type = HKQuantityType.quantityType(forIdentifier: .bodyMass) else {
+            return
         }
-
-        store.execute(query)
+        let sample = await fetchMostRecentSample(for: type)
+        await MainActor.run {
+            self.latestWeight = sample?.quantity.doubleValue(for: .pound())
+        }
     }
 
     func fetchWeightHistory() async {
-        guard let type = HKQuantityType.quantityType(forIdentifier: .bodyMass) else { return }
+        guard let type = HKQuantityType.quantityType(forIdentifier: .bodyMass) else {
+            return
+        }
+        guard let startDate = Calendar.current.date(
+            byAdding: .day, value: -30, to: .now
+        ) else { return }
 
-        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: .now)!
-        let predicate = HKQuery.predicateForSamples(withStart: thirtyDaysAgo, end: .now, options: .strictStartDate)
-        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+        let predicate = HKQuery.predicateForSamples(
+            withStart: startDate, end: .now, options: .strictStartDate
+        )
+        let samples = await fetchSamples(for: type, predicate: predicate)
+        let history = samples.map { sample in
+            (date: sample.startDate, value: sample.quantity.doubleValue(for: .pound()))
+        }
+        await MainActor.run {
+            self.weightHistory = history
+        }
+    }
 
-        let query = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { [weak self] _, samples, _ in
-            guard let samples = samples as? [HKQuantitySample] else { return }
+    // MARK: - Body Fat Percentage
 
-            let history = samples.map { sample in
-                (date: sample.startDate, value: sample.quantity.doubleValue(for: .pound()))
-            }
+    func fetchLatestBodyFatPercentage() async {
+        guard let type = HKQuantityType.quantityType(
+            forIdentifier: .bodyFatPercentage
+        ) else { return }
 
-            DispatchQueue.main.async {
-                self?.weightHistory = history
+        let sample = await fetchMostRecentSample(for: type)
+        await MainActor.run {
+            if let value = sample?.quantity.doubleValue(for: .percent()) {
+                self.latestBodyFatPercent = value * 100
             }
         }
+    }
 
-        store.execute(query)
+    // MARK: - Lean Body Mass
+
+    func fetchLatestLeanBodyMass() async {
+        guard let type = HKQuantityType.quantityType(
+            forIdentifier: .leanBodyMass
+        ) else { return }
+
+        let sample = await fetchMostRecentSample(for: type)
+        await MainActor.run {
+            self.latestLeanBodyMassLbs = sample?.quantity.doubleValue(
+                for: .pound()
+            )
+        }
+    }
+
+    // MARK: - Private Helpers
+
+    private func fetchMostRecentSample(
+        for type: HKQuantityType
+    ) async -> HKQuantitySample? {
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.quantitySample(type: type)],
+            sortDescriptors: [SortDescriptor(\.startDate, order: .reverse)],
+            limit: 1
+        )
+        let results = try? await descriptor.result(for: store)
+        return results?.first
+    }
+
+    private func fetchSamples(
+        for type: HKQuantityType,
+        predicate: NSPredicate
+    ) async -> [HKQuantitySample] {
+        let samplePredicate = HKSamplePredicate.quantitySample(
+            type: type,
+            predicate: predicate
+        )
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [samplePredicate],
+            sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
+        )
+        return (try? await descriptor.result(for: store)) ?? []
     }
 }

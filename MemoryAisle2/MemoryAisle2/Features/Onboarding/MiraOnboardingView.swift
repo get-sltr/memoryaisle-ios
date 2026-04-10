@@ -246,26 +246,7 @@ struct MiraOnboardingView: View {
     }
 
     private func buildReadySummary() -> String {
-        var parts: [String] = ["I've got everything I need."]
-
-        if !profile.worries.isEmpty {
-            let focus = profile.worries.first?.rawValue.lowercased() ?? "your goals"
-            parts.append("I'll focus on \(focus).")
-        }
-
-        if let weight = profile.weightLbs, let goal = profile.goalWeightLbs {
-            let diff = Int(weight - goal)
-            if diff > 0 {
-                parts.append("We're working toward losing \(diff) pounds while keeping your muscle.")
-            }
-        }
-
-        if profile.isOnGLP1, let med = profile.medication {
-            parts.append("I'll adapt your meals to your \(med.rawValue) cycle.")
-        }
-
-        parts.append("Your plan is personalized and ready.")
-        return parts.joined(separator: " ")
+        "All set. Your plan is personalized based on everything you've told me. Let's get started."
     }
 
 }
