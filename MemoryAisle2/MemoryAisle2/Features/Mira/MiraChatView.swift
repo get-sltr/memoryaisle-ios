@@ -279,15 +279,43 @@ struct MiraChatView: View {
 
     private var inputBar: some View {
         HStack(spacing: Theme.Spacing.sm) {
-            Button {
-                HapticManager.light()
-            } label: {
-                Image(systemName: "mic.fill")
-                    .font(Typography.bodyLarge)
-                    .foregroundStyle(Theme.Accent.primary(for: scheme))
-                    .frame(width: 36, height: 36)
+            // Mic / Stop button
+            if voice.isSpeaking {
+                Button {
+                    voice.stopSpeaking()
+                } label: {
+                    Image(systemName: "stop.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color(hex: 0xF87171))
+                        .frame(width: 36, height: 36)
+                }
+                .accessibilityLabel("Stop Mira speaking")
+            } else {
+                Button {
+                    HapticManager.medium()
+                    if voice.isListening {
+                        voice.stopListening()
+                        micPressed = false
+                        if !voice.transcribedText.isEmpty {
+                            sendMessage(voice.transcribedText)
+                        }
+                    } else {
+                        Task {
+                            let granted = await voice.requestPermissions()
+                            if granted {
+                                micPressed = true
+                                voice.startListening()
+                            }
+                        }
+                    }
+                } label: {
+                    Image(systemName: voice.isListening ? "waveform" : "mic.fill")
+                        .font(Typography.bodyLarge)
+                        .foregroundStyle(voice.isListening ? Color(hex: 0xF87171) : Theme.Accent.primary(for: scheme))
+                        .frame(width: 36, height: 36)
+                }
+                .accessibilityLabel(voice.isListening ? "Stop listening" : "Voice input")
             }
-            .accessibilityLabel("Voice input")
 
             TextField("Ask Mira...", text: $inputText)
                 .font(Typography.bodyMedium)
@@ -388,7 +416,6 @@ struct MiraChatView: View {
                 // Mira speaks the response
                 voice.speak(reply)
             } catch {
-                print("Mira API error: \(error)")
                 withAnimation(Theme.Motion.spring) {
                     isTyping = false
                     messages.append(MiraMessage("I'm having trouble connecting right now. \(error.localizedDescription)"))
