@@ -20,19 +20,19 @@ enum Theme {
         static func glass(for scheme: ColorScheme) -> Color {
             scheme == .dark
                 ? Color.violet.opacity(0.04)
-                : Color.violetDeep.opacity(0.03)
+                : Color.lavender.opacity(0.12)
         }
 
         static func strong(for scheme: ColorScheme) -> Color {
             scheme == .dark
                 ? Color.violet.opacity(0.07)
-                : Color.violetDeep.opacity(0.05)
+                : Color.lavender.opacity(0.18)
         }
 
         static func pressed(for scheme: ColorScheme) -> Color {
             scheme == .dark
                 ? Color.violet.opacity(0.12)
-                : Color.violetDeep.opacity(0.08)
+                : Color.lavender.opacity(0.25)
         }
     }
 
@@ -42,19 +42,19 @@ enum Theme {
         static func glass(for scheme: ColorScheme) -> Color {
             scheme == .dark
                 ? Color.violet.opacity(0.10)
-                : Color.violetDeep.opacity(0.07)
+                : Color.lavender.opacity(0.2)
         }
 
         static func strong(for scheme: ColorScheme) -> Color {
             scheme == .dark
                 ? Color.violet.opacity(0.14)
-                : Color.violetDeep.opacity(0.12)
+                : Color.lavender.opacity(0.3)
         }
 
         static func pressed(for scheme: ColorScheme) -> Color {
             scheme == .dark
                 ? Color.violet.opacity(0.25)
-                : Color.violetDeep.opacity(0.18)
+                : Color.lavender.opacity(0.35)
         }
     }
 
@@ -161,6 +161,7 @@ extension Color {
     static let violet = Color(hex: 0xA78BFA)
     static let violetDeep = Color(hex: 0x7C3AED)
     static let violetMid = Color(hex: 0x8B5CF6)
+    static let lavender = Color(hex: 0xC4B5FD)
     static let indigoBlack = Color(hex: 0x0A0914)
 }
 
