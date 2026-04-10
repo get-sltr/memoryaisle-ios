@@ -30,7 +30,7 @@ struct HomeView: View {
                     HapticManager.light()
                     showMenu = true
                 } label: {
-                    OnboardingLogo(size: 36)
+                    OnboardingLogo(size: 72)
                 }
                 .accessibilityLabel("Open menu")
 
