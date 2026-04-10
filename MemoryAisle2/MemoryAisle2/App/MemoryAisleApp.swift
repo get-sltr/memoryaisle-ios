@@ -8,6 +8,7 @@ struct MemoryAisleApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .buttonStyle(.plain)
                 .environment(appState)
                 .modelContainer(for: [
                     UserProfile.self,
