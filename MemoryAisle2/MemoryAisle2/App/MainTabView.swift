@@ -8,15 +8,16 @@ struct MainTabView: View {
     @State private var menuDestination: MenuDestination?
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottomTrailing) {
             // Main content is always the grocery list (HomeView)
             HomeView(showMenu: $showMenu)
 
-            // Floating Mira button
+            // Floating Mira button - bottom right
             MiraFloatingButton {
                 showMira = true
             }
-            .allowsHitTesting(true)
+            .padding(.trailing, 20)
+            .padding(.bottom, 90)
         }
         .sheet(isPresented: $showMira) {
             MiraChatView()
@@ -149,6 +150,7 @@ struct MainTabView: View {
             .padding(.horizontal, 4)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
     }
 
     @ViewBuilder
