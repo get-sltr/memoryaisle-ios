@@ -8,16 +8,22 @@ struct MainTabView: View {
     @State private var menuDestination: MenuDestination?
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
+        ZStack {
             // Main content is always the grocery list (HomeView)
             HomeView(showMenu: $showMenu)
 
-            // Floating Mira button - bottom left
-            MiraFloatingButton {
-                showMira = true
+            // Floating Mira button - left edge, 1/3 down
+            VStack {
+                Spacer()
+                    .frame(maxHeight: .infinity)
+                MiraFloatingButton {
+                    showMira = true
+                }
+                .padding(.leading, 6)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer()
+                Spacer()
             }
-            .padding(.leading, 20)
-            .padding(.bottom, 90)
         }
         .sheet(isPresented: $showMira) {
             MiraChatView()
