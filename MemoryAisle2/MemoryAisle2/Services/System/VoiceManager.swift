@@ -26,6 +26,11 @@ final class VoiceManager: NSObject, @unchecked Sendable {
 
     // MARK: - Permissions
 
+    // @MainActor so every internal await resumes on main. Without this,
+    // the non-isolated async function can resume on a cooperative pool
+    // thread after withCheckedContinuation, and then AVAudioApplication
+    // .requestRecordPermission() (iOS 17) traps because it asserts main.
+    @MainActor
     func requestPermissions() async -> Bool {
         let speechStatus = await withCheckedContinuation { cont in
             SFSpeechRecognizer.requestAuthorization { status in
