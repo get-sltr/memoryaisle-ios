@@ -5,214 +5,215 @@ struct RecipeDetailView: View {
     @Environment(\.dismiss) private var dismiss
     let recipe: RecipeItem
 
+    private var heroSubtitle: String {
+        var parts: [String] = ["Serves \(recipe.servings)"]
+        parts.append("\(recipe.prepTime) prep")
+        if !recipe.cookTime.isEmpty && recipe.cookTime != "0" {
+            parts.append("\(recipe.cookTime) cook")
+        }
+        return parts.joined(separator: " · ")
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                        .frame(width: 44, height: 44)
-                }
-                Spacer()
-                if recipe.nauseaSafe {
-                    HStack(spacing: 4) {
-                        Image(systemName: "leaf.fill")
-                            .font(.system(size: 10))
-                        Text("Nausea-safe")
-                            .font(.system(size: 11, weight: .medium))
-                    }
-                    .foregroundStyle(Color(hex: 0x34D399).opacity(0.7))
-                }
+            HeroHeader(title: recipe.name, subtitle: heroSubtitle) {
+                DismissButton(action: { dismiss() })
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 8)
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 24) {
-                    // Title
-                    VStack(spacing: 8) {
-                        Text(recipe.name)
-                            .font(.system(size: 24, weight: .light, design: .serif))
-                            .foregroundStyle(Theme.Text.primary)
-                            .tracking(0.3)
-                            .multilineTextAlignment(.center)
-
-                        Text(recipe.description)
-                            .font(.system(size: 14))
-                            .foregroundStyle(Theme.Text.secondary(for: scheme))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 24)
-                    }
-                    .padding(.top, 4)
-
-                    // Stats
-                    HStack(spacing: 0) {
-                        statCell("\(recipe.protein)g", label: "Protein", color: Color(hex: 0xA78BFA))
-                        statCell("\(recipe.calories)", label: "Calories", color: Theme.Text.secondary(for: scheme))
-                        statCell(recipe.prepTime, label: "Prep", color: Theme.Text.tertiary(for: scheme))
-                        statCell(recipe.cookTime, label: "Cook", color: Theme.Text.tertiary(for: scheme))
-                        statCell("\(recipe.servings)", label: "Serves", color: Theme.Text.tertiary(for: scheme))
-                    }
-                    .padding(12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Theme.Surface.glass(for: scheme))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
-                    )
-                    .padding(.horizontal, 20)
-
-                    // Ingredients
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("INGREDIENTS")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                            .tracking(1.2)
-
-                        ForEach(recipe.ingredients) { item in
-                            HStack(alignment: .top, spacing: 10) {
-                                Circle()
-                                    .fill(Color(hex: 0xA78BFA).opacity(0.3))
-                                    .frame(width: 5, height: 5)
-                                    .padding(.top, 6)
-
-                                VStack(alignment: .leading, spacing: 2) {
-                                    HStack {
-                                        Text(item.name)
-                                            .font(.system(size: 15))
-                                            .foregroundStyle(Theme.Text.secondary(for: scheme))
-                                        Spacer()
-                                        Text(item.amount)
-                                            .font(.system(size: 13, design: .monospaced))
-                                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                                    }
-                                    if let prep = item.prep {
-                                        Text(prep)
-                                            .font(.system(size: 12, weight: .regular))
-                                            .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.4))
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Theme.Surface.glass(for: scheme))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
-                    )
-                    .padding(.horizontal, 20)
-
-                    // Steps
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("HOW TO MAKE IT")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                            .tracking(1.2)
-
-                        ForEach(recipe.steps) { step in
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack(alignment: .top, spacing: 10) {
-                                    Text("\(step.number)")
-                                        .font(.system(size: 13, weight: .bold, design: .monospaced))
-                                        .foregroundStyle(Color(hex: 0xA78BFA))
-                                        .frame(width: 20)
-
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(step.instruction)
-                                            .font(.system(size: 15))
-                                            .foregroundStyle(Theme.Text.primary)
-
-                                        if let duration = step.duration {
-                                            HStack(spacing: 4) {
-                                                Image(systemName: "clock")
-                                                    .font(.system(size: 10))
-                                                Text(duration)
-                                                    .font(.system(size: 12))
-                                            }
-                                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                                        }
-
-                                        if let tip = step.tip {
-                                            HStack(alignment: .top, spacing: 6) {
-                                                Image(systemName: "lightbulb.fill")
-                                                    .font(.system(size: 10))
-                                                    .foregroundStyle(Color(hex: 0xFBBF24).opacity(0.5))
-                                                Text(tip)
-                                                    .font(.system(size: 13))
-                                                    .foregroundStyle(Color(hex: 0xFBBF24).opacity(0.5))
-                                            }
-                                            .padding(.top, 2)
-                                        }
-                                    }
-                                }
-
-                                if step.number < recipe.steps.count {
-                                    Rectangle()
-                                        .fill(Theme.Border.glass(for: scheme))
-                                        .frame(height: 0.5)
-                                        .padding(.leading, 30)
-                                }
-                            }
-                        }
-                    }
-                    .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Theme.Surface.glass(for: scheme))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
-                    )
-                    .padding(.horizontal, 20)
-
-                    // Mira tip
-                    HStack(alignment: .top, spacing: 10) {
-                        MiraWaveform(state: .idle, size: .hero)
-                            .scaleEffect(0.35, anchor: .leading)
-                            .frame(width: 30, height: 14)
-                            .padding(.top, 2)
-
-                        Text(recipe.miraTip)
-                            .font(.system(size: 13))
-                            .foregroundStyle(Theme.Text.secondary(for: scheme))
-                    }
-                    .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Theme.Surface.glass(for: scheme))
-                    )
-                    .padding(.horizontal, 20)
-
-                    GlowButton("Add to today's plan") {
+                VStack(spacing: 20) {
+                    description
+                    if recipe.nauseaSafe { nauseaSafeBadge }
+                    statsRow
+                    ingredientsCard
+                    stepsCard
+                    miraTipCard
+                    GlowButton("Add to today's plan", icon: "plus") {
                         HapticManager.success()
                         dismiss()
                     }
                     .padding(.horizontal, 32)
-
                     Spacer(minLength: 40)
                 }
+                .padding(.top, 20)
             }
         }
+        .section(.recipes)
         .themeBackground()
     }
 
-    private func statCell(_ value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 4) {
-            Text(value)
-                .font(.system(size: 14, weight: .medium, design: .monospaced))
-                .foregroundStyle(color)
-            Text(label)
-                .font(.system(size: 9))
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+    // MARK: - Description
+
+    private var description: some View {
+        Text(recipe.description)
+            .font(Typography.bodyMedium)
+            .foregroundStyle(Theme.Text.secondary(for: scheme))
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 28)
+    }
+
+    // MARK: - Nausea-safe badge
+
+    private var nauseaSafeBadge: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "leaf.fill")
+                .font(.system(size: 11))
+            Text("Nausea-safe")
+                .font(Typography.bodySmallBold)
         }
-        .frame(maxWidth: .infinity)
+        .foregroundStyle(Theme.Semantic.onTrack(for: scheme))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(
+            Capsule().fill(Theme.Semantic.onTrack(for: scheme).opacity(0.12))
+        )
+        .overlay(
+            Capsule().stroke(
+                Theme.Semantic.onTrack(for: scheme).opacity(0.30),
+                lineWidth: 0.5
+            )
+        )
+    }
+
+    // MARK: - Stats row
+
+    private var statsRow: some View {
+        HStack(spacing: 10) {
+            StatTile(label: "Protein", value: "\(recipe.protein)g")
+            StatTile(label: "Calories", value: "\(recipe.calories)")
+            StatTile(label: "Time", value: recipe.prepTime, sub: "prep")
+        }
+        .padding(.horizontal, 20)
+    }
+
+    // MARK: - Ingredients
+
+    private var ingredientsCard: some View {
+        SectionCard {
+            VStack(alignment: .leading, spacing: 12) {
+                sectionLabel("INGREDIENTS")
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(recipe.ingredients) { item in
+                        ingredientRow(item)
+                    }
+                }
+            }
+            .padding(16)
+        }
+        .padding(.horizontal, 20)
+    }
+
+    private func ingredientRow(_ item: Ingredient) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Circle()
+                .fill(SectionPalette.primary(.recipes, for: scheme).opacity(0.55))
+                .frame(width: 5, height: 5)
+                .padding(.top, 6)
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text(item.name)
+                        .font(Typography.bodyMedium)
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
+                    Spacer()
+                    Text(item.amount)
+                        .font(Typography.monoSmall)
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                }
+                if let prep = item.prep {
+                    Text(prep)
+                        .font(Typography.caption)
+                        .foregroundStyle(SectionPalette.soft(.recipes))
+                }
+            }
+        }
+    }
+
+    // MARK: - Steps
+
+    private var stepsCard: some View {
+        SectionCard {
+            VStack(alignment: .leading, spacing: 14) {
+                sectionLabel("HOW TO MAKE IT")
+                ForEach(recipe.steps) { step in
+                    stepRow(step)
+                }
+            }
+            .padding(16)
+        }
+        .padding(.horizontal, 20)
+    }
+
+    private func stepRow(_ step: CookingStep) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: 12) {
+                Text("\(step.number)")
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundStyle(SectionPalette.primary(.recipes, for: scheme))
+                    .frame(width: 20)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(step.instruction)
+                        .font(Typography.bodyMedium)
+                        .foregroundStyle(Theme.Text.primary)
+
+                    if let duration = step.duration {
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock")
+                                .font(.system(size: 10))
+                            Text(duration)
+                                .font(Typography.caption)
+                        }
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    }
+
+                    if let tip = step.tip {
+                        HStack(alignment: .top, spacing: 6) {
+                            Image(systemName: "lightbulb.fill")
+                                .font(.system(size: 10))
+                            Text(tip)
+                                .font(Typography.bodySmall)
+                        }
+                        .foregroundStyle(Theme.Semantic.fiber(for: scheme).opacity(0.75))
+                        .padding(.top, 2)
+                    }
+                }
+            }
+
+            if step.number < recipe.steps.count {
+                Rectangle()
+                    .fill(Theme.Section.border(.recipes, for: scheme))
+                    .frame(height: 0.5)
+                    .padding(.leading, 32)
+            }
+        }
+    }
+
+    // MARK: - Mira tip (violet contrast card inside amber view)
+
+    private var miraTipCard: some View {
+        SectionCard(section: .home) {
+            HStack(alignment: .top, spacing: 12) {
+                MiraWaveform(state: .idle, size: .hero)
+                    .scaleEffect(0.35, anchor: .leading)
+                    .frame(width: 30, height: 14)
+                    .padding(.top, 2)
+
+                Text(recipe.miraTip)
+                    .font(Typography.bodySmall)
+                    .foregroundStyle(Theme.Text.secondary(for: scheme))
+            }
+            .padding(16)
+        }
+        .padding(.horizontal, 20)
+    }
+
+    // MARK: - Helpers
+
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text)
+            .font(Typography.label)
+            .foregroundStyle(SectionPalette.soft(.recipes))
+            .tracking(1.2)
     }
 }
