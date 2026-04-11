@@ -257,7 +257,9 @@ struct GroceryListView: View {
                 voiceManager.transcribedText = ""
             }
         } else {
-            Task {
+            // @MainActor required because VoiceManager's startListening
+            // touches AVAudioEngine which asserts main-thread affinity.
+            Task { @MainActor in
                 let granted = await voiceManager.requestPermissions()
                 if granted {
                     withAnimation { micActive = true }

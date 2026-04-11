@@ -72,7 +72,7 @@ struct MiraChatView: View {
         .navigationBarHidden(true)
         .onChange(of: voice.isSpeaking) { wasSpeaking, nowSpeaking in
             if wasSpeaking && !nowSpeaking && voice.autoListen {
-                Task {
+                Task { @MainActor in
                     try? await Task.sleep(for: .milliseconds(400))
                     withAnimation(.easeOut(duration: 0.2)) { micPressed = true }
                     voice.startListening()
@@ -98,30 +98,35 @@ struct MiraChatView: View {
 
     @State private var micPressed = false
 
+    private var miraState: MiraState {
+        if voice.isListening { return .thinking }
+        if voice.isSpeaking { return .speaking }
+        return micPressed ? .speaking : .idle
+    }
+
     private var emptyState: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            MiraWaveform(state: micPressed ? .speaking : .idle, size: .hero)
-                .frame(height: 70)
-                .padding(.bottom, 32)
+            // The MiraWaveform IS the mic button.
+            // Tap the logo to start/stop voice conversation.
+            miraButton
+                .padding(.bottom, 28)
 
             Text("How can I help?")
                 .font(.system(size: 28, weight: .light, design: .serif))
                 .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
-            Text("Tap the mic to talk, or choose below.")
+            Text(voice.isListening ? "Listening…" : "Tap Mira to talk, or choose below")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 10)
-
-            // Mic button
-            micButton
-                .padding(.top, 32)
+                .contentTransition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: voice.isListening)
 
             Spacer()
-                .frame(height: 28)
+                .frame(height: 36)
 
             VStack(spacing: 8) {
                 quickAction("What should I eat right now?", icon: "fork.knife")
@@ -135,75 +140,57 @@ struct MiraChatView: View {
         }
     }
 
-    // MARK: - Mic Button
+    // MARK: - Mira Button (logo IS the mic)
 
-    private var micButton: some View {
+    private var miraButton: some View {
         Button {
             HapticManager.medium()
-            if voice.isListening {
-                // Stop listening and send
-                voice.stopListening()
-                withAnimation(.easeOut(duration: 0.2)) { micPressed = false }
-                if !voice.transcribedText.isEmpty {
-                    sendMessage(voice.transcribedText)
-                }
-            } else {
-                // Start listening and enable conversation mode
-                Task {
-                    let granted = await voice.requestPermissions()
-                    if granted {
-                        voice.autoListen = true
-                        withAnimation(.easeOut(duration: 0.2)) { micPressed = true }
-                        voice.startListening()
-                    } else {
-                        // Permission denied - reset state so UI isn't stuck
-                        await MainActor.run {
-                            withAnimation(.easeOut(duration: 0.2)) { micPressed = false }
-                        }
-                    }
-                }
-            }
+            toggleMiraVoice()
         } label: {
             ZStack {
-                // Outer glow rings
+                // Soft glow halo when active
                 Circle()
-                    .fill(Color.violet.opacity(micPressed ? 0.12 : 0.05))
-                    .frame(width: 88, height: 88)
+                    .fill(Color.violet.opacity(voice.isListening ? 0.22 : 0.0))
+                    .frame(width: 160, height: 160)
+                    .blur(radius: 32)
 
                 Circle()
-                    .fill(Color.violet.opacity(micPressed ? 0.2 : 0.08))
-                    .frame(width: 72, height: 72)
+                    .fill(Color.violet.opacity(voice.isListening ? 0.10 : 0.0))
+                    .frame(width: 120, height: 120)
 
-                // Main button
-                Circle()
-                    .fill(
-                        micPressed
-                            ? Color.violetDeep
-                            : Color.violet.opacity(0.15)
-                    )
-                    .frame(width: 56, height: 56)
-                    .overlay(
-                        Circle()
-                            .stroke(
-                                Color.violet.opacity(micPressed ? 0.6 : 0.3),
-                                lineWidth: 0.5
-                            )
-                    )
-                    .shadow(
-                        color: Color.violet.opacity(micPressed ? 0.5 : 0.2),
-                        radius: micPressed ? 24 : 12,
-                        y: 2
-                    )
-
-                Image(systemName: micPressed ? "waveform" : "mic.fill")
-                    .font(.system(size: 22, weight: .medium))
-                    .foregroundStyle(micPressed ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
+                MiraWaveform(state: miraState, size: .hero)
+                    .frame(height: 70)
+                    .padding(.horizontal, 24)
             }
-            .scaleEffect(micPressed ? 1.05 : 1.0)
-            .animation(.easeOut(duration: 0.15), value: micPressed)
+            .scaleEffect(voice.isListening ? 1.05 : 1.0)
+            .animation(.easeOut(duration: 0.2), value: voice.isListening)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(micPressed ? "Stop listening" : "Talk to Mira")
+        .contentShape(Rectangle())
+        .accessibilityLabel(voice.isListening ? "Stop listening" : "Tap Mira to talk")
+    }
+
+    private func toggleMiraVoice() {
+        if voice.isListening {
+            voice.stopListening()
+            withAnimation(.easeOut(duration: 0.2)) { micPressed = false }
+            if !voice.transcribedText.isEmpty {
+                sendMessage(voice.transcribedText)
+            }
+        } else {
+            // @MainActor is required because VoiceManager's startListening()
+            // touches AVAudioEngine which asserts main-thread affinity.
+            Task { @MainActor in
+                let granted = await voice.requestPermissions()
+                if granted {
+                    voice.autoListen = true
+                    withAnimation(.easeOut(duration: 0.2)) { micPressed = true }
+                    voice.startListening()
+                } else {
+                    withAnimation(.easeOut(duration: 0.2)) { micPressed = false }
+                }
+            }
+        }
     }
 
     // MARK: - Quick Action
@@ -329,7 +316,7 @@ struct MiraChatView: View {
                             sendMessage(voice.transcribedText)
                         }
                     } else {
-                        Task {
+                        Task { @MainActor in
                             let granted = await voice.requestPermissions()
                             if granted {
                                 voice.autoListen = true
