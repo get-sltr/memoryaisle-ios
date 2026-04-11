@@ -61,40 +61,18 @@ struct JourneyProfileView: View {
             }
             .padding(.bottom, 18)
 
-            HStack(spacing: 14) {
-                // Avatar
-                ZStack(alignment: .bottomTrailing) {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.violetDeep.opacity(0.6),
-                                    Theme.Semantic.info(for: scheme).opacity(0.4)
-                                ],
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 68, height: 68)
-                        .overlay(
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 28))
-                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                        )
-                        .accessibilityHidden(true)
+            journeyCard
+        }
+    }
 
-                    Circle()
-                        .fill(Theme.Semantic.info(for: scheme))
-                        .frame(width: 22, height: 22)
-                        .overlay(
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 9))
-                                .foregroundStyle(.white)
-                        )
-                        .offset(x: 2, y: 2)
-                        .accessibilityHidden(true)
-                }
+    // MARK: - Journey Card (avatar + name + journey + badges in one big card)
 
-                VStack(alignment: .leading, spacing: 3) {
+    private var journeyCard: some View {
+        SectionCard {
+            HStack(spacing: 16) {
+                JourneyAvatarButton()
+
+                VStack(alignment: .leading, spacing: 5) {
                     Text(profile?.name.isEmpty == false ? (profile?.name ?? "You") : "You")
                         .font(Typography.titleSmall)
                         .foregroundStyle(Theme.Text.primary)
@@ -121,10 +99,12 @@ struct JourneyProfileView: View {
                             )
                         }
                     }
+                    .padding(.top, 2)
                 }
 
                 Spacer()
             }
+            .padding(18)
         }
     }
 
