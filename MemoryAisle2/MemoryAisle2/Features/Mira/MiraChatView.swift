@@ -24,22 +24,33 @@ struct MiraChatView: View {
     @State private var inputText = ""
     @State private var messages: [MiraMessage] = []
     @State private var isTyping = false
-    // Lazy — don't allocate VoiceManager (and its AVAudioEngine,
-    // SFSpeechRecognizer, etc.) until the user actually taps the mic.
-    // Pre-instantiating these blocks the main thread on first open.
-    @State private var voice: VoiceManager?
     @FocusState private var isInputFocused: Bool
-
-    private func ensureVoice() -> VoiceManager {
-        if let voice { return voice }
-        let new = VoiceManager()
-        voice = new
-        return new
-    }
 
     private var profile: UserProfile? { profiles.first }
     private var todayLog: NutritionLog? {
         logs.first { Calendar.current.isDateInToday($0.date) }
+    }
+
+    private var isOnMedication: Bool {
+        profile?.medication != nil
+    }
+
+    private var quickActions: [(text: String, icon: String)] {
+        if isOnMedication {
+            return [
+                ("What should I eat right now?", "fork.knife"),
+                ("I'm feeling nauseous", "leaf.fill"),
+                ("Generate my grocery list", "cart.fill"),
+                ("How's my protein today?", "chart.bar.fill")
+            ]
+        } else {
+            return [
+                ("What should I eat right now?", "fork.knife"),
+                ("Best pre-workout meal?", "bolt.fill"),
+                ("Generate my grocery list", "cart.fill"),
+                ("How's my protein today?", "chart.bar.fill")
+            ]
+        }
     }
 
     var body: some View {
@@ -57,12 +68,10 @@ struct MiraChatView: View {
                                 messageBubble(message)
                                     .id(message.id)
                             }
-
                             if isTyping {
                                 typingIndicator
                             }
                         }
-
                         Spacer(minLength: 20)
                     }
                     .padding(.horizontal, Theme.Spacing.md)
@@ -82,14 +91,9 @@ struct MiraChatView: View {
         .section(.mira)
         .themeBackground()
         .navigationBarHidden(true)
-        .onDisappear {
-            voice?.stopListening()
-            voice?.stopSpeaking()
-            voice?.autoListen = false
-        }
     }
 
-    // MARK: - Header bar (close button)
+    // MARK: - Header bar
 
     private var headerBar: some View {
         HStack {
@@ -101,46 +105,14 @@ struct MiraChatView: View {
         .padding(.bottom, 4)
     }
 
-    // MARK: - Empty State
-
-    private var isListening: Bool { voice?.isListening ?? false }
-
-    private var miraState: MiraState {
-        isListening ? .thinking : .idle
-    }
-
-    private var isOnMedication: Bool {
-        profile?.medication != nil
-    }
-
-    // Quick-action suggestions shown in the empty state.
-    // GLP-1 users get medication-aware prompts (nausea);
-    // non-medication users get fitness-focused prompts instead.
-    private var quickActions: [(text: String, icon: String)] {
-        if isOnMedication {
-            return [
-                ("What should I eat right now?", "fork.knife"),
-                ("I'm feeling nauseous", "leaf.fill"),
-                ("Generate my grocery list", "cart.fill"),
-                ("How's my protein today?", "chart.bar.fill")
-            ]
-        } else {
-            return [
-                ("What should I eat right now?", "fork.knife"),
-                ("Best pre-workout meal?", "bolt.fill"),
-                ("Generate my grocery list", "cart.fill"),
-                ("How's my protein today?", "chart.bar.fill")
-            ]
-        }
-    }
+    // MARK: - Empty State (no voice — waveform is pure decoration)
 
     private var emptyState: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            // The MiraWaveform IS the mic button.
-            // Tap the logo to start/stop voice conversation.
-            miraButton
+            MiraWaveform(state: .idle, size: .hero)
+                .frame(minHeight: 70)
                 .padding(.bottom, 28)
 
             Text("How can I help?")
@@ -148,15 +120,12 @@ struct MiraChatView: View {
                 .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
-            Text(isListening ? "Listening…" : "Tap Mira to talk, or choose below")
+            Text("Type your question below, or tap a suggestion")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 10)
-                .contentTransition(.opacity)
-                .animation(.easeInOut(duration: 0.2), value: isListening)
 
-            Spacer()
-                .frame(height: 36)
+            Spacer().frame(height: 36)
 
             VStack(spacing: 8) {
                 ForEach(quickActions, id: \.text) { action in
@@ -166,51 +135,6 @@ struct MiraChatView: View {
             .padding(.horizontal, 24)
 
             Spacer()
-        }
-    }
-
-    // MARK: - Mira Button (logo IS the mic)
-
-    private var miraButton: some View {
-        Button {
-            HapticManager.medium()
-            toggleMiraVoice()
-        } label: {
-            MiraWaveform(state: miraState, size: .hero)
-                .frame(minHeight: 70)
-                .padding(.horizontal, 32)
-                .padding(.vertical, 20)
-                .contentShape(Rectangle())
-                .scaleEffect(isListening ? 1.08 : 1.0)
-                .animation(.easeOut(duration: 0.2), value: isListening)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(isListening ? "Stop listening and send" : "Tap Mira to talk")
-    }
-
-    // Press once to start listening. Press again to stop, transcribe,
-    // and send the result as a text message. Mira responds in text.
-    // No TTS, no auto-listen, no conversation loop.
-    private func toggleMiraVoice() {
-        // Lazy-create VoiceManager on first use. Keeps screen-open fast.
-        let v = ensureVoice()
-
-        if v.isListening {
-            v.stopListening()
-            let pending = v.transcribedText.trimmingCharacters(in: .whitespaces)
-            v.transcribedText = ""
-            if !pending.isEmpty {
-                sendMessage(pending)
-            }
-        } else {
-            // @MainActor is required because VoiceManager.startListening
-            // touches AVAudioEngine which asserts main-thread affinity.
-            Task { @MainActor in
-                let granted = await v.requestPermissions()
-                guard granted else { return }
-                v.autoListen = false
-                v.startListening()
-            }
         }
     }
 
@@ -299,7 +223,7 @@ struct MiraChatView: View {
                 MiraWaveform(state: .thinking, size: .hero)
                     .scaleEffect(0.35, anchor: .leading)
                     .frame(width: 30, height: 14)
-                Text("Mira is thinking...")
+                Text("Mira is thinking…")
                     .font(Typography.caption)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
@@ -312,28 +236,11 @@ struct MiraChatView: View {
         }
     }
 
-    // MARK: - Input Bar
+    // MARK: - Input Bar (text-only, no mic)
 
     private var inputBar: some View {
         HStack(spacing: Theme.Spacing.sm) {
-            // Dictation mic — tap to record, tap again to send.
-            // Same one-shot flow as the big Mira button above.
-            Button {
-                HapticManager.medium()
-                toggleMiraVoice()
-            } label: {
-                Image(systemName: isListening ? "waveform" : "mic.fill")
-                    .font(Typography.bodyLarge)
-                    .foregroundStyle(
-                        isListening
-                            ? Theme.Semantic.warning(for: scheme)
-                            : Theme.Accent.primary(for: scheme)
-                    )
-                    .frame(width: 36, height: 36)
-            }
-            .accessibilityLabel(isListening ? "Stop and send" : "Dictate message")
-
-            TextField("Ask Mira...", text: $inputText)
+            TextField("Ask Mira…", text: $inputText)
                 .font(Typography.bodyMedium)
                 .foregroundStyle(Theme.Text.primary)
                 .focused($isInputFocused)
