@@ -3,38 +3,42 @@ import SwiftUI
 struct MainTabView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.colorScheme) private var scheme
-    @State private var showMira = false
-    @State private var showMenu = false
-    @State private var menuDestination: MenuDestination?
+    @State private var activeSheet: MainSheet?
+
+    // Synthetic binding to convert activeSheet into a showMenu binding
+    // so HomeView's menu button still works with its existing API.
+    private var showMenuBinding: Binding<Bool> {
+        Binding(
+            get: { activeSheet == .menu },
+            set: { newValue in
+                if newValue {
+                    activeSheet = .menu
+                } else if activeSheet == .menu {
+                    activeSheet = nil
+                }
+            }
+        )
+    }
 
     var body: some View {
-        ZStack {
-            // Main content is always the grocery list (HomeView)
-            HomeView(showMenu: $showMenu)
-
-            // Floating Mira button - left edge, 1/3 down
-            VStack {
-                Spacer()
-                    .frame(maxHeight: .infinity)
+        HomeView(showMenu: showMenuBinding)
+            .overlay(alignment: .trailing) {
                 MiraFloatingButton {
-                    showMira = true
+                    activeSheet = .mira
                 }
-                .padding(.leading, 6)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                Spacer()
-                Spacer()
+                .padding(.trailing, 16)
             }
-        }
-        .sheet(isPresented: $showMira) {
-            MiraChatView()
-        }
-        .sheet(item: $menuDestination) { dest in
-            destinationView(dest)
-        }
-        .sheet(isPresented: $showMenu) {
-            menuSheet
-        }
-        .ignoresSafeArea(.keyboard)
+            .sheet(item: $activeSheet) { sheet in
+                switch sheet {
+                case .mira:
+                    MiraChatView()
+                case .menu:
+                    menuSheet
+                case .destination(let dest):
+                    destinationView(dest)
+                }
+            }
+            .ignoresSafeArea(.keyboard)
     }
 
     // MARK: - Menu Sheet
@@ -55,52 +59,28 @@ struct MainTabView: View {
                 // Menu items
                 VStack(spacing: 4) {
                     menuRow("My Journey", icon: "person.fill", color: Color.violet) {
-                        showMenu = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            menuDestination = .profile
-                        }
+                        activeSheet = .destination(.profile)
                     }
                     menuRow("Recipes", icon: "book.fill", color: Color(hex: 0xFBBF24)) {
-                        showMenu = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            menuDestination = .recipes
-                        }
+                        activeSheet = .destination(.recipes)
                     }
                     menuRow("Scan", icon: "barcode.viewfinder", color: Color(hex: 0x60A5FA)) {
-                        showMenu = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            menuDestination = .scan
-                        }
+                        activeSheet = .destination(.scan)
                     }
                     menuRow("Smart Calendar", icon: "calendar", color: Color(hex: 0x38BDF8)) {
-                        showMenu = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            menuDestination = .calendar
-                        }
+                        activeSheet = .destination(.calendar)
                     }
                     menuRow("Pantry", icon: "refrigerator.fill", color: Color(hex: 0x4ADE80)) {
-                        showMenu = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            menuDestination = .pantry
-                        }
+                        activeSheet = .destination(.pantry)
                     }
                     menuRow("My Safe Space", icon: "lock.shield.fill", color: Color(hex: 0x6B6B88)) {
-                        showMenu = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            menuDestination = .safeSpace
-                        }
+                        activeSheet = .destination(.safeSpace)
                     }
                     menuRow("Progress", icon: "chart.line.uptrend.xyaxis", color: Color(hex: 0x34D399)) {
-                        showMenu = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            menuDestination = .progress
-                        }
+                        activeSheet = .destination(.progress)
                     }
                     menuRow("Subscribe", icon: "star.fill", color: Color(hex: 0xFBBF24)) {
-                        showMenu = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            menuDestination = .subscribe
-                        }
+                        activeSheet = .destination(.subscribe)
                     }
 
                     Divider()
@@ -108,10 +88,7 @@ struct MainTabView: View {
                         .padding(.vertical, 8)
 
                     menuRow("Settings", icon: "gearshape.fill", color: Theme.Text.tertiary(for: scheme)) {
-                        showMenu = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            menuDestination = .settings
-                        }
+                        activeSheet = .destination(.settings)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -121,11 +98,14 @@ struct MainTabView: View {
             .themeBackground()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        showMenu = false
+                    Button {
+                        activeSheet = nil
+                    } label: {
+                        Text("Done")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(Color.violet)
                     }
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(Color.violet)
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -175,7 +155,21 @@ struct MainTabView: View {
     }
 }
 
-enum MenuDestination: String, Identifiable {
+enum MenuDestination: String, Identifiable, Hashable {
     case profile, recipes, scan, calendar, pantry, safeSpace, progress, subscribe, settings
     var id: String { rawValue }
+}
+
+enum MainSheet: Identifiable, Hashable {
+    case mira
+    case menu
+    case destination(MenuDestination)
+
+    var id: String {
+        switch self {
+        case .mira: "mira"
+        case .menu: "menu"
+        case .destination(let d): "dest-\(d.rawValue)"
+        }
+    }
 }

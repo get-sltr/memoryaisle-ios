@@ -8,15 +8,15 @@ struct UpgradePrompt: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "lock.fill")
-                .font(.system(size: 18))
-                .foregroundStyle(Color.violet.opacity(0.5))
+                .font(Typography.titleSmall)
+                .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.5))
 
             Text("Pro feature")
-                .font(.system(size: 14, weight: .medium))
+                .font(Typography.bodySmallBold)
                 .foregroundStyle(Theme.Text.secondary(for: scheme))
 
             Text(feature)
-                .font(.system(size: 13))
+                .font(Typography.bodySmall)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .multilineTextAlignment(.center)
 
@@ -24,23 +24,24 @@ struct UpgradePrompt: View {
                 showPaywall = true
             } label: {
                 Text("Upgrade")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typography.bodySmallBold)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 8)
                     .background(Color.violetDeep)
                     .clipShape(Capsule())
             }
+            .accessibilityLabel("Upgrade to Pro")
         }
         .padding(20)
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.violet.opacity(0.04))
+                .fill(Theme.Accent.primary(for: scheme).opacity(0.04))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color.violet.opacity(0.1), lineWidth: 0.5)
+                .stroke(Theme.Accent.primary(for: scheme).opacity(0.1), lineWidth: 0.5)
         )
         .sheet(isPresented: $showPaywall) {
             PaywallView()

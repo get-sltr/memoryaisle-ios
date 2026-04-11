@@ -36,8 +36,8 @@ struct WeightTrendChart: View {
                             .font(.system(size: 12, design: .monospaced))
                     }
                     .foregroundStyle(weightChange <= 0
-                        ? Color(hex: 0x34D399)
-                        : Color(hex: 0xFBBF24)
+                        ? Theme.Semantic.onTrack(for: scheme)
+                        : Theme.Semantic.fiber(for: scheme)
                     )
                 }
             }
@@ -106,7 +106,7 @@ struct WeightTrendChart: View {
         VStack(spacing: 8) {
             Image(systemName: "heart.fill")
                 .font(.system(size: 20))
-                .foregroundStyle(Color(hex: 0xF87171).opacity(0.3))
+                .foregroundStyle(Theme.Semantic.warning(for: scheme).opacity(0.3))
 
             Text("Connect HealthKit to see your trend")
                 .font(.system(size: 13))

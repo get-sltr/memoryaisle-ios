@@ -24,7 +24,7 @@ struct DoseTimingScreen: View {
                 .padding(.bottom, 20)
 
             Text("Dose and timing")
-                .font(.system(size: 26, weight: .light, design: .serif))
+                .font(Typography.serifLarge)
                 .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
                 .padding(.bottom, 24)
@@ -34,7 +34,8 @@ struct DoseTimingScreen: View {
                     // Dose input
                     VStack(spacing: 8) {
                         Text("CURRENT DOSE")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(Typography.label)
+                            .fontWeight(.medium)
                             .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .tracking(1.2)
 
@@ -42,7 +43,7 @@ struct DoseTimingScreen: View {
                             get: { profile.doseAmount ?? "" },
                             set: { profile.doseAmount = $0 }
                         ))
-                        .font(.system(size: 17))
+                        .font(Typography.bodyLarge)
                         .foregroundStyle(Theme.Text.primary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 16)
@@ -56,6 +57,7 @@ struct DoseTimingScreen: View {
                                 .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                         )
                         .keyboardType(.decimalPad)
+                        .accessibilityLabel("Current dose")
                     }
 
                     // Modality-specific
@@ -71,7 +73,7 @@ struct DoseTimingScreen: View {
                         Text(modality == .injectable
                             ? "I'll adjust your meals based on where you are in your cycle."
                             : "I'll plan meals around your pill timing for best absorption.")
-                            .font(.system(size: 13))
+                            .font(Typography.bodySmall)
                             .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     }
                 }
@@ -95,7 +97,8 @@ struct DoseTimingScreen: View {
             // Frequency
             VStack(spacing: 8) {
                 Text("HOW OFTEN")
-                    .font(.system(size: 10, weight: .medium))
+                    .font(Typography.label)
+                    .fontWeight(.medium)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(1.2)
 
@@ -108,7 +111,8 @@ struct DoseTimingScreen: View {
             // Injection day(s)
             VStack(spacing: 8) {
                 Text("INJECTION DAY")
-                    .font(.system(size: 10, weight: .medium))
+                    .font(Typography.label)
+                    .fontWeight(.medium)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(1.2)
 
@@ -123,7 +127,8 @@ struct DoseTimingScreen: View {
                             }
                         } label: {
                             Text(label)
-                                .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+                                .font(Typography.caption)
+                                .fontWeight(isSelected ? .semibold : .regular)
                                 .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.tertiary(for: scheme))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
@@ -138,6 +143,8 @@ struct DoseTimingScreen: View {
                                 .shadow(color: isSelected ? Color.violet.opacity(0.15) : .clear, radius: 8)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(label)
+                        .accessibilityAddTraits(isSelected ? .isSelected : [])
                     }
                 }
             }
@@ -154,7 +161,8 @@ struct DoseTimingScreen: View {
             }
         } label: {
             Text(label)
-                .font(.system(size: 14, weight: isSelected ? .medium : .regular))
+                .font(Typography.bodyMedium)
+                .fontWeight(isSelected ? .medium : .regular)
                 .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
@@ -169,6 +177,8 @@ struct DoseTimingScreen: View {
                 .shadow(color: isSelected ? Color.violet.opacity(0.2) : .clear, radius: 12, y: 2)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     // MARK: - Oral
@@ -178,7 +188,8 @@ struct DoseTimingScreen: View {
             // Times per day
             VStack(spacing: 8) {
                 Text("HOW MANY TIMES A DAY")
-                    .font(.system(size: 10, weight: .medium))
+                    .font(Typography.label)
+                    .fontWeight(.medium)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(1.2)
 
@@ -193,14 +204,15 @@ struct DoseTimingScreen: View {
             if modality == .oralWithFasting {
                 VStack(spacing: 8) {
                     Text("WHAT TIME DO YOU TAKE IT")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(Typography.label)
+                        .fontWeight(.medium)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .tracking(1.2)
 
                     DatePicker(
                         "",
                         selection: Binding(
-                            get: { profile.pillTime ?? Calendar.current.date(from: DateComponents(hour: 7))! },
+                            get: { profile.pillTime ?? Calendar.current.date(from: DateComponents(hour: 7)) ?? .now },
                             set: { profile.pillTime = $0 }
                         ),
                         displayedComponents: .hourAndMinute
@@ -212,7 +224,7 @@ struct DoseTimingScreen: View {
                     .clipped()
 
                     Text("Take on empty stomach. Wait 30 minutes before eating.")
-                        .font(.system(size: 13))
+                        .font(Typography.bodySmall)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .multilineTextAlignment(.center)
                 }
@@ -220,21 +232,21 @@ struct DoseTimingScreen: View {
                 // Foundayo - no fasting
                 HStack(spacing: 12) {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color(hex: 0x34D399))
+                        .foregroundStyle(Theme.Semantic.onTrack(for: scheme))
                         .font(.system(size: 18))
 
                     Text("No fasting required. Take with or without food.")
-                        .font(.system(size: 14))
+                        .font(Typography.bodyMedium)
                         .foregroundStyle(Theme.Text.secondary(for: scheme))
                 }
                 .padding(16)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color(hex: 0x34D399).opacity(0.06))
+                        .fill(Theme.Semantic.onTrack(for: scheme).opacity(0.06))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Color(hex: 0x34D399).opacity(0.12), lineWidth: 0.5)
+                        .stroke(Theme.Semantic.onTrack(for: scheme).opacity(0.12), lineWidth: 0.5)
                 )
             }
         }
@@ -250,7 +262,8 @@ struct DoseTimingScreen: View {
             }
         } label: {
             Text(label)
-                .font(.system(size: 13, weight: isSelected ? .medium : .regular))
+                .font(Typography.bodySmall)
+                .fontWeight(isSelected ? .medium : .regular)
                 .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
@@ -265,5 +278,7 @@ struct DoseTimingScreen: View {
                 .shadow(color: isSelected ? Color.violet.opacity(0.2) : .clear, radius: 12, y: 2)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

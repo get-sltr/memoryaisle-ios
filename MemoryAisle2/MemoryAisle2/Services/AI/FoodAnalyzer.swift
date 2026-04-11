@@ -1,9 +1,12 @@
 import Foundation
+import OSLog
 import SwiftData
 
 @MainActor
 final class FoodAnalyzer {
     private let apiClient = MiraAPIClient()
+    private let logger = Logger(subsystem: "com.memoryaisle.app", category: "FoodAnalyzer")
+    private(set) var lastAnalysisError: String?
 
     struct Analysis: Sendable {
         let foodName: String
@@ -94,9 +97,11 @@ final class FoodAnalyzer {
             + "\(nutrition.calories) cal"
         var suggestions: [String] = []
 
-        if let response = try? await apiClient.send(
-            message: prompt, context: context
-        ) {
+        do {
+            let response = try await apiClient.send(
+                message: prompt, context: context
+            )
+            lastAnalysisError = nil
             let parts = response.components(separatedBy: "|")
             if parts.count >= 2 {
                 explanation = parts[1].trimmingCharacters(
@@ -108,6 +113,9 @@ final class FoodAnalyzer {
                     in: .whitespaces
                 )]
             }
+        } catch {
+            lastAnalysisError = error.localizedDescription
+            logger.error("Mira analysis failed: \(error.localizedDescription, privacy: .public)")
         }
 
         return Analysis(

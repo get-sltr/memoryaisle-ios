@@ -7,12 +7,10 @@ struct AppGroupDataProvider {
     static var sharedContainerURL: URL {
         FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: appGroupId
-        ) ?? FileManager.default.urls(
-            for: .documentDirectory, in: .userDomainMask
-        ).first!
+        ) ?? URL.documentsDirectory
     }
 
-    static var sharedModelContainer: ModelContainer {
+    static var sharedModelContainer: ModelContainer? {
         let schema = Schema([
             UserProfile.self,
             NutritionLog.self,
@@ -24,12 +22,12 @@ struct AppGroupDataProvider {
             url: sharedContainerURL.appendingPathComponent("shared.store"),
             allowsSave: false
         )
-        return try! ModelContainer(for: schema, configurations: [config])
+        return try? ModelContainer(for: schema, configurations: [config])
     }
 
     @MainActor
     static func todayNutrition() -> (protein: Double, water: Double) {
-        let container = sharedModelContainer
+        guard let container = sharedModelContainer else { return (0, 0) }
         let context = container.mainContext
         let today = Calendar.current.startOfDay(for: .now)
 
@@ -45,7 +43,7 @@ struct AppGroupDataProvider {
 
     @MainActor
     static func userTargets() -> (protein: Int, water: Double) {
-        let container = sharedModelContainer
+        guard let container = sharedModelContainer else { return (140, 2.5) }
         let context = container.mainContext
         let descriptor = FetchDescriptor<UserProfile>()
         let profile = (try? context.fetch(descriptor))?.first
@@ -57,7 +55,7 @@ struct AppGroupDataProvider {
 
     @MainActor
     static func nextMeal() -> Meal? {
-        let container = sharedModelContainer
+        guard let container = sharedModelContainer else { return nil }
         let context = container.mainContext
         let today = Calendar.current.startOfDay(for: .now)
 

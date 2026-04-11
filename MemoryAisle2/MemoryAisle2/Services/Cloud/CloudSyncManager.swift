@@ -8,6 +8,7 @@ final class CloudSyncManager {
     private(set) var isSyncing = false
     private(set) var lastSyncDate: Date?
     private(set) var syncError: String?
+    private(set) var lastError: String?
 
     // MARK: - Push All Data
 
@@ -91,15 +92,27 @@ final class CloudSyncManager {
 
     func deleteAllCloudData(userId: String) async -> Bool {
         do {
-            var request = URLRequest(url: URL(string: "\(baseURL)/delete-account")!)
+            guard let url = URL(string: "\(baseURL)/delete-account") else {
+                lastError = "Invalid delete endpoint URL"
+                return false
+            }
+            var request = URLRequest(url: url)
             request.httpMethod = "DELETE"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = try JSONSerialization.data(withJSONObject: ["userId": userId])
             request.timeoutInterval = 15
 
             let (_, response) = try await URLSession.shared.data(for: request)
-            return (response as? HTTPURLResponse)?.statusCode == 200
+            let success = (response as? HTTPURLResponse)?.statusCode == 200
+            if success {
+                lastError = nil
+            } else {
+                let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+                lastError = "Delete request failed with status \(code)"
+            }
+            return success
         } catch {
+            lastError = error.localizedDescription
             return false
         }
     }
@@ -107,7 +120,10 @@ final class CloudSyncManager {
     // MARK: - Network
 
     private func push(userId: String, dataType: String, data: Any) async throws {
-        var request = URLRequest(url: URL(string: "\(baseURL)/push")!)
+        guard let url = URL(string: "\(baseURL)/push") else {
+            throw SyncError.pushFailed(dataType)
+        }
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 15
@@ -132,7 +148,8 @@ final class CloudSyncManager {
             urlString += "&dataType=\(dt)"
         }
 
-        var request = URLRequest(url: URL(string: urlString)!)
+        guard let url = URL(string: urlString) else { throw SyncError.pullFailed }
+        var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.timeoutInterval = 15
 

@@ -30,7 +30,7 @@ struct NutritionAPIClient: Sendable {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 15
         config.httpAdditionalHeaders = [
-            "User-Agent": "MemoryAisle/1.0 (iOS; contact: kevin@sltrdigital.com)"
+            "User-Agent": "MemoryAisle/1.0 (iOS; contact: support@memoryaisle.app)"
         ]
         return URLSession(configuration: config)
     }
@@ -38,7 +38,9 @@ struct NutritionAPIClient: Sendable {
     // MARK: - Barcode Lookup
 
     func lookupBarcode(_ barcode: String) async throws -> NutritionData? {
-        let url = URL(string: "\(baseURL)/product/\(barcode).json")!
+        guard let url = URL(string: "\(baseURL)/product/\(barcode).json") else {
+            return nil
+        }
 
         let (data, response) = try await session.data(from: url)
 
@@ -72,7 +74,9 @@ struct NutritionAPIClient: Sendable {
     // MARK: - Text Search
 
     func search(query: String, page: Int = 1) async throws -> [FoodSearchResult] {
-        var components = URLComponents(string: "\(baseURL)/search")!
+        guard var components = URLComponents(string: "\(baseURL)/search") else {
+            return []
+        }
         components.queryItems = [
             URLQueryItem(name: "search_terms", value: query),
             URLQueryItem(name: "page", value: "\(page)"),

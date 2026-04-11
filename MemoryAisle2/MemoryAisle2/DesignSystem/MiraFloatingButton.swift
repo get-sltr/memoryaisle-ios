@@ -9,6 +9,11 @@ struct MiraFloatingButton: View {
             action()
         } label: {
             ZStack {
+                // Invisible fill to make the entire 58x58 area tappable
+                Circle()
+                    .fill(Color.black.opacity(0.001))
+                    .frame(width: 58, height: 58)
+
                 Circle()
                     .stroke(
                         AngularGradient(
@@ -48,8 +53,11 @@ struct MiraFloatingButton: View {
                         .frame(width: 2.5, height: 8)
                 }
             }
+            .frame(width: 58, height: 58)
+            .contentShape(Circle())
             .shadow(color: Color(hex: 0xA78BFA).opacity(0.3), radius: 12, y: 4)
         }
+        .buttonStyle(.plain)
         .accessibilityLabel("Open Mira assistant")
     }
 }

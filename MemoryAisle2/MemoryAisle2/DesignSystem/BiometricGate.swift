@@ -63,6 +63,7 @@ struct BiometricGate<Content: View>: View {
                     Text("Unlock")
                         .font(.system(size: 15, weight: .semibold))
                 }
+                .accessibilityLabel("Unlock with biometrics")
                 .foregroundStyle(.white)
                 .padding(.horizontal, 28)
                 .padding(.vertical, 12)

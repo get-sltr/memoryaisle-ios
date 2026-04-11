@@ -10,9 +10,6 @@ struct SafeSpaceView: View {
     @State private var showingEntry = false
     @FocusState private var isWriting: Bool
 
-    // Ultra dark - darker than the rest of the app
-    private let bgColor = Color(hex: 0x09090F)
-
     var body: some View {
         Group {
             if isUnlocked {
@@ -29,44 +26,45 @@ struct SafeSpaceView: View {
     // MARK: - Lock Screen
 
     private var lockScreen: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: Theme.Spacing.lg) {
             Spacer()
 
             Image(systemName: "lock.shield.fill")
                 .font(.system(size: 56))
-                .foregroundStyle(Color(hex: 0x3A3A50))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
             Text("My Safe Space")
-                .font(.system(size: 24, weight: .light, design: .serif))
-                .foregroundStyle(Color(hex: 0x6B6B88))
+                .font(Typography.serifMedium)
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
 
             Text("Face ID required")
-                .font(.system(size: 13))
-                .foregroundStyle(Color(hex: 0x3A3A50))
+                .font(Typography.bodySmall)
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
             Spacer()
 
             Button {
                 authenticate()
             } label: {
-                HStack(spacing: 8) {
+                HStack(spacing: Theme.Spacing.sm) {
                     Image(systemName: "faceid")
-                        .font(.system(size: 16))
+                        .font(Typography.bodyLarge)
                     Text("Unlock")
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typography.bodyMediumBold)
                 }
-                .foregroundStyle(Color(hex: 0x6B6B88))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
                 .padding(.horizontal, 28)
                 .padding(.vertical, 14)
-                .background(Color(hex: 0x12121E))
+                .background(Theme.Surface.strong(for: scheme))
                 .clipShape(Capsule())
             }
+            .accessibilityLabel("Unlock with Face ID")
 
             Spacer()
                 .frame(height: 60)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(bgColor.ignoresSafeArea())
+        .themeBackground()
     }
 
     // MARK: - Journal View
@@ -77,16 +75,18 @@ struct SafeSpaceView: View {
             HStack {
                 Button { dismiss() } label: {
                     Image(systemName: "arrow.left")
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color(hex: 0x3A3A50))
+                        .font(Typography.bodyLarge)
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                        .frame(width: 44, height: 44)
                 }
+                .accessibilityLabel("Go back")
                 Spacer()
                 Image(systemName: "lock.fill")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Color(hex: 0x3A3A50))
+                    .font(Typography.bodyMedium)
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
             .padding(.horizontal, 20)
-            .padding(.top, 16)
+            .padding(.top, Theme.Spacing.md)
             .padding(.bottom, 20)
 
             if showingEntry {
@@ -100,7 +100,7 @@ struct SafeSpaceView: View {
                 entryList
             }
         }
-        .background(bgColor.ignoresSafeArea())
+        .themeBackground()
         .onAppear { loadEntries() }
     }
 
@@ -111,29 +111,30 @@ struct SafeSpaceView: View {
             Spacer()
 
             Text("A safe space")
-                .font(.system(size: 22, weight: .light))
-                .foregroundStyle(Color(hex: 0x6B6B88))
+                .font(Typography.displaySmall)
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
             Text("to let it all out.")
-                .font(.system(size: 22, weight: .light))
-                .foregroundStyle(Color(hex: 0x6B6B88))
+                .font(Typography.displaySmall)
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
                 .padding(.bottom, 40)
 
             Button {
                 showingEntry = true
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 20))
-                    .foregroundStyle(Color(hex: 0x6B6B88))
+                    .font(Typography.titleMedium)
+                    .foregroundStyle(Theme.Text.secondary(for: scheme))
                     .frame(width: 56, height: 56)
-                    .background(Color(hex: 0x12121E))
+                    .background(Theme.Surface.strong(for: scheme))
                     .clipShape(Circle())
             }
+            .accessibilityLabel("New journal entry")
 
             Spacer()
 
             privacyFooter
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, Theme.Spacing.lg)
     }
 
     // MARK: - Write View
@@ -141,17 +142,17 @@ struct SafeSpaceView: View {
     private var writeView: some View {
         VStack(spacing: 0) {
             Text("A safe space")
-                .font(.system(size: 22, weight: .light))
-                .foregroundStyle(Color(hex: 0x6B6B88))
-                .padding(.bottom, 4)
+                .font(Typography.displaySmall)
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .padding(.bottom, Theme.Spacing.xs)
             Text("to let it all out.")
-                .font(.system(size: 22, weight: .light))
-                .foregroundStyle(Color(hex: 0x6B6B88))
-                .padding(.bottom, 24)
+                .font(Typography.displaySmall)
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .padding(.bottom, Theme.Spacing.lg)
 
             TextEditor(text: $entryText)
-                .font(.system(size: 14))
-                .foregroundStyle(Color(hex: 0xE8E8F0))
+                .font(Typography.bodyMedium)
+                .foregroundStyle(Theme.Text.primary)
                 .scrollContentBackground(.hidden)
                 .focused($isWriting)
                 .frame(maxHeight: .infinity)
@@ -161,7 +162,7 @@ struct SafeSpaceView: View {
             // Bottom bar
             VStack(spacing: 10) {
                 Rectangle()
-                    .fill(Color(hex: 0x151520))
+                    .fill(Theme.Border.glass(for: scheme))
                     .frame(height: 1)
 
                 privacyFooter
@@ -170,21 +171,21 @@ struct SafeSpaceView: View {
                     // Mic and camera buttons (future)
                     HStack(spacing: 12) {
                         Circle()
-                            .fill(Color(hex: 0x12121E))
-                            .frame(width: 36, height: 36)
+                            .fill(Theme.Surface.strong(for: scheme))
+                            .frame(width: 44, height: 44)
                             .overlay(
                                 Image(systemName: "mic.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(Color(hex: 0x6B6B88))
+                                    .font(Typography.bodyMedium)
+                                    .foregroundStyle(Theme.Text.secondary(for: scheme))
                             )
 
                         Circle()
-                            .fill(Color(hex: 0x12121E))
-                            .frame(width: 36, height: 36)
+                            .fill(Theme.Surface.strong(for: scheme))
+                            .frame(width: 44, height: 44)
                             .overlay(
                                 Image(systemName: "camera.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(Color(hex: 0x6B6B88))
+                                    .font(Typography.bodyMedium)
+                                    .foregroundStyle(Theme.Text.secondary(for: scheme))
                             )
                     }
 
@@ -192,8 +193,8 @@ struct SafeSpaceView: View {
 
                     // Date
                     Text(Date.now.formatted(.dateTime.month(.wide).day().year()))
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color(hex: 0x2A2A3A))
+                        .font(Typography.label)
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
                     Spacer()
 
@@ -203,13 +204,16 @@ struct SafeSpaceView: View {
                             saveEntry()
                         } label: {
                             Text("Save")
-                                .font(.system(size: 13, weight: .medium))
+                                .font(Typography.bodySmallBold)
                                 .foregroundStyle(Color.violet)
+                                .padding(.horizontal, Theme.Spacing.md)
+                                .frame(minHeight: 44)
                         }
+                        .accessibilityLabel("Save journal entry")
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 16)
+                .padding(.bottom, Theme.Spacing.md)
             }
         }
     }
@@ -223,18 +227,22 @@ struct SafeSpaceView: View {
                     ForEach(entries) { entry in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(entry.date.formatted(.dateTime.month(.abbreviated).day().year()))
-                                .font(.system(size: 10))
-                                .foregroundStyle(Color(hex: 0x3A3A50))
+                                .font(Typography.label)
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
                             Text(entry.text)
-                                .font(.system(size: 14))
-                                .foregroundStyle(Color(hex: 0x6B6B88))
+                                .font(Typography.bodyMedium)
+                                .foregroundStyle(Theme.Text.secondary(for: scheme))
                                 .lineLimit(3)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(14)
-                        .background(Color(hex: 0x0E0E18))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .background(Theme.Surface.glass(for: scheme))
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.md))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Theme.Radius.md)
+                                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+                        )
                     }
                 }
                 .padding(.horizontal, 20)
@@ -250,18 +258,19 @@ struct SafeSpaceView: View {
                     showingEntry = true
                 } label: {
                     Image(systemName: "plus")
-                        .font(.system(size: 18))
+                        .font(Typography.bodyLarge)
                         .foregroundStyle(.white)
                         .frame(width: 50, height: 50)
                         .background(Color.violet.opacity(0.3))
                         .clipShape(Circle())
                 }
+                .accessibilityLabel("New journal entry")
                 .padding(.trailing, 20)
                 .padding(.bottom, 20)
             }
 
             privacyFooter
-                .padding(.bottom, 16)
+                .padding(.bottom, Theme.Spacing.md)
         }
     }
 
@@ -272,9 +281,9 @@ struct SafeSpaceView: View {
             Image(systemName: "lock.fill")
                 .font(.system(size: 9))
             Text("Face ID protected. Stored only on this device. No one can see this. Not even us.")
-                .font(.system(size: 10))
+                .font(Typography.label)
         }
-        .foregroundStyle(Color(hex: 0x2A2A3A))
+        .foregroundStyle(Theme.Text.tertiary(for: scheme))
         .padding(.horizontal, 20)
     }
 
@@ -305,12 +314,15 @@ struct SafeSpaceView: View {
 
     // MARK: - Local Storage (on-device ONLY, no SwiftData, no sync)
 
-    private var storageURL: URL {
-        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    private var storageURL: URL? {
+        guard let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return nil
+        }
         return docs.appendingPathComponent(".safespace.json")
     }
 
     private func loadEntries() {
+        guard let storageURL else { return }
         guard FileManager.default.fileExists(atPath: storageURL.path) else { return }
         guard let data = try? Data(contentsOf: storageURL) else { return }
         entries = (try? JSONDecoder().decode([SafeSpaceEntry].self, from: data)) ?? []
@@ -322,7 +334,7 @@ struct SafeSpaceView: View {
         entryText = ""
         showingEntry = false
 
-        if let data = try? JSONEncoder().encode(entries) {
+        if let storageURL, let data = try? JSONEncoder().encode(entries) {
             try? data.write(to: storageURL, options: [.atomic, .completeFileProtection])
         }
 

@@ -34,12 +34,12 @@ struct BodyStatsScreen: View {
                 .padding(.bottom, 32)
 
             Text("How old are you?")
-                .font(.system(size: 28, weight: .light, design: .serif))
+                .font(Typography.serifLarge)
                 .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
             Text("This helps personalize your targets")
-                .font(.system(size: 13))
+                .font(Typography.bodySmall)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 8)
 
@@ -63,6 +63,7 @@ struct BodyStatsScreen: View {
             )
             .padding(.horizontal, 60)
             .padding(.top, 40)
+            .accessibilityLabel("Age")
 
             Spacer()
 
@@ -81,7 +82,7 @@ struct BodyStatsScreen: View {
                 .padding(.bottom, 24)
 
             Text("About you")
-                .font(.system(size: 28, weight: .light, design: .serif))
+                .font(Typography.serifLarge)
                 .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
                 .padding(.bottom, 24)
@@ -123,12 +124,12 @@ struct BodyStatsScreen: View {
                 .padding(.bottom, 32)
 
             Text("Height and weight")
-                .font(.system(size: 28, weight: .light, design: .serif))
+                .font(Typography.serifLarge)
                 .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
             Text("Used to calculate your protein target")
-                .font(.system(size: 13))
+                .font(Typography.bodySmall)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 8)
                 .padding(.bottom, 32)
@@ -193,9 +194,10 @@ struct BodyStatsScreen: View {
                 action()
             } label: {
                 Text("Skip for now")
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
+            .accessibilityLabel("Skip for now")
         }
         .padding(.horizontal, 32)
         .padding(.bottom, 50)
@@ -204,13 +206,14 @@ struct BodyStatsScreen: View {
     private func statField(_ label: String, value: Binding<String>, placeholder: String, keyboard: UIKeyboardType) -> some View {
         VStack(spacing: 6) {
             Text(label)
-                .font(.system(size: 10, weight: .medium))
+                .font(Typography.label)
+                .fontWeight(.medium)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             TextField(placeholder, text: value)
-                .font(.system(size: 17))
+                .font(Typography.bodyLarge)
                 .foregroundStyle(Theme.Text.primary)
                 .multilineTextAlignment(.center)
                 .keyboardType(keyboard)
@@ -224,6 +227,7 @@ struct BodyStatsScreen: View {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                 )
+                .accessibilityLabel(label)
         }
     }
 
@@ -231,7 +235,8 @@ struct BodyStatsScreen: View {
     private func selectionField(_ label: String, @ViewBuilder content: () -> some View) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
-                .font(.system(size: 10, weight: .medium))
+                .font(Typography.label)
+                .fontWeight(.medium)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
 
@@ -247,21 +252,24 @@ struct BodyStatsScreen: View {
             withAnimation(.easeOut(duration: 0.12)) { action() }
         } label: {
             Text(text)
-                .font(.system(size: 13, weight: isSelected ? .medium : .regular))
+                .font(Typography.bodySmall)
+                .fontWeight(isSelected ? .medium : .regular)
                 .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 9)
                 .background(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(isSelected ? Color(hex: 0xA78BFA).opacity(0.18) : Theme.Surface.glass(for: scheme))
+                        .fill(isSelected ? Color.violet.opacity(0.18) : Theme.Surface.glass(for: scheme))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(isSelected ? Color(hex: 0xA78BFA).opacity(0.4) : .clear, lineWidth: 0.5)
+                        .stroke(isSelected ? Color.violet.opacity(0.4) : .clear, lineWidth: 0.5)
                 )
-                .shadow(color: isSelected ? Color(hex: 0xA78BFA).opacity(0.15) : .clear, radius: 8)
+                .shadow(color: isSelected ? Color.violet.opacity(0.15) : .clear, radius: 8)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(text)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

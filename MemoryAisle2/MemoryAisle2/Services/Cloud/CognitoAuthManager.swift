@@ -1,5 +1,5 @@
-import CryptoKit
 import Foundation
+import Security
 
 @Observable
 final class CognitoAuthManager {
@@ -116,8 +116,19 @@ final class CognitoAuthManager {
     // MARK: - Restore Session
 
     func restoreSession() async {
-        guard let savedEmail = UserDefaults.standard.string(forKey: "ma_email"),
-              let savedToken = UserDefaults.standard.string(forKey: "ma_token") else { return }
+        var savedEmail = readFromKeychain(key: "ma_email")
+        var savedToken = readFromKeychain(key: "ma_token")
+
+        // Migrate from UserDefaults if Keychain is empty
+        if savedEmail == nil, let udEmail = UserDefaults.standard.string(forKey: "ma_email") {
+            savedEmail = udEmail
+            savedToken = UserDefaults.standard.string(forKey: "ma_token")
+            saveSession(email: savedEmail, token: savedToken)
+            UserDefaults.standard.removeObject(forKey: "ma_email")
+            UserDefaults.standard.removeObject(forKey: "ma_token")
+        }
+
+        guard let savedEmail, let savedToken else { return }
 
         email = savedEmail
         accessToken = savedToken
@@ -154,7 +165,8 @@ final class CognitoAuthManager {
     // MARK: - Network
 
     private func cognitoRequest(action: String, body: [String: Any]) async throws -> Data {
-        var request = URLRequest(url: URL(string: baseURL)!)
+        guard let url = URL(string: baseURL) else { throw AuthError.networkError }
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/x-amz-json-1.1", forHTTPHeaderField: "Content-Type")
         request.setValue(action, forHTTPHeaderField: "X-Amz-Target")
@@ -178,16 +190,57 @@ final class CognitoAuthManager {
         return data
     }
 
-    // MARK: - Session Persistence
+    // MARK: - Session Persistence (Keychain)
+
+    private let keychainService = "com.sltrdigital.memoryaisle"
 
     private func saveSession(email: String?, token: String?) {
-        UserDefaults.standard.set(email, forKey: "ma_email")
-        UserDefaults.standard.set(token, forKey: "ma_token")
+        if let email { saveToKeychain(key: "ma_email", value: email) }
+        if let token { saveToKeychain(key: "ma_token", value: token) }
     }
 
     private func clearSession() {
+        deleteFromKeychain(key: "ma_email")
+        deleteFromKeychain(key: "ma_token")
         UserDefaults.standard.removeObject(forKey: "ma_email")
         UserDefaults.standard.removeObject(forKey: "ma_token")
+    }
+
+    private func saveToKeychain(key: String, value: String) {
+        let data = Data(value.utf8)
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: key
+        ]
+        SecItemDelete(query as CFDictionary)
+        var addQuery = query
+        addQuery[kSecValueData as String] = data
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        SecItemAdd(addQuery as CFDictionary, nil)
+    }
+
+    private func readFromKeychain(key: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private func deleteFromKeychain(key: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: key
+        ]
+        SecItemDelete(query as CFDictionary)
     }
 
     private func parseError(_ error: Error) -> String {
