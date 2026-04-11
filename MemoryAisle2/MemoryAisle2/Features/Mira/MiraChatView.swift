@@ -104,6 +104,31 @@ struct MiraChatView: View {
         return micPressed ? .speaking : .idle
     }
 
+    private var isOnMedication: Bool {
+        profile?.medication != nil
+    }
+
+    // Quick-action suggestions shown in the empty state.
+    // GLP-1 users get medication-aware prompts (nausea);
+    // non-medication users get fitness-focused prompts instead.
+    private var quickActions: [(text: String, icon: String)] {
+        if isOnMedication {
+            return [
+                ("What should I eat right now?", "fork.knife"),
+                ("I'm feeling nauseous", "leaf.fill"),
+                ("Generate my grocery list", "cart.fill"),
+                ("How's my protein today?", "chart.bar.fill")
+            ]
+        } else {
+            return [
+                ("What should I eat right now?", "fork.knife"),
+                ("Best pre-workout meal?", "bolt.fill"),
+                ("Generate my grocery list", "cart.fill"),
+                ("How's my protein today?", "chart.bar.fill")
+            ]
+        }
+    }
+
     private var emptyState: some View {
         VStack(spacing: 0) {
             Spacer()
@@ -129,10 +154,9 @@ struct MiraChatView: View {
                 .frame(height: 36)
 
             VStack(spacing: 8) {
-                quickAction("What should I eat right now?", icon: "fork.knife")
-                quickAction("I'm feeling nauseous", icon: "leaf.fill")
-                quickAction("Generate my grocery list", icon: "cart.fill")
-                quickAction("How's my protein today?", icon: "chart.bar.fill")
+                ForEach(quickActions, id: \.text) { action in
+                    quickAction(action.text, icon: action.icon)
+                }
             }
             .padding(.horizontal, 24)
 
