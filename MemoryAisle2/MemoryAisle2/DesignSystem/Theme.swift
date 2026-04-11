@@ -17,22 +17,47 @@ enum Theme {
         static let strong = Color.violet.opacity(0.07)
         static let pressed = Color.violet.opacity(0.12)
 
+        // Backward-compatible (violet only) — existing call sites keep working.
         static func glass(for scheme: ColorScheme) -> Color {
-            scheme == .dark
-                ? Color.violet.opacity(0.04)
-                : Color.lavender.opacity(0.12)
+            glass(section: .home, for: scheme)
         }
 
         static func strong(for scheme: ColorScheme) -> Color {
-            scheme == .dark
-                ? Color.violet.opacity(0.07)
-                : Color.lavender.opacity(0.18)
+            strong(section: .home, for: scheme)
         }
 
         static func pressed(for scheme: ColorScheme) -> Color {
-            scheme == .dark
-                ? Color.violet.opacity(0.12)
-                : Color.lavender.opacity(0.25)
+            pressed(section: .home, for: scheme)
+        }
+
+        // Pastel tinted glass for list rows and secondary cards.
+        static func glass(section: SectionID, for scheme: ColorScheme) -> Color {
+            let base = SectionPalette.primary(section, for: scheme)
+            return scheme == .dark ? base.opacity(0.08) : base.opacity(0.10)
+        }
+
+        static func strong(section: SectionID, for scheme: ColorScheme) -> Color {
+            let base = SectionPalette.primary(section, for: scheme)
+            return scheme == .dark ? base.opacity(0.14) : base.opacity(0.18)
+        }
+
+        static func pressed(section: SectionID, for scheme: ColorScheme) -> Color {
+            let base = SectionPalette.primary(section, for: scheme)
+            return scheme == .dark ? base.opacity(0.22) : base.opacity(0.28)
+        }
+
+        // Bold tile glow — RadialGradient for StatTile backgrounds.
+        static func tile(section: SectionID, for scheme: ColorScheme) -> RadialGradient {
+            let hue = SectionPalette.primary(section, for: scheme)
+            return RadialGradient(
+                colors: [
+                    hue.opacity(0.55),
+                    hue.opacity(0.0)
+                ],
+                center: .topTrailing,
+                startRadius: 0,
+                endRadius: 260
+            )
         }
     }
 
