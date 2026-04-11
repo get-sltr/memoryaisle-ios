@@ -6,6 +6,10 @@ struct PhotoCheckInView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
+    @State private var cameraImageData: Data?
+    @State private var showSourceChoice = false
+    @State private var showCamera = false
+    @State private var showLibraryPicker = false
     @State private var weight = ""
     @State private var saved = false
 
@@ -60,7 +64,10 @@ struct PhotoCheckInView: View {
 
                     let currentPhotoData = photoData
                     let textTertiary = Theme.Text.tertiary(for: scheme)
-                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                    Button {
+                        HapticManager.light()
+                        showSourceChoice = true
+                    } label: {
                         if let currentPhotoData, let uiImage = UIImage(data: currentPhotoData) {
                             Image(uiImage: uiImage)
                                 .resizable()
@@ -80,14 +87,46 @@ struct PhotoCheckInView: View {
                                     .foregroundStyle(textTertiary)
                             }
                             .frame(width: 160, height: 220)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill(Theme.Surface.glass(for: scheme))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+                            )
                         }
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(currentPhotoData == nil ? "Add progress photo" : "Change progress photo")
+                    .confirmationDialog(
+                        "Progress Photo",
+                        isPresented: $showSourceChoice,
+                        titleVisibility: .visible
+                    ) {
+                        Button("Take Photo") { showCamera = true }
+                        Button("Choose from Library") { showLibraryPicker = true }
+                        Button("Cancel", role: .cancel) {}
+                    }
+                    .fullScreenCover(isPresented: $showCamera) {
+                        CameraPicker(imageData: $cameraImageData)
+                            .ignoresSafeArea()
+                    }
+                    .photosPicker(
+                        isPresented: $showLibraryPicker,
+                        selection: $selectedPhoto,
+                        matching: .images
+                    )
                     .onChange(of: selectedPhoto) { _, newValue in
                         guard let newValue else { return }
                         Task { @MainActor in
                             photoData = try? await newValue.loadTransferable(type: Data.self)
                         }
+                    }
+                    .onChange(of: cameraImageData) { _, newValue in
+                        guard let newValue else { return }
+                        photoData = newValue
+                        cameraImageData = nil
                     }
 
                     // Privacy notice
