@@ -18,53 +18,44 @@ struct PantryView: View {
         }
     }
 
+    private var heroSubtitle: String {
+        let count = items.count
+        let cats = grouped.count
+        if count == 0 { return "Empty — let's stock it up" }
+        let itemWord = count == 1 ? "item" : "items"
+        let catWord = cats == 1 ? "category" : "categories"
+        return "\(count) \(itemWord) · \(cats) \(catWord)"
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.violet.opacity(0.6))
-                }
-
-                Spacer()
-
-                Text("My Pantry")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(Theme.Text.primary)
-
-                Spacer()
-
-                Button {
-                    showAddItem = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(Color.violet)
-                        
-                        .background(Circle().fill(Color.violet.opacity(0.1)))
+            HeroHeader(title: "Pantry", subtitle: heroSubtitle) {
+                HStack(spacing: 8) {
+                    IconButton(
+                        systemName: "plus",
+                        accessibilityLabel: "Add pantry item"
+                    ) {
+                        showAddItem = true
+                    }
+                    CloseButton(action: { dismiss() })
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
 
             if items.isEmpty {
                 emptyState
             } else {
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 16) {
+                    LazyVStack(spacing: 20) {
                         ForEach(grouped, id: \.0) { category, categoryItems in
                             categorySection(category, items: categoryItems)
                         }
                         Spacer(minLength: 40)
                     }
-                    .padding(.top, 16)
+                    .padding(.top, 20)
                 }
             }
         }
+        .section(.pantry)
         .themeBackground()
         .alert("Add Item", isPresented: $showAddItem) {
             TextField("Item name", text: $newItemName)
@@ -83,15 +74,15 @@ struct PantryView: View {
         VStack(spacing: 16) {
             Spacer()
             Image(systemName: "refrigerator.fill")
-                .font(.system(size: 36))
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                .font(Typography.displayLarge)
+                .foregroundStyle(SectionPalette.primary(.pantry, for: scheme).opacity(0.35))
 
             Text("Your pantry is empty")
-                .font(.system(size: 16, weight: .medium))
+                .font(Typography.bodyLargeBold)
                 .foregroundStyle(Theme.Text.secondary(for: scheme))
 
             Text("Scan barcodes or add items manually.\nMira uses your pantry to suggest meals.")
-                .font(.system(size: 13))
+                .font(Typography.bodySmall)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .multilineTextAlignment(.center)
 
@@ -106,56 +97,64 @@ struct PantryView: View {
     }
 
     private func categorySection(_ category: PantryCategory, items: [PantryItem]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                RoundedRectangle(cornerRadius: 1, style: .continuous)
+                    .fill(SectionPalette.primary(.pantry, for: scheme))
+                    .frame(width: 2, height: 14)
                 Image(systemName: category.icon)
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.violet.opacity(0.6))
+                    .font(Typography.caption)
+                    .foregroundStyle(SectionPalette.primary(.pantry, for: scheme))
                 Text(category.rawValue.uppercased())
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    .font(Typography.label)
+                    .foregroundStyle(SectionPalette.soft(.pantry))
                     .tracking(1.2)
             }
             .padding(.horizontal, 20)
 
-            ForEach(items) { item in
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.name)
-                            .font(.system(size: 15))
-                            .foregroundStyle(Theme.Text.primary)
-                        if !item.brand.isEmpty {
-                            Text(item.brand)
-                                .font(.system(size: 11))
-                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                        }
+            VStack(spacing: 8) {
+                ForEach(items) { item in
+                    SectionCard {
+                        itemRow(item)
                     }
-
-                    Spacer()
-
-                    if item.proteinPer100g > 0 {
-                        Text("\(Int(item.proteinPer100g))g")
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundStyle(Color.violet.opacity(0.6))
-                    }
-
-                    Button {
-                        modelContext.delete(item)
-                        HapticManager.light()
-                    } label: {
-                        Image(systemName: "minus.circle")
-                            .font(.system(size: 16))
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                    }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Theme.Surface.glass(for: scheme))
-                )
-                .padding(.horizontal, 16)
             }
         }
+    }
+
+    private func itemRow(_ item: PantryItem) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.name)
+                    .font(Typography.bodyMedium)
+                    .foregroundStyle(Theme.Text.primary)
+                if !item.brand.isEmpty {
+                    Text(item.brand)
+                        .font(Typography.caption)
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                }
+            }
+
+            Spacer()
+
+            if item.proteinPer100g > 0 {
+                Text("\(Int(item.proteinPer100g))g")
+                    .font(Typography.monoSmall)
+                    .foregroundStyle(SectionPalette.primary(.pantry, for: scheme))
+            }
+
+            Button {
+                modelContext.delete(item)
+                HapticManager.light()
+            } label: {
+                Image(systemName: "minus.circle")
+                    .font(Typography.bodyLarge)
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+            }
+            .accessibilityLabel("Remove \(item.name)")
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
     }
 }
