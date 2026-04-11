@@ -22,11 +22,20 @@ enum ScanVerdict {
         }
     }
 
-    var color: Color {
+    func color(for scheme: ColorScheme) -> Color {
         switch self {
-        case .good: Color(hex: 0x34D399)
-        case .okay: Color(hex: 0xFBBF24)
-        case .skip: Color(hex: 0xF87171)
+        case .good: Theme.Semantic.onTrack(for: scheme)
+        case .okay: Theme.Semantic.fiber(for: scheme)
+        case .skip: Theme.Semantic.warning(for: scheme)
+        }
+    }
+
+    // Maps verdict to a SectionID so HeroHeader can use its mesh gradient.
+    var heroSection: SectionID {
+        switch self {
+        case .good: .pantry    // emerald
+        case .okay: .recipes   // amber
+        case .skip: .calendar  // rose
         }
     }
 }
@@ -54,119 +63,68 @@ struct ScanResultView: View {
     @Environment(\.modelContext) private var modelContext
     let product: ScannedProduct
 
+    private var subtitle: String {
+        product.brand.isEmpty ? product.name : "\(product.name) · \(product.brand)"
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            // Close
-            HStack {
-                Spacer()
-                Button {
-                    HapticManager.light()
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.violet.opacity(0.6))
-                }
+            HeroHeader(
+                title: product.verdict.title,
+                subtitle: subtitle
+            ) {
+                CloseButton(action: { dismiss() })
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 12)
+            .section(product.verdict.heroSection)
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
-                    // Verdict
-                    VStack(spacing: 12) {
-                        Image(systemName: product.verdict.icon)
-                            .font(.system(size: 44))
-                            .foregroundStyle(product.verdict.color)
+                    Text(product.servingSize)
+                        .font(Typography.caption)
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                        .padding(.top, 14)
 
-                        Text(product.verdict.title)
-                            .font(.system(size: 24, weight: .light, design: .serif))
-                            .foregroundStyle(Theme.Text.primary)
-                            .tracking(0.3)
-                    }
-                    .padding(.top, 12)
-
-                    // Product info
-                    VStack(spacing: 4) {
-                        Text(product.name)
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundStyle(Theme.Text.primary)
-                            .multilineTextAlignment(.center)
-
-                        Text(product.brand)
-                            .font(.system(size: 13))
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-
-                        Text(product.servingSize)
-                            .font(.system(size: 12))
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                    }
-
-                    // Reason
                     Text(product.reason)
-                        .font(.system(size: 15))
+                        .font(Typography.bodyMedium)
                         .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
+                        .padding(.horizontal, 28)
 
-                    // Nausea warning
                     if product.nauseaRisk {
-                        HStack(spacing: 8) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(size: 14))
-                                .foregroundStyle(Color(hex: 0xFBBF24))
-
-                            Text("May trigger nausea. High fat slows gastric emptying.")
-                                .font(.system(size: 13))
-                                .foregroundStyle(Color(hex: 0xFBBF24).opacity(0.7))
-                        }
-                        .padding(12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(Color(hex: 0xFBBF24).opacity(0.06))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(Color(hex: 0xFBBF24).opacity(0.12), lineWidth: 0.5)
-                        )
-                        .padding(.horizontal, 20)
+                        nauseaWarning
                     }
 
-                    // Macros grid
-                    VStack(spacing: 0) {
-                        Text("NUTRITION")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                            .tracking(1.2)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.bottom, 12)
-
-                        LazyVGrid(columns: [
-                            GridItem(.flexible()),
-                            GridItem(.flexible()),
-                            GridItem(.flexible())
-                        ], spacing: 12) {
-                            nutrientCell("Protein", "\(product.protein)g", Color.violet)
-                            nutrientCell("Calories", "\(product.calories)", Theme.Text.secondary(for: scheme))
-                            nutrientCell("Fat", "\(product.fat)g", Theme.Text.tertiary(for: scheme))
-                            nutrientCell("Carbs", "\(product.carbs)g", Theme.Text.tertiary(for: scheme))
-                            nutrientCell("Fiber", "\(product.fiber)g", Color(hex: 0xFBBF24))
-                            nutrientCell("Sodium", "\(product.sodium)mg", Theme.Text.tertiary(for: scheme))
-                        }
+                    HStack(spacing: 10) {
+                        StatTile(label: "Protein", value: "\(product.protein)g")
+                        StatTile(label: "Calories", value: "\(product.calories)")
+                        StatTile(label: "Fiber", value: "\(product.fiber)g")
                     }
-                    .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Theme.Surface.glass(for: scheme))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
-                    )
                     .padding(.horizontal, 20)
 
-                    // Actions
-                    GlowButton("Add to pantry") {
+                    SectionCard {
+                        VStack(spacing: 0) {
+                            Text("DETAILS")
+                                .font(Typography.label)
+                                .foregroundStyle(SectionPalette.soft(.scanner))
+                                .tracking(1.2)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 16)
+                                .padding(.top, 14)
+                                .padding(.bottom, 8)
+
+                            HStack(spacing: 0) {
+                                detailCell("Fat", "\(product.fat)g")
+                                Divider().frame(height: 28).opacity(0.15)
+                                detailCell("Carbs", "\(product.carbs)g")
+                                Divider().frame(height: 28).opacity(0.15)
+                                detailCell("Sodium", "\(product.sodium)mg")
+                            }
+                            .padding(.vertical, 12)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+
+                    GlowButton("Add to pantry", icon: "plus") {
                         addToPantry()
                         HapticManager.success()
                         dismiss()
@@ -177,7 +135,7 @@ struct ScanResultView: View {
                         dismiss()
                     } label: {
                         Text("Scan another")
-                            .font(.system(size: 15))
+                            .font(Typography.bodyMedium)
                             .foregroundStyle(Theme.Text.secondary(for: scheme))
                     }
 
@@ -185,7 +143,42 @@ struct ScanResultView: View {
                 }
             }
         }
+        .section(.scanner)
         .themeBackground()
+    }
+
+    private var nauseaWarning: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.Semantic.fiber(for: scheme))
+
+            Text("May trigger nausea. High fat slows gastric emptying.")
+                .font(Typography.bodySmall)
+                .foregroundStyle(Theme.Semantic.fiber(for: scheme).opacity(0.85))
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Theme.Semantic.fiber(for: scheme).opacity(0.10))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Theme.Semantic.fiber(for: scheme).opacity(0.25), lineWidth: 0.5)
+        )
+        .padding(.horizontal, 20)
+    }
+
+    private func detailCell(_ label: String, _ value: String) -> some View {
+        VStack(spacing: 3) {
+            Text(value)
+                .font(Typography.bodyMediumBold)
+                .foregroundStyle(Theme.Text.primary)
+            Text(label)
+                .font(Typography.label)
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private func addToPantry() {
@@ -200,19 +193,5 @@ struct ScanResultView: View {
             category: category
         )
         modelContext.insert(item)
-    }
-
-    private func nutrientCell(_ label: String, _ value: String, _ color: Color) -> some View {
-        VStack(spacing: 4) {
-            Text(value)
-                .font(.system(size: 18, weight: .medium, design: .monospaced))
-                .foregroundStyle(color)
-
-            Text(label)
-                .font(.system(size: 10))
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
     }
 }
