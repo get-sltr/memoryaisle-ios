@@ -64,22 +64,63 @@ enum Theme {
     // MARK: Border
 
     enum Border {
+        // Backward-compatible — existing call sites keep working (violet).
         static func glass(for scheme: ColorScheme) -> Color {
-            scheme == .dark
-                ? Color.violet.opacity(0.10)
-                : Color.lavender.opacity(0.2)
+            glass(section: .home, for: scheme)
         }
 
         static func strong(for scheme: ColorScheme) -> Color {
-            scheme == .dark
-                ? Color.violet.opacity(0.14)
-                : Color.lavender.opacity(0.3)
+            strong(section: .home, for: scheme)
         }
 
         static func pressed(for scheme: ColorScheme) -> Color {
-            scheme == .dark
-                ? Color.violet.opacity(0.25)
-                : Color.lavender.opacity(0.35)
+            pressed(section: .home, for: scheme)
+        }
+
+        // Pastel border for content (list rows, inline cards).
+        static func glass(section: SectionID, for scheme: ColorScheme) -> Color {
+            let base = SectionPalette.primary(section, for: scheme)
+            return scheme == .dark ? base.opacity(0.22) : base.opacity(0.28)
+        }
+
+        static func strong(section: SectionID, for scheme: ColorScheme) -> Color {
+            let base = SectionPalette.primary(section, for: scheme)
+            return scheme == .dark ? base.opacity(0.32) : base.opacity(0.40)
+        }
+
+        static func pressed(section: SectionID, for scheme: ColorScheme) -> Color {
+            let base = SectionPalette.primary(section, for: scheme)
+            return scheme == .dark ? base.opacity(0.45) : base.opacity(0.55)
+        }
+
+        // Bright tile border — higher opacity for the hero moments.
+        static func glow(section: SectionID, for scheme: ColorScheme) -> Color {
+            let base = SectionPalette.primary(section, for: scheme)
+            return scheme == .dark ? base.opacity(0.40) : base.opacity(0.50)
+        }
+    }
+
+    // MARK: Section (convenience wrappers)
+
+    enum Section {
+        static func tile(_ id: SectionID, for scheme: ColorScheme) -> RadialGradient {
+            Surface.tile(section: id, for: scheme)
+        }
+
+        static func glass(_ id: SectionID, for scheme: ColorScheme) -> Color {
+            Surface.glass(section: id, for: scheme)
+        }
+
+        static func border(_ id: SectionID, for scheme: ColorScheme) -> Color {
+            Border.glass(section: id, for: scheme)
+        }
+
+        static func glow(_ id: SectionID, for scheme: ColorScheme) -> Color {
+            Border.glow(section: id, for: scheme)
+        }
+
+        static func primary(_ id: SectionID, for scheme: ColorScheme) -> Color {
+            SectionPalette.primary(id, for: scheme)
         }
     }
 
