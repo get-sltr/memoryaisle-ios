@@ -12,14 +12,7 @@ struct PaywallView: View {
         VStack(spacing: 0) {
             // Close
             HStack {
-                Button {
-                    HapticManager.light()
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.violet.opacity(0.6))
-                }
+                CloseButton(action: { dismiss() })
                 Spacer()
             }
             .padding(.horizontal, 20)
@@ -33,13 +26,13 @@ struct PaywallView: View {
                             .frame(height: 60)
 
                         Text("Unlock the\nfull experience")
-                            .font(.system(size: 30, weight: .light, design: .serif))
+                            .font(Typography.serifLarge)
                             .foregroundStyle(Theme.Text.primary)
                             .multilineTextAlignment(.center)
                             .tracking(0.3)
 
                         Text("Everything Mira can do, unlocked.")
-                            .font(.system(size: 15))
+                            .font(Typography.bodyMedium)
                             .foregroundStyle(Theme.Text.secondary(for: scheme))
                     }
                     .padding(.top, 16)
@@ -63,23 +56,23 @@ struct PaywallView: View {
                     VStack(spacing: 12) {
                         if let product = subscriptionManager.products.first {
                             Text(product.displayPrice)
-                                .font(.system(size: 36, weight: .medium, design: .monospaced))
+                                .font(Typography.monoLarge)
                                 .foregroundStyle(Theme.Text.primary)
 
                             Text("per year")
-                                .font(.system(size: 14))
+                                .font(Typography.bodySmall)
                                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
                             Text("That's less than $1/week")
-                                .font(.system(size: 13))
-                                .foregroundStyle(Color.violet.opacity(0.6))
+                                .font(Typography.bodySmall)
+                                .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.6))
                         } else {
                             Text("$49.99")
-                                .font(.system(size: 36, weight: .medium, design: .monospaced))
+                                .font(Typography.monoLarge)
                                 .foregroundStyle(Theme.Text.primary)
 
                             Text("per year")
-                                .font(.system(size: 14))
+                                .font(Typography.bodySmall)
                                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         }
                     }
@@ -87,11 +80,11 @@ struct PaywallView: View {
                     .frame(maxWidth: .infinity)
                     .background(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Color.violet.opacity(0.06))
+                            .fill(Theme.Accent.primary(for: scheme).opacity(0.06))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(Color.violet.opacity(0.15), lineWidth: 0.5)
+                            .stroke(Theme.Accent.primary(for: scheme).opacity(0.15), lineWidth: 0.5)
                     )
                     .padding(.horizontal, 24)
 
@@ -101,29 +94,35 @@ struct PaywallView: View {
                             guard !isPurchasing else { return }
                             Task { await handlePurchase() }
                         }
+                        .accessibilityLabel(isPurchasing ? "Processing purchase" : "Start Pro subscription")
                         .padding(.horizontal, 32)
 
                         Button {
                             Task { await subscriptionManager.restore() }
                         } label: {
                             Text("Restore purchase")
-                                .font(.system(size: 13))
+                                .font(Typography.bodySmall)
                                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         }
+                        .accessibilityLabel("Restore previous purchase")
                     }
 
                     // Legal
                     VStack(spacing: 4) {
                         Text("Payment charged to your Apple ID. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period.")
-                            .font(.system(size: 10))
+                            .font(Typography.label)
                             .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .multilineTextAlignment(.center)
 
                         HStack(spacing: 12) {
-                            Link("Terms", destination: URL(string: "https://memoryaisle.app/terms")!)
-                            Link("Privacy", destination: URL(string: "https://memoryaisle.app/privacy")!)
+                            if let termsURL = URL(string: "https://memoryaisle.app/terms") {
+                                Link("Terms", destination: termsURL)
+                            }
+                            if let privacyURL = URL(string: "https://memoryaisle.app/privacy") {
+                                Link("Privacy", destination: privacyURL)
+                            }
                         }
-                        .font(.system(size: 10))
+                        .font(Typography.label)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     }
                     .padding(.horizontal, 32)
@@ -150,19 +149,19 @@ struct PaywallView: View {
     private func featureRow(_ text: String, icon: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundStyle(Color.violet)
+                .font(Typography.bodySmall)
+                .foregroundStyle(Theme.Accent.primary(for: scheme))
                 .frame(width: 20)
 
             Text(text)
-                .font(.system(size: 15))
+                .font(Typography.bodyMedium)
                 .foregroundStyle(Theme.Text.secondary(for: scheme))
 
             Spacer()
 
             Image(systemName: "checkmark")
-                .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(Color.violet.opacity(0.5))
+                .font(Typography.caption.weight(.bold))
+                .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.5))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

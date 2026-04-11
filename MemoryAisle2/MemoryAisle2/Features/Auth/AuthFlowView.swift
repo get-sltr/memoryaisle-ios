@@ -52,7 +52,7 @@ struct AuthFlowView: View {
                 .padding(.bottom, 24)
 
             Text("Welcome back")
-                .font(.system(size: 28, weight: .light, design: .serif))
+                .font(Typography.serifLarge)
                 .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
                 .padding(.bottom, 32)
@@ -65,10 +65,11 @@ struct AuthFlowView: View {
 
             if let error = authManager.error {
                 Text(error)
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color(hex: 0xF87171))
+                    .font(Typography.bodySmall)
+                    .foregroundStyle(Theme.Semantic.warning(for: scheme))
                     .padding(.top, 12)
                     .padding(.horizontal, 32)
+                    .accessibilityLabel("Error: \(error)")
             }
 
             Spacer()
@@ -90,7 +91,7 @@ struct AuthFlowView: View {
                         .fill(Theme.Text.tertiary(for: scheme))
                         .frame(height: 0.5)
                     Text("or")
-                        .font(.system(size: 12))
+                        .font(Typography.caption)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     Rectangle()
                         .fill(Theme.Text.tertiary(for: scheme))
@@ -112,9 +113,10 @@ struct AuthFlowView: View {
                     authManager.error = nil
                 } label: {
                     Text("Don't have an account? **Sign up**")
-                        .font(.system(size: 14))
+                        .font(Typography.bodyMedium)
                         .foregroundStyle(Theme.Text.secondary(for: scheme))
                 }
+                .accessibilityLabel("Don't have an account? Sign up")
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 56)
@@ -127,14 +129,9 @@ struct AuthFlowView: View {
         VStack(spacing: 0) {
             // Back
             HStack {
-                Button {
+                DismissButton {
                     screen = .signIn
                     authManager.error = nil
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                        .frame(width: 44, height: 44)
                 }
                 Spacer()
             }
@@ -148,7 +145,7 @@ struct AuthFlowView: View {
                 .padding(.bottom, 32)
 
             Text("Create your account")
-                .font(.system(size: 28, weight: .light, design: .serif))
+                .font(Typography.serifLarge)
                 .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
                 .padding(.bottom, 32)
@@ -160,28 +157,30 @@ struct AuthFlowView: View {
             .padding(.horizontal, 32)
 
             Text("8+ characters, uppercase, lowercase, number")
-                .font(.system(size: 11))
+                .font(Typography.caption)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 8)
 
             VStack(spacing: 2) {
                 Text("By signing up, you agree to our")
-                    .font(.system(size: 11))
+                    .font(Typography.caption)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 HStack(spacing: 4) {
                     Button { showLegal = .terms } label: {
                         Text("Terms of Service")
-                            .font(.system(size: 11, weight: .medium))
+                            .font(Typography.caption)
+                            .fontWeight(.medium)
                             .foregroundStyle(Color.violet)
                             .underline()
                     }
                     .accessibilityLabel("View Terms of Service")
                     Text("and")
-                        .font(.system(size: 11))
+                        .font(Typography.caption)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     Button { showLegal = .privacy } label: {
                         Text("Privacy Policy")
-                            .font(.system(size: 11, weight: .medium))
+                            .font(Typography.caption)
+                            .fontWeight(.medium)
                             .foregroundStyle(Color.violet)
                             .underline()
                     }
@@ -192,10 +191,11 @@ struct AuthFlowView: View {
 
             if let error = authManager.error {
                 Text(error)
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color(hex: 0xF87171))
+                    .font(Typography.bodySmall)
+                    .foregroundStyle(Theme.Semantic.warning(for: scheme))
                     .padding(.top, 12)
                     .padding(.horizontal, 32)
+                    .accessibilityLabel("Error: \(error)")
             }
 
             Spacer()
@@ -215,9 +215,10 @@ struct AuthFlowView: View {
                     authManager.error = nil
                 } label: {
                     Text("Already have an account? **Sign in**")
-                        .font(.system(size: 14))
+                        .font(Typography.bodyMedium)
                         .foregroundStyle(Theme.Text.secondary(for: scheme))
                 }
+                .accessibilityLabel("Already have an account? Sign in")
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 56)
@@ -229,14 +230,9 @@ struct AuthFlowView: View {
     private var verifyView: some View {
         VStack(spacing: 0) {
             HStack {
-                Button {
+                DismissButton {
                     screen = .signUp
                     authManager.error = nil
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                        .frame(width: 44, height: 44)
                 }
                 Spacer()
             }
@@ -250,12 +246,12 @@ struct AuthFlowView: View {
                 .padding(.bottom, 32)
 
             Text("Check your email")
-                .font(.system(size: 28, weight: .light, design: .serif))
+                .font(Typography.serifLarge)
                 .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
             Text("We sent a verification code to\n\(email)")
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundStyle(Theme.Text.secondary(for: scheme))
                 .multilineTextAlignment(.center)
                 .padding(.top, 8)
@@ -266,10 +262,11 @@ struct AuthFlowView: View {
 
             if let error = authManager.error {
                 Text(error)
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color(hex: 0xF87171))
+                    .font(Typography.bodySmall)
+                    .foregroundStyle(Theme.Semantic.warning(for: scheme))
                     .padding(.top, 12)
                     .padding(.horizontal, 32)
+                    .accessibilityLabel("Error: \(error)")
             }
 
             Spacer()
@@ -308,7 +305,7 @@ struct AuthFlowView: View {
                     .autocorrectionDisabled()
             }
         }
-        .font(.system(size: 16))
+        .font(Typography.bodyLarge)
         .foregroundStyle(Theme.Text.primary)
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
@@ -320,6 +317,7 @@ struct AuthFlowView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
         )
+        .accessibilityLabel(placeholder)
     }
 
     // MARK: - Apple Sign In

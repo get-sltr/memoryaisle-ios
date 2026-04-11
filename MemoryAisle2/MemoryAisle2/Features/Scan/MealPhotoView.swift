@@ -13,13 +13,8 @@ struct MealPhotoView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.violet.opacity(0.6))
-                }
+                CloseButton(action: { dismiss() })
+                    .section(.scanner)
                 Spacer()
                 Text("Meal Photo")
                     .font(.system(size: 17, weight: .medium))
@@ -74,13 +69,13 @@ struct MealPhotoView: View {
                 .padding(.vertical, 18)
                 .background(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color(hex: 0xA78BFA).opacity(0.12))
+                        .fill(Color.violet.opacity(0.12))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color(hex: 0xA78BFA).opacity(0.3), lineWidth: 0.5)
+                        .stroke(Color.violet.opacity(0.3), lineWidth: 0.5)
                 )
-                .shadow(color: Color(hex: 0xA78BFA).opacity(0.25), radius: 20, y: 4)
+                .shadow(color: Color.violet.opacity(0.25), radius: 20, y: 4)
             }
             .padding(.horizontal, 32)
             .onChange(of: selectedPhoto) { _, newValue in
@@ -112,7 +107,7 @@ struct MealPhotoView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(Color(hex: 0xA78BFA).opacity(0.3), lineWidth: 0.5)
+                            .stroke(Color.violet.opacity(0.3), lineWidth: 0.5)
                     )
             }
 
@@ -147,7 +142,7 @@ struct MealPhotoView: View {
 
                 // Macros
                 HStack(spacing: 16) {
-                    macroCell("Protein", "\(r.protein)g", Color(hex: 0xA78BFA))
+                    macroCell("Protein", "\(r.protein)g", Color.violet)
                     macroCell("Calories", "\(r.calories)", Theme.Text.secondary(for: scheme))
                     macroCell("Fat", "\(r.fat)g", Theme.Text.tertiary(for: scheme))
                     macroCell("Carbs", "\(r.carbs)g", Theme.Text.tertiary(for: scheme))

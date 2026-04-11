@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ProgressDashboardView: View {
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
     @Query(sort: \BodyComposition.date, order: .reverse) private var bodyComp: [BodyComposition]
@@ -43,10 +44,14 @@ struct ProgressDashboardView: View {
             VStack(spacing: 16) {
                 // Header
                 HStack {
+                    CloseButton(action: { dismiss() })
+                        .section(.progress)
+
                     Text("Progress")
                         .font(.system(size: 26, weight: .light, design: .serif))
                         .foregroundStyle(Theme.Text.primary)
                         .tracking(0.3)
+                        .padding(.leading, 8)
                     Spacer()
                 }
                 .padding(.horizontal, 20)
@@ -56,20 +61,20 @@ struct ProgressDashboardView: View {
                 HStack(spacing: 10) {
                     statCard("Protein\nHit Rate", value: "\(proteinHitRate)%", color: Color.violet)
                     statCard("Avg Daily\nProtein", value: "\(avgProtein)g", color: Color.violet)
-                    statCard("Hydration", value: "\(avgHydration)%", color: Color(hex: 0x38BDF8))
+                    statCard("Hydration", value: "\(avgHydration)%", color: Theme.Semantic.water(for: scheme))
                 }
                 .padding(.horizontal, 20)
 
                 // Today's macros
                 VStack(alignment: .leading, spacing: 14) {
                     Text("TODAY")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(Typography.label)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .tracking(1.2)
 
                     macroRow("Protein", current: todayLog?.proteinGrams ?? 0, target: Double(profile?.proteinTargetGrams ?? 140), unit: "g", color: Color.violet)
-                    macroRow("Water", current: todayLog?.waterLiters ?? 0, target: profile?.waterTargetLiters ?? 2.5, unit: "L", color: Color(hex: 0x38BDF8))
-                    macroRow("Fiber", current: todayLog?.fiberGrams ?? 0, target: Double(profile?.fiberTargetGrams ?? 25), unit: "g", color: Color(hex: 0xFBBF24))
+                    macroRow("Water", current: todayLog?.waterLiters ?? 0, target: profile?.waterTargetLiters ?? 2.5, unit: "L", color: Theme.Semantic.water(for: scheme))
+                    macroRow("Fiber", current: todayLog?.fiberGrams ?? 0, target: Double(profile?.fiberTargetGrams ?? 25), unit: "g", color: Theme.Semantic.fiber(for: scheme))
                     macroRow("Calories", current: todayLog?.caloriesConsumed ?? 0, target: Double(profile?.calorieTarget ?? 1800), unit: "", color: Theme.Text.secondary(for: scheme))
                 }
                 .padding(16)
@@ -87,7 +92,7 @@ struct ProgressDashboardView: View {
                 if !weekLogs.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("7-DAY PROTEIN")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(Typography.label)
                             .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .tracking(1.2)
 
@@ -100,10 +105,10 @@ struct ProgressDashboardView: View {
                                     RoundedRectangle(cornerRadius: 3, style: .continuous)
                                         .fill(
                                             pct >= 0.9
-                                                ? Color(hex: 0x34D399)
+                                                ? Theme.Semantic.onTrack(for: scheme)
                                                 : pct >= 0.7
-                                                    ? Color(hex: 0xFBBF24)
-                                                    : Color(hex: 0xF87171)
+                                                    ? Theme.Semantic.behind(for: scheme)
+                                                    : Theme.Semantic.warning(for: scheme)
                                         )
                                         .frame(height: max(6, 70 * pct))
 
@@ -177,11 +182,12 @@ struct ProgressDashboardView: View {
     private func statCard(_ label: String, value: String, color: Color) -> some View {
         VStack(spacing: 8) {
             Text(value)
-                .font(.system(size: 22, weight: .medium, design: .monospaced))
+                .font(Typography.displaySmallMono)
+                .fontWeight(.medium)
                 .foregroundStyle(Theme.Text.primary)
 
             Text(label)
-                .font(.system(size: 10))
+                .font(Typography.label)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -233,7 +239,7 @@ struct ProgressDashboardView: View {
     private func bodyCompSection(_ latest: BodyComposition) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("BODY COMPOSITION")
-                .font(.system(size: 10, weight: .medium))
+                .font(Typography.label)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
 
@@ -252,7 +258,7 @@ struct ProgressDashboardView: View {
                     statCard(
                         "Body Fat",
                         value: String(format: "%.1f%%", bf),
-                        color: Color(hex: 0xFBBF24)
+                        color: Theme.Semantic.fiber(for: scheme)
                     )
                 }
             }
@@ -282,8 +288,8 @@ struct ProgressDashboardView: View {
     private func trendLabel(_ label: String, change: Double, unit: String) -> some View {
         let isPositive = change >= 0
         let color: Color = label == "Lean"
-            ? (isPositive ? Color(hex: 0x34D399) : Color(hex: 0xF87171))
-            : (isPositive ? Color(hex: 0xF87171) : Color(hex: 0x34D399))
+            ? (isPositive ? Theme.Semantic.onTrack(for: scheme) : Theme.Semantic.warning(for: scheme))
+            : (isPositive ? Theme.Semantic.warning(for: scheme) : Theme.Semantic.onTrack(for: scheme))
 
         return HStack(spacing: 4) {
             Image(systemName: isPositive ? "arrow.up.right" : "arrow.down.right")
@@ -305,14 +311,14 @@ struct ProgressDashboardView: View {
 
         return VStack(alignment: .leading, spacing: 12) {
             Text("TRAINING THIS WEEK")
-                .font(.system(size: 10, weight: .medium))
+                .font(Typography.label)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
 
             HStack(spacing: 10) {
                 statCard("Sessions", value: "\(weekSessions.count)", color: Color.violet)
-                statCard("Strength", value: "\(strengthCount)", color: Color(hex: 0xFBBF24))
-                statCard("Minutes", value: "\(totalMinutes)", color: Color(hex: 0x38BDF8))
+                statCard("Strength", value: "\(strengthCount)", color: Theme.Semantic.fiber(for: scheme))
+                statCard("Minutes", value: "\(totalMinutes)", color: Theme.Semantic.water(for: scheme))
             }
         }
         .padding(16)
@@ -352,5 +358,6 @@ struct ProgressDashboardView: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(label)
     }
 }

@@ -12,17 +12,15 @@ struct PhotoCheckInView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.violet.opacity(0.6))
-                }
+                CloseButton(action: { dismiss() })
+                    .section(.progress)
                 Spacer()
                 Text("Weekly Check-in")
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(Theme.Text.primary)
                 Spacer()
                 Color.clear
+                    .frame(width: 14, height: 14)
             }
             .padding(.horizontal, 16)
             .padding(.top, 12)
@@ -61,9 +59,6 @@ struct PhotoCheckInView: View {
 
                     let currentPhotoData = photoData
                     let textTertiary = Theme.Text.tertiary(for: scheme)
-                    let surfaceGlass = Theme.Surface.glass(for: scheme)
-                    let borderGlass = Theme.Border.glass(for: scheme)
-                    let borderWidth = Theme.glassBorderWidth
                     PhotosPicker(selection: $selectedPhoto, matching: .images) {
                         if let currentPhotoData, let uiImage = UIImage(data: currentPhotoData) {
                             Image(uiImage: uiImage)
@@ -71,15 +66,11 @@ struct PhotoCheckInView: View {
                                 .scaledToFill()
                                 .frame(width: 160, height: 220)
                                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(Color(hex: 0xA78BFA).opacity(0.3), lineWidth: 0.5)
-                                )
                         } else {
                             VStack(spacing: 10) {
                                 Image(systemName: "camera.fill")
                                     .font(.system(size: 24))
-                                    .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.4))
+                                    .foregroundStyle(Color.violet.opacity(0.4))
                                 Text("Add photo")
                                     .font(.system(size: 14))
                                     .foregroundStyle(textTertiary)
@@ -88,16 +79,9 @@ struct PhotoCheckInView: View {
                                     .foregroundStyle(textTertiary)
                             }
                             .frame(width: 160, height: 220)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .fill(surfaceGlass)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(borderGlass, lineWidth: borderWidth)
-                            )
                         }
                     }
+                    .buttonStyle(.plain)
                     .onChange(of: selectedPhoto) { _, newValue in
                         guard let newValue else { return }
                         Task { @MainActor in
@@ -171,7 +155,7 @@ struct PhotoCheckInView: View {
 
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 48))
-                .foregroundStyle(Color(hex: 0x34D399))
+                .foregroundStyle(Theme.Semantic.onTrack(for: scheme))
 
             Text("Check-in saved")
                 .font(.system(size: 24, weight: .light, design: .serif))
@@ -199,7 +183,7 @@ struct PhotoCheckInView: View {
         // Save photo locally (never uploaded)
         if let photoData {
             let fileManager = FileManager.default
-            let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            guard let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
             let photosDir = documentsPath.appendingPathComponent("ProgressPhotos", isDirectory: true)
 
             try? fileManager.createDirectory(at: photosDir, withIntermediateDirectories: true)

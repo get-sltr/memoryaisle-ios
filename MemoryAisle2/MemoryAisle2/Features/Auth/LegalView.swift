@@ -9,13 +9,15 @@ enum LegalPage: String, Identifiable {
     case dataPolicy = "Data Policy"
 
     var url: URL {
-        switch self {
-        case .terms: URL(string: "https://memoryaisle.app/terms")!
-        case .privacy: URL(string: "https://memoryaisle.app/privacy")!
-        case .medical: URL(string: "https://memoryaisle.app/medical-disclaimer")!
-        case .community: URL(string: "https://memoryaisle.app/community-guidelines")!
-        case .dataPolicy: URL(string: "https://memoryaisle.app/data-policy")!
+        let string = switch self {
+        case .terms: "https://memoryaisle.app/terms"
+        case .privacy: "https://memoryaisle.app/privacy"
+        case .medical: "https://memoryaisle.app/medical-disclaimer"
+        case .community: "https://memoryaisle.app/community-guidelines"
+        case .dataPolicy: "https://memoryaisle.app/data-policy"
         }
+        guard let url = URL(string: string) else { return URL(filePath: "/") }
+        return url
     }
 }
 
@@ -27,11 +29,7 @@ struct LegalView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.violet.opacity(0.6))
-                }
+                CloseButton(action: { dismiss() })
                 Spacer()
                 Text(page.rawValue)
                     .font(.system(size: 15, weight: .medium))
@@ -189,7 +187,7 @@ struct LegalView: View {
             legalBullet("Crash Data: App crash logs and performance diagnostics")
 
             legalSubheading("2.2.3 Information from Third Parties")
-            legalBullet("Apple HealthKit: With your explicit permission, we may read weight, body composition, workout data, and step count from HealthKit. We NEVER write data to HealthKit without your explicit permission. HealthKit data is NEVER used for advertising or marketing purposes.")
+            legalBullet("Apple HealthKit: With your explicit permission, we read weight, lean body mass, and body fat percentage from HealthKit and write dietary energy (calories) and dietary protein data to HealthKit when you log meals. HealthKit data is NEVER used for advertising or marketing purposes.")
             legalBullet("Nutrition Databases: When you scan a barcode or search for a food, we query third-party nutrition databases. These queries do not contain your personal information.")
 
             legalHeading("2.3 How We Use Your Information")
@@ -407,8 +405,8 @@ struct LegalView: View {
             legalBullet("Data Accessed: Food names and barcodes (no user identity)")
 
             legalSubheading("Apple HealthKit")
-            legalBullet("Purpose: Health data integration")
-            legalBullet("Data Accessed: Read-only, on-device (not transmitted to our servers)")
+            legalBullet("Purpose: Health data integration (read body composition, write nutrition)")
+            legalBullet("Data Accessed: On-device only (not transmitted to our servers). Reads: weight, lean body mass, body fat percentage. Writes: dietary energy consumed, dietary protein.")
 
             legalHeading("5.3 Apple App Store Requirements")
             legalBody("Per Apple's Health & Fitness app requirements:")
@@ -480,16 +478,16 @@ struct LegalView: View {
     private func legalWarning(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 13, weight: .medium))
-            .foregroundStyle(Color(hex: 0xFBBF24).opacity(0.6))
+            .foregroundStyle(Theme.Semantic.fiber(for: scheme).opacity(0.6))
             .lineSpacing(4)
             .padding(12)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color(hex: 0xFBBF24).opacity(0.04))
+                    .fill(Theme.Semantic.fiber(for: scheme).opacity(0.04))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(Color(hex: 0xFBBF24).opacity(0.1), lineWidth: 0.5)
+                    .stroke(Theme.Semantic.fiber(for: scheme).opacity(0.1), lineWidth: 0.5)
             )
     }
 
@@ -517,7 +515,7 @@ struct LegalView: View {
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
             Text("legal@memoryaisle.app")
                 .font(.system(size: 11))
-                .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.3))
+                .foregroundStyle(Color.violet.opacity(0.3))
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 24)

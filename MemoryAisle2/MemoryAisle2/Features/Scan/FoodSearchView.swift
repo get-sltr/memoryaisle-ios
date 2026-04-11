@@ -6,19 +6,15 @@ struct FoodSearchView: View {
     @State private var query = ""
     @State private var results: [FoodSearchResult] = []
     @State private var isSearching = false
+    @State private var errorMessage: String?
     private let client = NutritionAPIClient()
 
     var body: some View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.violet.opacity(0.6))
-                }
+                CloseButton(action: { dismiss() })
+                    .section(.scanner)
 
                 Spacer()
 
@@ -65,7 +61,33 @@ struct FoodSearchView: View {
 
             // Results
             ScrollView(showsIndicators: false) {
-                if results.isEmpty && !query.isEmpty && !isSearching {
+                if let errorMessage, results.isEmpty && !isSearching {
+                    VStack(spacing: 12) {
+                        Image(systemName: "wifi.exclamationmark")
+                            .font(.system(size: 28))
+                            .foregroundStyle(Theme.Semantic.warning(for: scheme).opacity(0.7))
+
+                        Text(errorMessage)
+                            .font(.system(size: 15))
+                            .foregroundStyle(Theme.Text.secondary(for: scheme))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+
+                        Button {
+                            performSearch()
+                        } label: {
+                            Text("Try again")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color.violet)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 8)
+                                .background(Color.violet.opacity(0.1))
+                                .clipShape(Capsule())
+                        }
+                        .accessibilityLabel("Retry search")
+                    }
+                    .padding(.top, 60)
+                } else if results.isEmpty && !query.isEmpty && !isSearching {
                     VStack(spacing: 12) {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 28))
@@ -138,12 +160,15 @@ struct FoodSearchView: View {
     private func performSearch() {
         guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         isSearching = true
+        errorMessage = nil
 
         Task {
             do {
                 results = try await client.search(query: query)
+                errorMessage = nil
             } catch {
                 results = []
+                errorMessage = "Could not search. Check your connection."
             }
             isSearching = false
         }

@@ -24,11 +24,8 @@ struct ProviderReportView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.violet.opacity(0.6))
-                }
+                CloseButton(action: { dismiss() })
+                    .section(.progress)
                 Spacer()
                 Text("Provider Report")
                     .font(.system(size: 17, weight: .medium))

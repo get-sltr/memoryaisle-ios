@@ -8,6 +8,10 @@ struct ReceiptScannerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @State private var selectedPhoto: PhotosPickerItem?
+    @State private var cameraImageData: Data?
+    @State private var showCamera = false
+    @State private var showLibraryPicker = false
+    @State private var showSourceChoice = false
     @State private var isProcessing = false
     @State private var extractedItems: [ExtractedItem] = []
     @State private var totalSpend: String?
@@ -15,17 +19,15 @@ struct ReceiptScannerView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.violet.opacity(0.6))
-                }
+                CloseButton(action: { dismiss() })
+                    .section(.recipes)
                 Spacer()
                 Text("Receipt Scanner")
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(Theme.Text.primary)
                 Spacer()
                 Color.clear
+                    .frame(width: 14, height: 14)
             }
             .padding(.horizontal, 16)
             .padding(.top, 12)
@@ -69,22 +71,43 @@ struct ReceiptScannerView: View {
                 Spacer()
                     .frame(height: 20)
 
-                PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                Button {
+                    showSourceChoice = true
+                } label: {
                     HStack(spacing: 10) {
                         Image(systemName: "doc.text.viewfinder")
                             .font(.system(size: 18))
                         Text("Take photo or choose")
                             .font(.system(size: 16, weight: .medium))
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.violet)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 18)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color(hex: 0xA78BFA).opacity(0.12))
-                    )
                 }
+                .buttonStyle(.plain)
                 .padding(.horizontal, 32)
+                .confirmationDialog(
+                    "Add Receipt",
+                    isPresented: $showSourceChoice,
+                    titleVisibility: .visible
+                ) {
+                    Button("Take Photo") {
+                        showCamera = true
+                    }
+                    Button("Choose from Library") {
+                        showLibraryPicker = true
+                    }
+                    Button("Cancel", role: .cancel) {}
+                }
+                .fullScreenCover(isPresented: $showCamera) {
+                    CameraPicker(imageData: $cameraImageData)
+                        .ignoresSafeArea()
+                }
+                .photosPicker(
+                    isPresented: $showLibraryPicker,
+                    selection: $selectedPhoto,
+                    matching: .images
+                )
                 .onChange(of: selectedPhoto) { _, newValue in
                     guard let newValue else { return }
                     Task {
@@ -92,6 +115,11 @@ struct ReceiptScannerView: View {
                             processReceipt(data)
                         }
                     }
+                }
+                .onChange(of: cameraImageData) { _, newValue in
+                    guard let newValue else { return }
+                    processReceipt(newValue)
+                    cameraImageData = nil
                 }
             }
 
@@ -113,7 +141,7 @@ struct ReceiptScannerView: View {
                     if let total = totalSpend {
                         Text("Total: \(total)")
                             .font(.system(size: 13, design: .monospaced))
-                            .foregroundStyle(Color(hex: 0xA78BFA).opacity(0.7))
+                            .foregroundStyle(Color.violet.opacity(0.7))
                     }
                 }
                 Spacer()

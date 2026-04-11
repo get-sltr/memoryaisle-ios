@@ -3,10 +3,14 @@ import SwiftUI
 
 struct JourneyProfileView: View {
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
     @State private var showPhotoCheckIn = false
+    @State private var showLogMeal = false
+    @State private var showScanBarcode = false
+    @State private var showMealPlan = false
     @State private var feelingToday: String?
 
     private var profile: UserProfile? { profiles.first }
@@ -35,6 +39,9 @@ struct JourneyProfileView: View {
         }
         .themeBackground()
         .sheet(isPresented: $showPhotoCheckIn) { PhotoCheckInView() }
+        .sheet(isPresented: $showLogMeal) { MealPhotoView() }
+        .sheet(isPresented: $showScanBarcode) { ScanView() }
+        .sheet(isPresented: $showMealPlan) { CalendarView() }
     }
 
     // MARK: - Header
@@ -42,13 +49,14 @@ struct JourneyProfileView: View {
     private var headerSection: some View {
         VStack(spacing: 0) {
             HStack {
+                CloseButton(action: { dismiss() })
+                Spacer()
                 Text("My journey")
-                    .font(.system(size: 13))
+                    .font(Typography.bodySmall)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 Spacer()
-                Text("Edit")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color(hex: 0x60A5FA))
+                Color.clear
+                    .frame(width: 14, height: 14)
             }
             .padding(.bottom, 18)
 
@@ -58,7 +66,10 @@ struct JourneyProfileView: View {
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [Color(hex: 0x2A1A3A), Color(hex: 0x1A2A3A)],
+                                colors: [
+                                    Color.violetDeep.opacity(0.6),
+                                    Theme.Semantic.info(for: scheme).opacity(0.4)
+                                ],
                                 startPoint: .topLeading, endPoint: .bottomTrailing
                             )
                         )
@@ -68,9 +79,10 @@ struct JourneyProfileView: View {
                                 .font(.system(size: 28))
                                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         )
+                        .accessibilityHidden(true)
 
                     Circle()
-                        .fill(Color(hex: 0x60A5FA))
+                        .fill(Theme.Semantic.info(for: scheme))
                         .frame(width: 22, height: 22)
                         .overlay(
                             Image(systemName: "camera.fill")
@@ -78,25 +90,34 @@ struct JourneyProfileView: View {
                                 .foregroundStyle(.white)
                         )
                         .offset(x: 2, y: 2)
+                        .accessibilityHidden(true)
                 }
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(profile?.name.isEmpty == false ? profile!.name : "You")
-                        .font(.system(size: 18, weight: .semibold))
+                    Text(profile?.name.isEmpty == false ? (profile?.name ?? "You") : "You")
+                        .font(Typography.titleSmall)
                         .foregroundStyle(Theme.Text.primary)
 
                     Text(isOnMedication ? "Wellness journey" : "Fitness journey")
-                        .font(.system(size: 12))
+                        .font(Typography.bodySmall)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
                     HStack(spacing: 6) {
                         if isOnMedication {
-                            badge("GLP-1", bg: Color(hex: 0x1A1A2E), fg: Color.violet)
+                            badge("GLP-1", bg: Theme.Surface.glass(for: scheme), fg: Color.violet)
                             if let weeks = medicationWeeks {
-                                badge("Week \(weeks)", bg: Color(hex: 0x2A1A1A), fg: Color(hex: 0xF87171))
+                                badge(
+                                    "Week \(weeks)",
+                                    bg: Theme.Semantic.warning(for: scheme).opacity(0.12),
+                                    fg: Theme.Semantic.warning(for: scheme)
+                                )
                             }
                         } else {
-                            badge(modeBadgeText, bg: Color(hex: 0x1A2A1A), fg: Color(hex: 0x4ADE80))
+                            badge(
+                                modeBadgeText,
+                                bg: Theme.Semantic.success(for: scheme).opacity(0.12),
+                                fg: Theme.Semantic.success(for: scheme)
+                            )
                         }
                     }
                 }
@@ -112,13 +133,13 @@ struct JourneyProfileView: View {
         VStack(spacing: 4) {
             ZStack {
                 Circle()
-                    .stroke(Color(hex: 0x1E1E30), lineWidth: 6)
+                    .stroke(Theme.Surface.strong(for: scheme), lineWidth: 6)
                     .frame(width: 120, height: 120)
 
                 Circle()
                     .trim(from: 0, to: weightProgress)
                     .stroke(
-                        isOnMedication ? Color.violet : Color(hex: 0x4ADE80),
+                        isOnMedication ? Color.violet : Theme.Semantic.success(for: scheme),
                         style: StrokeStyle(lineWidth: 6, lineCap: .round)
                     )
                     .frame(width: 120, height: 120)
@@ -126,18 +147,20 @@ struct JourneyProfileView: View {
 
                 VStack(spacing: 2) {
                     Text("\(Int(profile?.weightLbs ?? 0))")
-                        .font(.system(size: 28, weight: .semibold))
+                        .font(Typography.displayMedium)
                         .foregroundStyle(Theme.Text.primary)
                     Text("of \(Int(profile?.goalWeightLbs ?? 0)) lbs")
-                        .font(.system(size: 10))
+                        .font(Typography.label)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Current weight \(Int(profile?.weightLbs ?? 0)) pounds of \(Int(profile?.goalWeightLbs ?? 0)) pound goal")
 
             if let current = profile?.weightLbs, let goal = profile?.goalWeightLbs {
                 let diff = abs(Int(current - goal))
                 Text("\(diff) lbs to go")
-                    .font(.system(size: 13))
+                    .font(Typography.bodySmall)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
         }
@@ -152,13 +175,13 @@ struct JourneyProfileView: View {
                 value: "\(profile?.calorieTarget ?? 1800)",
                 label: "Daily calories",
                 detail: calorieDetail,
-                color: isOnMedication ? Color.violet : Color(hex: 0x60A5FA)
+                color: isOnMedication ? Color.violet : Theme.Semantic.info(for: scheme)
             )
             statCard(
                 value: "\(profile?.proteinTargetGrams ?? 120)g",
                 label: "Daily protein",
                 detail: proteinDetail,
-                color: isOnMedication ? Color(hex: 0x60A5FA) : Color(hex: 0xFBBF24)
+                color: isOnMedication ? Theme.Semantic.info(for: scheme) : Theme.Semantic.fiber(for: scheme)
             )
         }
     }
@@ -169,23 +192,27 @@ struct JourneyProfileView: View {
         card {
             HStack {
                 Text("CALORIE BREAKDOWN")
-                    .font(.system(size: 11))
+                    .font(Typography.caption)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(0.8)
                 Spacer()
                 Text(isOnMedication ? "Deficit active" : "Surplus active")
-                    .font(.system(size: 10))
-                    .foregroundStyle(isOnMedication ? Color(hex: 0xF87171) : Color(hex: 0x4ADE80))
+                    .font(Typography.label)
+                    .foregroundStyle(
+                        isOnMedication
+                            ? Theme.Semantic.warning(for: scheme)
+                            : Theme.Semantic.success(for: scheme)
+                    )
             }
             .padding(.bottom, 8)
 
             GeometryReader { geo in
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color(hex: 0x0E0E18))
+                    .fill(Theme.Surface.glass(for: scheme))
                     .frame(height: 8)
                     .overlay(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(isOnMedication ? Color.violet : Color(hex: 0x60A5FA))
+                            .fill(isOnMedication ? Color.violet : Theme.Semantic.info(for: scheme))
                             .frame(width: geo.size.width * 0.75)
                     }
             }
@@ -199,12 +226,12 @@ struct JourneyProfileView: View {
         card {
             HStack {
                 Text(isOnMedication ? "GLP-1 MEAL SCHEDULE" : "MEAL SCHEDULE")
-                    .font(.system(size: 11))
+                    .font(Typography.caption)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(0.8)
                 Spacer()
                 Text(isOnMedication ? "3 meals + 1 snack" : "5 meals/day")
-                    .font(.system(size: 10))
+                    .font(Typography.label)
                     .foregroundStyle(Color.violet)
             }
             .padding(.bottom, 8)
@@ -217,34 +244,42 @@ struct JourneyProfileView: View {
                 ForEach(meals, id: \.0) { name, time, cal in
                     HStack {
                         Text(name)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(Typography.bodySmallBold)
                             .foregroundStyle(Theme.Text.primary)
                         Text(time)
-                            .font(.system(size: 10))
+                            .font(Typography.label)
                             .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         Spacer()
                         Text("\(cal) cal")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(Typography.bodySmallBold)
                             .foregroundStyle(Color.violet)
                     }
                     .padding(.vertical, 7)
                     .padding(.horizontal, 10)
-                    .background(Color(hex: 0x0E0E18))
+                    .background(Theme.Surface.glass(for: scheme))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+                    )
                 }
             }
 
             if isOnMedication {
                 HStack(spacing: 6) {
                     Image(systemName: "info.circle")
-                        .font(.system(size: 11))
+                        .font(Typography.caption)
                     Text("Eat protein first, then veggies, carbs last")
-                        .font(.system(size: 11))
+                        .font(Typography.caption)
                 }
                 .foregroundStyle(Color.violet)
                 .padding(8)
-                .background(Color(hex: 0x1E1230))
+                .background(Theme.Surface.strong(for: scheme))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+                )
                 .padding(.top, 6)
             }
         }
@@ -255,16 +290,16 @@ struct JourneyProfileView: View {
     private var feelingSection: some View {
         card {
             Text("HOW ARE YOU FEELING TODAY?")
-                .font(.system(size: 11))
+                .font(Typography.caption)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(0.8)
                 .padding(.bottom, 6)
 
             HStack(spacing: 6) {
-                feelingButton("Good", icon: "checkmark", color: Color(hex: 0x4ADE80), value: "good")
-                feelingButton("Nausea", icon: "exclamationmark.triangle", color: Color(hex: 0xFBBF24), value: "nausea")
-                feelingButton("No appetite", icon: "clock", color: Color(hex: 0x60A5FA), value: "no_appetite")
-                feelingButton("Fatigue", icon: "bolt", color: Color(hex: 0xF87171), value: "fatigue")
+                feelingButton("Good", icon: "checkmark", color: Theme.Semantic.success(for: scheme), value: "good")
+                feelingButton("Nausea", icon: "exclamationmark.triangle", color: Theme.Semantic.fiber(for: scheme), value: "nausea")
+                feelingButton("No appetite", icon: "clock", color: Theme.Semantic.info(for: scheme), value: "no_appetite")
+                feelingButton("Fatigue", icon: "bolt", color: Theme.Semantic.warning(for: scheme), value: "fatigue")
             }
         }
     }
@@ -281,15 +316,22 @@ struct JourneyProfileView: View {
                     .font(.system(size: 9))
             }
             .foregroundStyle(feelingToday == value ? color : Theme.Text.tertiary(for: scheme))
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 44)
             .padding(.vertical, 8)
             .background(
                 feelingToday == value
-                    ? color.opacity(0.1) : Color(hex: 0x0E0E18)
+                    ? color.opacity(0.15) : Theme.Surface.glass(for: scheme)
             )
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+            )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Feeling \(label)")
+        .accessibilityHint("Log how you are feeling today")
+        .accessibilityAddTraits(feelingToday == value ? [.isButton, .isSelected] : .isButton)
     }
 
     // MARK: - Quick Actions
@@ -297,60 +339,95 @@ struct JourneyProfileView: View {
     private var quickActions: some View {
         card {
             Text("QUICK ACTIONS")
-                .font(.system(size: 11))
+                .font(Typography.caption)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(0.8)
                 .padding(.bottom, 8)
 
             VStack(spacing: 6) {
-                actionRow("Log a meal", sub: "Snap a photo of your food", icon: "camera.fill", color: Color(hex: 0x4ADE80))
-                actionRow("Scan barcode", sub: isOnMedication ? "Check if it works for you" : "Add food from packaging", icon: "barcode.viewfinder", color: Color(hex: 0x60A5FA))
-                actionRow("Generate meal plan", sub: isOnMedication ? "Gentle recipes for your body" : "AI recipes for your goals", icon: "list.bullet.rectangle", color: Color(hex: 0xFBBF24))
-                Button {
-                    showPhotoCheckIn = true
-                } label: {
-                    actionRowContent("Weekly weigh-in", sub: "Track your progress", icon: "chart.line.uptrend.xyaxis", color: Color.violet)
-                }
-                .buttonStyle(.plain)
+                actionButton(
+                    "Log a meal",
+                    sub: "Snap a photo of your food",
+                    icon: "camera.fill",
+                    color: Theme.Semantic.success(for: scheme)
+                ) { showLogMeal = true }
+
+                actionButton(
+                    "Scan barcode",
+                    sub: isOnMedication ? "Check if it works for you" : "Add food from packaging",
+                    icon: "barcode.viewfinder",
+                    color: Theme.Semantic.info(for: scheme)
+                ) { showScanBarcode = true }
+
+                actionButton(
+                    "Generate meal plan",
+                    sub: isOnMedication ? "Gentle recipes for your body" : "AI recipes for your goals",
+                    icon: "list.bullet.rectangle",
+                    color: Theme.Semantic.fiber(for: scheme)
+                ) { showMealPlan = true }
+
+                actionButton(
+                    "Weekly weigh-in",
+                    sub: "Track your progress",
+                    icon: "chart.line.uptrend.xyaxis",
+                    color: Color.violet
+                ) { showPhotoCheckIn = true }
             }
         }
     }
 
-    private func actionRow(_ title: String, sub: String, icon: String, color: Color) -> some View {
-        HStack(spacing: 10) {
+    private func actionButton(
+        _ title: String,
+        sub: String,
+        icon: String,
+        color: Color,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button {
+            HapticManager.light()
+            action()
+        } label: {
             actionRowContent(title, sub: sub, icon: icon, color: color)
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityHint(sub)
     }
 
     private func actionRowContent(_ title: String, sub: String, icon: String, color: Color) -> some View {
         HStack(spacing: 10) {
             RoundedRectangle(cornerRadius: 8)
-                .fill(color.opacity(0.1))
-                .frame(width: 32, height: 32)
+                .fill(color.opacity(0.12))
+                .frame(width: 44, height: 44)
                 .overlay(
                     Image(systemName: icon)
-                        .font(.system(size: 14))
+                        .font(.system(size: 18))
                         .foregroundStyle(color)
                 )
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Typography.bodySmallBold)
                     .foregroundStyle(Theme.Text.primary)
                 Text(sub)
-                    .font(.system(size: 10))
+                    .font(Typography.label)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
 
             Spacer()
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 11))
+                .font(Typography.caption)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
         }
         .padding(10)
-        .background(Color(hex: 0x0E0E18))
+        .frame(minHeight: 44)
+        .background(Theme.Surface.glass(for: scheme))
         .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
     }
 
     // MARK: - Daily Macros
@@ -358,16 +435,16 @@ struct JourneyProfileView: View {
     private var dailyMacros: some View {
         card {
             Text("DAILY MACROS")
-                .font(.system(size: 11))
+                .font(Typography.caption)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(0.8)
                 .padding(.bottom, 8)
 
-            macroRow("Protein", value: "\(profile?.proteinTargetGrams ?? 120)g", color: Color(hex: 0x60A5FA))
-            macroRow("Carbs", value: isOnMedication ? "120g" : "350g", color: Color(hex: 0xFBBF24))
-            macroRow("Fat", value: isOnMedication ? "47g" : "93g", color: Color(hex: 0xF87171))
-            macroRow("Fiber", value: "\(profile?.fiberTargetGrams ?? 25)g", color: Color(hex: 0x4ADE80))
-            macroRow("Water", value: String(format: "%.1fL", profile?.waterTargetLiters ?? 2.5), color: Color(hex: 0x38BDF8), isLast: true)
+            macroRow("Protein", value: "\(profile?.proteinTargetGrams ?? 120)g", color: Theme.Semantic.info(for: scheme))
+            macroRow("Carbs", value: isOnMedication ? "120g" : "350g", color: Theme.Semantic.fiber(for: scheme))
+            macroRow("Fat", value: isOnMedication ? "47g" : "93g", color: Theme.Semantic.warning(for: scheme))
+            macroRow("Fiber", value: "\(profile?.fiberTargetGrams ?? 25)g", color: Theme.Semantic.success(for: scheme))
+            macroRow("Water", value: String(format: "%.1fL", profile?.waterTargetLiters ?? 2.5), color: Theme.Semantic.water(for: scheme), isLast: true)
         }
     }
 
@@ -375,21 +452,23 @@ struct JourneyProfileView: View {
         HStack {
             Circle().fill(color).frame(width: 6, height: 6)
             Text(label)
-                .font(.system(size: 13))
+                .font(Typography.bodySmall)
                 .foregroundStyle(Theme.Text.primary)
             Spacer()
             Text(value)
-                .font(.system(size: 13, weight: .medium))
+                .font(Typography.bodySmallBold)
                 .foregroundStyle(Theme.Text.primary)
         }
         .padding(.vertical, 6)
         .overlay(alignment: .bottom) {
             if !isLast {
                 Rectangle()
-                    .fill(Color(hex: 0x252538))
+                    .fill(Theme.Border.glass(for: scheme))
                     .frame(height: 0.5)
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label): \(value)")
     }
 
     // MARK: - Helpers
@@ -400,32 +479,46 @@ struct JourneyProfileView: View {
             content()
         }
         .padding(14)
-        .background(Color(hex: 0x1A1A28))
+        .background(Theme.Surface.glass(for: scheme))
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
     }
 
     private func statCard(value: String, label: String, detail: String, color: Color) -> some View {
         VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 24, weight: .semibold))
+                .font(Typography.titleLarge)
                 .foregroundStyle(color)
             Text(label)
-                .font(.system(size: 11))
+                .font(Typography.caption)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
             Text(detail)
-                .font(.system(size: 10))
-                .foregroundStyle(isOnMedication ? Color(hex: 0xF87171) : Color(hex: 0x4ADE80))
+                .font(Typography.label)
+                .foregroundStyle(
+                    isOnMedication
+                        ? Theme.Semantic.warning(for: scheme)
+                        : Theme.Semantic.success(for: scheme)
+                )
                 .padding(.top, 2)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
-        .background(Color(hex: 0x1A1A28))
+        .background(Theme.Surface.glass(for: scheme))
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label): \(value), \(detail)")
     }
 
     private func badge(_ text: String, bg: Color, fg: Color) -> some View {
         Text(text)
-            .font(.system(size: 10, weight: .medium))
+            .font(Typography.label)
             .foregroundStyle(fg)
             .padding(.horizontal, 10)
             .padding(.vertical, 2)

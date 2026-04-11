@@ -8,6 +8,7 @@ struct HomeView: View {
     @Query private var profiles: [UserProfile]
     @Query(sort: \PantryItem.addedDate, order: .reverse) private var pantryItems: [PantryItem]
     @State private var newItemText = ""
+    @State private var duplicateItemName: String?
     @FocusState private var inputFocused: Bool
 
     private var profile: UserProfile? { profiles.first }
@@ -36,7 +37,7 @@ struct HomeView: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(greeting)
-                        .font(.system(size: 13))
+                        .font(Typography.bodySmall)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     Text("Grocery List")
                         .font(.system(size: 22, weight: .light, design: .serif))
@@ -50,7 +51,8 @@ struct HomeView: View {
                 if !pantryItems.isEmpty {
                     Text("\(pantryItems.count)")
                         .font(.system(size: 12, weight: .medium, design: .monospaced))
-                        .foregroundStyle(Color.violet.opacity(0.6))
+                        .foregroundStyle(SectionPalette.primary(.home, for: scheme).opacity(0.75))
+                        .accessibilityLabel("\(pantryItems.count) items in list")
                 }
             }
             .padding(.horizontal, 20)
@@ -77,8 +79,27 @@ struct HomeView: View {
             // Input bar
             inputBar
         }
+        .section(.home)
         .themeBackground()
         .navigationBarHidden(true)
+        .alert(
+            "Already in your list",
+            isPresented: Binding(
+                get: { duplicateItemName != nil },
+                set: { if !$0 { duplicateItemName = nil } }
+            ),
+            presenting: duplicateItemName
+        ) { _ in
+            Button("Add anyway", role: .destructive) {
+                forceAddItem()
+                duplicateItemName = nil
+            }
+            Button("Cancel", role: .cancel) {
+                duplicateItemName = nil
+            }
+        } message: { name in
+            Text("\(name) is already in your grocery list. Do you want to add another?")
+        }
     }
 
     // MARK: - Empty State
@@ -89,14 +110,14 @@ struct HomeView: View {
 
             Image(systemName: "cart")
                 .font(.system(size: 48))
-                .foregroundStyle(Color.violet.opacity(0.15))
+                .foregroundStyle(SectionPalette.primary(.home, for: scheme).opacity(0.25))
 
             Text("Your list is empty")
                 .font(.system(size: 18, weight: .light, design: .serif))
                 .foregroundStyle(Theme.Text.secondary(for: scheme))
 
             Text("Type below or tap the mic to add items")
-                .font(.system(size: 13))
+                .font(Typography.bodySmall)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
             Spacer()
@@ -111,11 +132,12 @@ struct HomeView: View {
             // Category header
             HStack(spacing: 8) {
                 Image(systemName: category.icon)
-                    .font(.system(size: 11))
+                    .font(Typography.caption)
                     .foregroundStyle(categoryColor(category))
 
                 Text(category.rawValue.uppercased())
-                    .font(.system(size: 10, weight: .medium))
+                    .font(Typography.label)
+                    .fontWeight(.medium)
                     .foregroundStyle(categoryColor(category).opacity(0.7))
                     .tracking(1)
 
@@ -143,7 +165,7 @@ struct HomeView: View {
                             .frame(width: 22, height: 22)
 
                         Text(item.name)
-                            .font(.system(size: 15))
+                            .font(Typography.bodyMedium)
                             .foregroundStyle(Theme.Text.primary)
 
                         Spacer()
@@ -162,10 +184,10 @@ struct HomeView: View {
         HStack(spacing: 10) {
             Image(systemName: "plus.circle.fill")
                 .font(.system(size: 20))
-                .foregroundStyle(Color.violet.opacity(0.6))
+                .foregroundStyle(SectionPalette.primary(.home, for: scheme).opacity(0.75))
 
-            TextField("Add an item...", text: $newItemText)
-                .font(.system(size: 16))
+            TextField("Add an item…", text: $newItemText)
+                .font(Typography.bodyLarge)
                 .foregroundStyle(Theme.Text.primary)
                 .focused($inputFocused)
                 .onSubmit { addItem() }
@@ -176,17 +198,16 @@ struct HomeView: View {
                 } label: {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.system(size: 24))
-                        .foregroundStyle(Color.violet)
+                        .foregroundStyle(SectionPalette.primary(.home, for: scheme))
                 }
                 .accessibilityLabel("Add item")
             } else {
                 Button {
-                    // Voice input - use system dictation
                     inputFocused = true
                 } label: {
                     Image(systemName: "mic.fill")
                         .font(.system(size: 18))
-                        .foregroundStyle(Color.violet.opacity(0.4))
+                        .foregroundStyle(SectionPalette.primary(.home, for: scheme).opacity(0.5))
                 }
                 .accessibilityLabel("Voice input")
             }
@@ -218,6 +239,25 @@ struct HomeView: View {
     }
 
     private func addItem() {
+        let text = newItemText.trimmingCharacters(in: .whitespaces)
+        guard !text.isEmpty else { return }
+
+        // Check for duplicate (case-insensitive)
+        let normalized = text.lowercased()
+        if pantryItems.contains(where: { $0.name.lowercased() == normalized }) {
+            duplicateItemName = text
+            HapticManager.warning()
+            return
+        }
+
+        let category = categorize(text)
+        let item = PantryItem(name: text, category: category)
+        modelContext.insert(item)
+        newItemText = ""
+        HapticManager.light()
+    }
+
+    private func forceAddItem() {
         let text = newItemText.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty else { return }
         let category = categorize(text)
@@ -259,16 +299,16 @@ struct HomeView: View {
 
     private func categoryColor(_ category: PantryCategory) -> Color {
         switch category {
-        case .protein: Color(hex: 0xF87171)
-        case .produce: Color(hex: 0x4ADE80)
-        case .dairy: Color(hex: 0x38BDF8)
-        case .grains: Color(hex: 0xFBBF24)
-        case .frozen: Color(hex: 0x22D3EE)
-        case .pantryStaple: Color(hex: 0xA78BFA)
-        case .snacks: Color(hex: 0xFB923C)
-        case .beverages: Color(hex: 0x60A5FA)
-        case .condiments: Color(hex: 0xF472B6)
-        case .other: Color(hex: 0x6B7280)
+        case .protein: Color(hex: 0xF87171)      // coral red
+        case .produce: Color(hex: 0x4ADE80)      // bright green
+        case .dairy: Color(hex: 0x38BDF8)        // sky blue
+        case .grains: Color(hex: 0xFBBF24)       // gold amber
+        case .frozen: Color(hex: 0x67E8F9)       // ice cyan
+        case .pantryStaple: Color(hex: 0xA78BFA) // violet
+        case .snacks: Color(hex: 0xFB923C)       // orange
+        case .beverages: Color(hex: 0x60A5FA)    // indigo blue
+        case .condiments: Color(hex: 0xF472B6)   // pink
+        case .other: Color(hex: 0x9CA3AF)        // gray
         }
     }
 }
