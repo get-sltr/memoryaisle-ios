@@ -61,6 +61,7 @@ struct RecipesView: View {
     @State private var showReceiptScanner = false
 
     private var profile: UserProfile? { profiles.first }
+    private var isOnMedication: Bool { profile?.medication != nil }
 
     private var filteredRecipes: [RecipeItem] {
         guard let selectedCategory else { return RecipesSeed.all }
@@ -68,7 +69,12 @@ struct RecipesView: View {
     }
 
     private var heroSubtitle: String {
-        "\(RecipesSeed.all.count) recipes · tuned for GLP-1"
+        let count = RecipesSeed.all.count
+        if isOnMedication {
+            return "\(count) recipes · tuned for GLP-1"
+        } else {
+            return "\(count) high-protein recipes · built for your goals"
+        }
     }
 
     var body: some View {
