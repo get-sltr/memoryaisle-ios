@@ -63,7 +63,9 @@ struct HolidayCalendar {
 
     static func upcoming(days: Int = 30) -> [Holiday] {
         let now = Date.now
-        let cutoff = Calendar.current.date(byAdding: .day, value: days, to: now)!
+        guard let cutoff = Calendar.current.date(byAdding: .day, value: days, to: now) else {
+            return []
+        }
         return holidays().filter { $0.date >= now && $0.date <= cutoff }
     }
 
