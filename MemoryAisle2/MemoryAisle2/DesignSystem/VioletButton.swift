@@ -1,22 +1,30 @@
 import SwiftUI
 
 struct VioletButton: View {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.sectionID) private var ambientSection
+
     let title: String
     let icon: String?
     let isLoading: Bool
+    let sectionOverride: SectionID?
     let action: () -> Void
 
     init(
         _ title: String,
         icon: String? = nil,
         isLoading: Bool = false,
+        section: SectionID? = nil,
         action: @escaping () -> Void
     ) {
         self.title = title
         self.icon = icon
         self.isLoading = isLoading
+        self.sectionOverride = section
         self.action = action
     }
+
+    private var effectiveSection: SectionID { sectionOverride ?? ambientSection }
 
     var body: some View {
         Button(action: {
@@ -42,30 +50,46 @@ struct VioletButton: View {
             .padding(.vertical, 16)
             .background(
                 LinearGradient(
-                    colors: [.violetDeep, .violetMid],
+                    colors: [
+                        SectionPalette.primary(effectiveSection, for: scheme),
+                        SectionPalette.mid(effectiveSection, for: scheme)
+                    ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
             )
             .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
         }
-        .buttonStyle(VioletPressStyle())
+        .buttonStyle(VioletPressStyle(section: effectiveSection, scheme: scheme))
         .opacity(isLoading ? 0.8 : 1.0)
+        .accessibilityLabel(title)
     }
 }
 
 // MARK: - Compact Variant
 
 struct VioletButtonCompact: View {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.sectionID) private var ambientSection
+
     let title: String
     let icon: String?
+    let sectionOverride: SectionID?
     let action: () -> Void
 
-    init(_ title: String, icon: String? = nil, action: @escaping () -> Void) {
+    init(
+        _ title: String,
+        icon: String? = nil,
+        section: SectionID? = nil,
+        action: @escaping () -> Void
+    ) {
         self.title = title
         self.icon = icon
+        self.sectionOverride = section
         self.action = action
     }
+
+    private var effectiveSection: SectionID { sectionOverride ?? ambientSection }
 
     var body: some View {
         Button(action: {
@@ -83,20 +107,45 @@ struct VioletButtonCompact: View {
             .foregroundStyle(.white)
             .padding(.horizontal, Theme.Spacing.md)
             .padding(.vertical, Theme.Spacing.sm)
-            .background(Color.violetDeep)
+            .background(SectionPalette.primary(effectiveSection, for: scheme))
             .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous))
         }
-        .buttonStyle(VioletPressStyle())
+        .buttonStyle(VioletPressStyle(section: effectiveSection, scheme: scheme))
+        .accessibilityLabel(title)
     }
 }
 
 // MARK: - Press Style
 
 private struct VioletPressStyle: ButtonStyle {
+    let section: SectionID
+    let scheme: ColorScheme
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .brightness(configuration.isPressed ? -0.05 : 0)
+            .shadow(
+                color: SectionPalette.primary(section, for: scheme)
+                    .opacity(configuration.isPressed ? 0.55 : 0.0),
+                radius: configuration.isPressed ? 20 : 0,
+                y: 0
+            )
             .animation(Theme.Motion.press, value: configuration.isPressed)
     }
+}
+
+#Preview("VioletButton — each section") {
+    ScrollView {
+        VStack(spacing: 12) {
+            ForEach(SectionID.allCases, id: \.self) { id in
+                VioletButton("Continue", icon: "arrow.right") {}
+                    .section(id)
+                    .padding(.horizontal)
+            }
+        }
+        .padding(.vertical)
+    }
+    .background(Color.indigoBlack)
+    .preferredColorScheme(.dark)
 }
