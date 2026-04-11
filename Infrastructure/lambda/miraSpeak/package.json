@@ -1,0 +1,10 @@
+{
+  "name": "mira-speak",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Polly Generative TTS endpoint for Mira voice",
+  "main": "index.mjs",
+  "dependencies": {
+    "@aws-sdk/client-polly": "^3.600.0"
+  }
+}

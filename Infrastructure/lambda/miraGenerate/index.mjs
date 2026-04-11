@@ -48,7 +48,7 @@ export const handler = async (event) => {
       accept: "application/json",
       body: JSON.stringify({
         anthropic_version: "bedrock-2023-05-31",
-        max_tokens: 512,
+        max_tokens: 2500,
         system: SYSTEM_PROMPT + userContext,
         messages: [{ role: "user", content: message }],
       }),

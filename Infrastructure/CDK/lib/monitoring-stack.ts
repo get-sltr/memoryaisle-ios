@@ -12,6 +12,7 @@ import { Construct } from "constructs";
 interface MonitoringStackProps extends cdk.StackProps {
   api: apigateway.IRestApi;
   miraFunction: lambda.Function;
+  miraSpeakFunction: lambda.Function;
   syncFunction: lambda.Function;
   reportFunction: lambda.Function;
   alertEmail: string;
@@ -64,6 +65,7 @@ export class MonitoringStack extends cdk.Stack {
     };
 
     lambdaAlarm("mira", props.miraFunction);
+    lambdaAlarm("miraSpeak", props.miraSpeakFunction);
     lambdaAlarm("sync", props.syncFunction);
     lambdaAlarm("report", props.reportFunction);
 

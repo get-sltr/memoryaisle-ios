@@ -28,6 +28,7 @@ new MonitoringStack(app, "MemoryAisle-Monitoring", {
   env,
   api: apiStack.api,
   miraFunction: apiStack.miraFunction,
+  miraSpeakFunction: apiStack.miraSpeakFunction,
   syncFunction: apiStack.syncFunction,
   reportFunction: apiStack.reportFunction,
   alertEmail: app.node.tryGetContext("alertEmail"),

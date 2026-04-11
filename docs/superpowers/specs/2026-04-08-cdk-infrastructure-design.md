@@ -224,7 +224,7 @@ const env = {
 
 // Existing resource IDs (imported, not created)
 const existingResources = {
-  cognitoUserPoolId: 'us-east-1_XXXXXXXXX',  // from AWS console
+  cognitoUserPoolId: 'us-east-1_8jluiv1HL',
   apiGatewayRestApiId: '9n2u3mkkma',
   dynamoTableName: 'memoryaisle-user-data',
 };

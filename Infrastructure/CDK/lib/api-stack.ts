@@ -23,6 +23,7 @@ interface ApiStackProps extends cdk.StackProps {
 export class ApiStack extends cdk.Stack {
   public readonly api: apigateway.IRestApi;
   public readonly miraFunction: lambda.Function;
+  public readonly miraSpeakFunction: lambda.Function;
   public readonly syncFunction: lambda.Function;
   public readonly reportFunction: lambda.Function;
 
@@ -62,6 +63,22 @@ export class ApiStack extends cdk.Stack {
           `arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0`,
           `arn:aws:bedrock:*::foundation-model/*`,
         ],
+      })
+    );
+
+    // --- miraSpeak Lambda (Amazon Polly Generative TTS) ---
+    this.miraSpeakFunction = new lambda.Function(this, "MiraSpeak", {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: "index.handler",
+      code: lambda.Code.fromAsset(path.join(lambdaDir, "miraSpeak")),
+      timeout: cdk.Duration.seconds(15),
+      memorySize: 512,
+    });
+
+    this.miraSpeakFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["polly:SynthesizeSpeech"],
+        resources: ["*"],
       })
     );
 
