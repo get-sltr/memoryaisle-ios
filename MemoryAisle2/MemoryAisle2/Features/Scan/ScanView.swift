@@ -2,140 +2,202 @@ import SwiftUI
 
 struct ScanView: View {
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.dismiss) private var dismiss
     @State private var scanLineOffset: CGFloat = -100
     @State private var showGroceryList = false
     @State private var showPantry = false
     @State private var showMealPhoto = false
     @State private var showFoodSearch = false
-    @State private var selectedMode = 0
+    @State private var selectedMode: ScanMode = .barcode
     @State private var isScanning = false
     @State private var scannedProduct: ScannedProduct?
 
+    private enum ScanMode: Hashable {
+        case barcode, photo, search
+    }
+
     var body: some View {
-        ZStack {
-            Color.clear
-
-            VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Text("Scan")
-                        .font(.system(size: 26, weight: .light, design: .serif))
-                        .foregroundStyle(Theme.Text.primary)
-                        .tracking(0.3)
-
-                    Spacer()
-
-                    HStack(spacing: 8) {
-                        scanHeaderButton("cart", "List") { showGroceryList = true }
-                        scanHeaderButton("refrigerator", "Pantry") { showPantry = true }
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-                .sheet(isPresented: $showGroceryList) { GroceryListView() }
-                .sheet(isPresented: $showPantry) { PantryView() }
-                .sheet(isPresented: $showMealPhoto) { MealPhotoView() }
-                .sheet(isPresented: $showFoodSearch) { FoodSearchView() }
-
-                Spacer()
-
-                // Viewfinder
-                ZStack {
-                    // Live camera feed when scanning
-                    if isScanning {
-                        BarcodeScannerView { barcode in
-                            handleBarcode(barcode)
-                        }
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .frame(width: 300, height: 300)
-                    }
-
-                    ScannerCorners()
-                        .stroke(Color.violet.opacity(isScanning ? 0.8 : 0.5), lineWidth: 2)
-                        .frame(width: 240, height: 240)
-
-                    // Scan line
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(
-                            LinearGradient(
-                                colors: [.clear, Color.violet.opacity(isScanning ? 0.7 : 0.5), .clear],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: 200, height: 2)
-                        .offset(y: scanLineOffset)
-                        .onAppear {
-                            withAnimation(
-                                .easeInOut(duration: 2.2)
-                                .repeatForever(autoreverses: true)
-                            ) {
-                                scanLineOffset = 100
-                            }
-                        }
-
-                    if !isScanning {
-                        VStack(spacing: 10) {
-                            Image(systemName: "barcode.viewfinder")
-                                .font(.system(size: 32, weight: .ultraLight))
-                                .foregroundStyle(Color.violet.opacity(0.25))
-
-                            Text("Tap capture to start")
-                                .font(.system(size: 14))
-                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                        }
-                    }
-                }
-                .sheet(item: $scannedProduct) { product in
-                    ScanResultView(product: product)
-                }
-
-                Spacer()
-
-                // Mode selector
-                HStack(spacing: 0) {
-                    modeTab("Barcode", icon: "barcode", index: 0)
-                    modeTab("Photo", icon: "camera", index: 1)
-                    modeTab("Search", icon: "magnifyingglass", index: 2)
-                }
-                .padding(3)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Theme.Surface.glass(for: scheme))
-                )
+        VStack(spacing: 0) {
+            header
+            Spacer(minLength: 20)
+            viewfinder
+            Spacer(minLength: 20)
+            modeSelector
                 .padding(.horizontal, 40)
+            captureButton
+            Spacer(minLength: 60)
+        }
+        .section(.scanner)
+        .themeBackground()
+        .sheet(isPresented: $showGroceryList) { GroceryListView() }
+        .sheet(isPresented: $showPantry) { PantryView() }
+        .sheet(isPresented: $showMealPhoto) { MealPhotoView() }
+        .sheet(isPresented: $showFoodSearch) { FoodSearchView() }
+        .sheet(item: $scannedProduct) { product in
+            ScanResultView(product: product)
+        }
+    }
 
-                // Capture button
-                Button {
-                    HapticManager.heavy()
-                    switch selectedMode {
-                    case 0:
-                        withAnimation(.easeOut(duration: 0.2)) { isScanning.toggle() }
-                    case 1:
-                        showMealPhoto = true
-                    case 2:
-                        showFoodSearch = true
-                    default:
-                        break
-                    }
-                } label: {
-                    Circle()
-                        .fill(Color.violet.opacity(0.12))
-                        .frame(width: 64, height: 64)
-                        .overlay(
-                            Image(systemName: "viewfinder")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundStyle(Color.violet.opacity(0.8))
-                        )
-                }
-                .buttonStyle(GlassPressStyle())
-                .padding(.top, 24)
-                .padding(.bottom, 16)
+    // MARK: - Header
 
-                Spacer(minLength: 80)
+    private var header: some View {
+        HStack(spacing: 10) {
+            CloseButton(action: { dismiss() })
+
+            Text("Scan")
+                .font(.system(size: 26, weight: .light, design: .serif))
+                .foregroundStyle(Theme.Text.primary)
+                .tracking(0.3)
+                .padding(.leading, 4)
+
+            Spacer()
+
+            IconButton(systemName: "cart", accessibilityLabel: "Grocery list") {
+                showGroceryList = true
+            }
+            IconButton(systemName: "refrigerator", accessibilityLabel: "Pantry") {
+                showPantry = true
             }
         }
-        .themeBackground()
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+    }
+
+    // MARK: - Viewfinder
+
+    private var viewfinder: some View {
+        ZStack {
+            if isScanning {
+                BarcodeScannerView { barcode in
+                    handleBarcode(barcode)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .frame(width: 300, height: 300)
+            }
+
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(
+                    SectionPalette.primary(.scanner, for: scheme)
+                        .opacity(isScanning ? 0.10 : 0.05)
+                )
+                .frame(width: 280, height: 280)
+                .blur(radius: isScanning ? 30 : 20)
+
+            ScannerCorners()
+                .stroke(
+                    SectionPalette.primary(.scanner, for: scheme)
+                        .opacity(isScanning ? 0.9 : 0.55),
+                    lineWidth: 2.5
+                )
+                .frame(width: 240, height: 240)
+
+            scanLine
+
+            if !isScanning {
+                VStack(spacing: 10) {
+                    Image(systemName: "barcode.viewfinder")
+                        .font(.system(size: 36, weight: .ultraLight))
+                        .foregroundStyle(
+                            SectionPalette.primary(.scanner, for: scheme).opacity(0.35)
+                        )
+                    Text("Tap capture to start")
+                        .font(Typography.bodySmall)
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                }
+            }
+        }
+    }
+
+    private var scanLine: some View {
+        RoundedRectangle(cornerRadius: 1)
+            .fill(
+                LinearGradient(
+                    colors: [
+                        .clear,
+                        SectionPalette.primary(.scanner, for: scheme)
+                            .opacity(isScanning ? 0.85 : 0.55),
+                        .clear
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .frame(width: 210, height: 2)
+            .shadow(
+                color: SectionPalette.primary(.scanner, for: scheme).opacity(0.5),
+                radius: 4
+            )
+            .offset(y: scanLineOffset)
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: 2.2).repeatForever(autoreverses: true)
+                ) {
+                    scanLineOffset = 100
+                }
+            }
+    }
+
+    // MARK: - Mode selector
+
+    private var modeSelector: some View {
+        SegmentedPill(
+            options: [
+                (ScanMode.barcode, "Barcode"),
+                (ScanMode.photo, "Photo"),
+                (ScanMode.search, "Search")
+            ],
+            selection: $selectedMode
+        )
+    }
+
+    // MARK: - Capture button
+
+    private var captureButton: some View {
+        Button {
+            HapticManager.heavy()
+            switch selectedMode {
+            case .barcode:
+                withAnimation(.easeOut(duration: 0.2)) { isScanning.toggle() }
+            case .photo:
+                showMealPhoto = true
+            case .search:
+                showFoodSearch = true
+            }
+        } label: {
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            SectionPalette.primary(.scanner, for: scheme).opacity(0.35),
+                            SectionPalette.primary(.scanner, for: scheme).opacity(0.12)
+                        ],
+                        center: .center,
+                        startRadius: 4,
+                        endRadius: 36
+                    )
+                )
+                .frame(width: 72, height: 72)
+                .overlay(
+                    Circle().stroke(
+                        SectionPalette.primary(.scanner, for: scheme).opacity(0.55),
+                        lineWidth: 1
+                    )
+                )
+                .overlay(
+                    Image(systemName: isScanning ? "stop.fill" : "viewfinder")
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundStyle(SectionPalette.primary(.scanner, for: scheme))
+                )
+                .shadow(
+                    color: SectionPalette.primary(.scanner, for: scheme).opacity(0.45),
+                    radius: 18,
+                    y: 0
+                )
+        }
+        .buttonStyle(GlassPressStyle())
+        .accessibilityLabel("Capture")
+        .padding(.top, 20)
+        .padding(.bottom, 12)
     }
 
     // MARK: - Barcode Handler
@@ -152,7 +214,6 @@ struct ScanView: View {
                     let product = BarcodeInterpreter.interpret(nutrition: nutrition)
                     scannedProduct = product
                 } else {
-                    // Product not found in database
                     scannedProduct = ScannedProduct(
                         barcode: barcode,
                         name: "Unknown Product",
@@ -178,53 +239,6 @@ struct ScanView: View {
             }
         }
     }
-
-    private func scanHeaderButton(_ icon: String, _ label: String, action: @escaping () -> Void) -> some View {
-        Button {
-            HapticManager.light()
-            action()
-        } label: {
-            HStack(spacing: 5) {
-                Image(systemName: icon)
-                    .font(.system(size: 12))
-                Text(label)
-                    .font(.system(size: 12, weight: .medium))
-            }
-            .foregroundStyle(Color.violet.opacity(0.7))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(Color.violet.opacity(0.08))
-            .clipShape(Capsule())
-        }
-    }
-
-    private func modeTab(_ title: String, icon: String, index: Int) -> some View {
-        let isSelected = selectedMode == index
-
-        return Button {
-            HapticManager.selection()
-            withAnimation(.easeOut(duration: 0.15)) {
-                selectedMode = index
-            }
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.system(size: 13))
-                Text(title)
-                    .font(.system(size: 12, weight: .medium))
-            }
-            .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.tertiary(for: scheme))
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 9)
-            .background(
-                isSelected
-                    ? RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.violet.opacity(0.2))
-                    : nil
-            )
-        }
-        .buttonStyle(.plain)
-    }
 }
 
 // MARK: - Scanner Corner Brackets
@@ -235,25 +249,21 @@ struct ScannerCorners: Shape {
         let r: CGFloat = 8
         var p = Path()
 
-        // Top-left
         p.move(to: CGPoint(x: rect.minX, y: rect.minY + l))
         p.addLine(to: CGPoint(x: rect.minX, y: rect.minY + r))
         p.addQuadCurve(to: CGPoint(x: rect.minX + r, y: rect.minY), control: CGPoint(x: rect.minX, y: rect.minY))
         p.addLine(to: CGPoint(x: rect.minX + l, y: rect.minY))
 
-        // Top-right
         p.move(to: CGPoint(x: rect.maxX - l, y: rect.minY))
         p.addLine(to: CGPoint(x: rect.maxX - r, y: rect.minY))
         p.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.minY + r), control: CGPoint(x: rect.maxX, y: rect.minY))
         p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + l))
 
-        // Bottom-right
         p.move(to: CGPoint(x: rect.maxX, y: rect.maxY - l))
         p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - r))
         p.addQuadCurve(to: CGPoint(x: rect.maxX - r, y: rect.maxY), control: CGPoint(x: rect.maxX, y: rect.maxY))
         p.addLine(to: CGPoint(x: rect.maxX - l, y: rect.maxY))
 
-        // Bottom-left
         p.move(to: CGPoint(x: rect.minX + l, y: rect.maxY))
         p.addLine(to: CGPoint(x: rect.minX + r, y: rect.maxY))
         p.addQuadCurve(to: CGPoint(x: rect.minX, y: rect.maxY - r), control: CGPoint(x: rect.minX, y: rect.maxY))
