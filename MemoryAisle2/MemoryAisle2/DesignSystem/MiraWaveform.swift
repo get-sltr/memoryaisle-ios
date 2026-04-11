@@ -12,19 +12,20 @@ enum MiraSize {
     case compact
 }
 
+// Mira's signature avatar: 5 vertical bars + 1 four-point star.
+// Shape reads as three tall bars, two dots, and the star — "|||..*".
+// Idle is fully static (no CPU cost). Thinking/speaking are driven by
+// TimelineView(.animation) which pauses automatically when idle.
 struct MiraWaveform: View {
     let state: MiraState
     let size: MiraSize
 
-    @State private var phase: Double = 0
-    @State private var shimmerOffset: CGFloat = -1
+    // Asymmetric ratios — tall tall tall dot dot — so the waveform
+    // always has visible character even when idle.
+    private let heightRatios: [CGFloat] = [1.0, 0.85, 0.7, 0.25, 0.25]
+    private let baseOpacities: [Double] = [1.0, 0.9, 0.8, 0.55, 0.55]
 
-    // 7 elements: symmetric arc (small -> tall -> small)
-    // Heights as ratios: dot, short, medium, tall, medium, short, dot
-    private let heightRatios: [CGFloat] = [0.15, 0.35, 0.65, 1.0, 0.65, 0.35, 0.15]
-    private let opacities: [Double] = [0.35, 0.5, 0.7, 1.0, 0.7, 0.5, 0.35]
-
-    private var dotSize: CGFloat {
+    private var barWidth: CGFloat {
         switch size {
         case .hero: 5
         case .inline: 3.5
@@ -34,131 +35,87 @@ struct MiraWaveform: View {
 
     private var gap: CGFloat {
         switch size {
-        case .hero: 5
-        case .inline: 3.5
-        case .compact: 2.5
+        case .hero: 6
+        case .inline: 4
+        case .compact: 3
         }
     }
 
     private var maxHeight: CGFloat {
         switch size {
-        case .hero: 40
-        case .inline: 22
-        case .compact: 14
+        case .hero: 50
+        case .inline: 28
+        case .compact: 16
         }
     }
 
     private var starSize: CGFloat {
         switch size {
-        case .hero: 16
-        case .inline: 10
-        case .compact: 7
+        case .hero: 18
+        case .inline: 11
+        case .compact: 8
         }
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: gap) {
-            ForEach(0..<7, id: \.self) { i in
-                dot(at: i)
+        TimelineView(
+            .animation(minimumInterval: 1.0 / 30.0, paused: state == .idle)
+        ) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            let phase = t.truncatingRemainder(dividingBy: 2.4) / 2.4
+
+            HStack(alignment: .center, spacing: gap) {
+                ForEach(0..<5, id: \.self) { i in
+                    bar(at: i, phase: phase)
+                }
+                sparkle(phase: phase)
             }
-            sparkle
         }
-        .overlay(shimmer)
-        .onAppear { startAnimation() }
-        .onChange(of: state) { _, _ in startAnimation() }
     }
 
-    // MARK: - Dot/Bar
+    // MARK: - Bars
 
-    private func dot(at index: Int) -> some View {
+    private func bar(at index: Int, phase: Double) -> some View {
         let baseHeight = maxHeight * heightRatios[index]
+        let baseOpacity = baseOpacities[index]
 
-        let height: CGFloat = switch state {
-        case .idle:
-            max(dotSize, baseHeight * 0.2)
-        case .speaking:
-            max(dotSize, baseHeight * CGFloat(0.4 + 0.6 * sin(phase * .pi * 2 + Double(index) * 0.9)))
-        case .thinking:
-            max(dotSize, baseHeight * CGFloat(0.2 + 0.5 * sin(phase * .pi + Double(index) * 0.7)))
-        }
+        let height: CGFloat
+        let opacity: Double
 
-        let opacity: Double = switch state {
+        switch state {
         case .idle:
-            opacities[index] * 0.3
-        case .speaking:
-            opacities[index] * (0.5 + 0.5 * sin(phase * .pi * 2 + Double(index) * 0.6))
+            height = max(barWidth, baseHeight)
+            opacity = baseOpacity
         case .thinking:
-            opacities[index] * (0.3 + 0.5 * sin(phase * .pi + Double(index) * 0.5))
+            let wave = 0.5 + 0.5 * sin(phase * .pi * 2 + Double(index) * 0.9)
+            height = max(barWidth, baseHeight * CGFloat(0.55 + 0.45 * wave))
+            opacity = baseOpacity * (0.6 + 0.4 * wave)
+        case .speaking:
+            let wave = 0.5 + 0.5 * sin(phase * .pi * 4 + Double(index) * 0.7)
+            height = max(barWidth, baseHeight * CGFloat(0.45 + 0.55 * wave))
+            opacity = baseOpacity * (0.7 + 0.3 * wave)
         }
 
         return Capsule()
             .fill(Color.white.opacity(opacity))
-            .frame(width: dotSize, height: height)
-            .animation(
-                .easeInOut(duration: 1.3 + Double(index) * 0.1)
-                .repeatForever(autoreverses: true),
-                value: phase
-            )
+            .frame(width: barWidth, height: height)
     }
 
-    // MARK: - Sparkle
+    // MARK: - Star
 
-    private var sparkle: some View {
-        Image(systemName: "sparkle")
+    private func sparkle(phase: Double) -> some View {
+        let scale: CGFloat = switch state {
+        case .idle:
+            1.0
+        case .thinking:
+            CGFloat(0.85 + 0.15 * sin(phase * .pi * 2))
+        case .speaking:
+            CGFloat(0.9 + 0.15 * sin(phase * .pi * 3))
+        }
+
+        return Image(systemName: "sparkle")
             .font(.system(size: starSize, weight: .semibold))
-            .foregroundStyle(.white.opacity(state == .idle ? 0.3 : 0.85))
-            .scaleEffect(state == .speaking
-                ? CGFloat(0.85 + 0.15 * sin(phase * .pi * 3))
-                : state == .thinking
-                    ? CGFloat(0.7 + 0.3 * sin(phase * .pi * 2))
-                    : 0.8
-            )
-            .animation(
-                .easeInOut(duration: 1.2).repeatForever(autoreverses: true),
-                value: phase
-            )
-    }
-
-    // MARK: - Shimmer
-
-    private var shimmer: some View {
-        GeometryReader { geo in
-            LinearGradient(
-                colors: [
-                    .clear,
-                    .white.opacity(state == .speaking ? 0.15 : 0.03),
-                    .clear
-                ],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-            .frame(width: geo.size.width * 0.35)
-            .offset(x: shimmerOffset * geo.size.width)
-            .onAppear {
-                withAnimation(
-                    .easeInOut(duration: 2.8)
-                    .repeatForever(autoreverses: false)
-                ) {
-                    shimmerOffset = 1.4
-                }
-            }
-        }
-        .allowsHitTesting(false)
-        .clipShape(Rectangle())
-    }
-
-    // MARK: - Animation
-
-    private func startAnimation() {
-        if state == .idle {
-            withAnimation(.easeOut(duration: 0.5)) { phase = 0 }
-        } else {
-            withAnimation(
-                .easeInOut(duration: 1.3)
-                .repeatForever(autoreverses: true)
-            ) {
-                phase = 1
-            }
-        }
+            .foregroundStyle(.white.opacity(state == .idle ? 0.85 : 1.0))
+            .scaleEffect(scale)
     }
 }
