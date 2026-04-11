@@ -32,6 +32,7 @@ struct AuthFlowView: View {
                 }
             }
         }
+        .section(.home)
         .themeBackground()
         .sheet(item: $showLegal) { page in LegalView(page: page) }
         .task {

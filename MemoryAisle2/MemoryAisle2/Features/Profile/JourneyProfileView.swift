@@ -37,6 +37,7 @@ struct JourneyProfileView: View {
             .padding(.horizontal, 20)
             .padding(.top, 12)
         }
+        .section(.home)
         .themeBackground()
         .sheet(isPresented: $showPhotoCheckIn) { PhotoCheckInView() }
         .sheet(isPresented: $showLogMeal) { MealPhotoView() }

@@ -169,6 +169,7 @@ struct ProgressDashboardView: View {
                 Spacer(minLength: 80)
             }
         }
+        .section(.progress)
         .themeBackground()
         .navigationBarHidden(true)
         .sheet(isPresented: $showGITolerance) { GIToleranceView() }

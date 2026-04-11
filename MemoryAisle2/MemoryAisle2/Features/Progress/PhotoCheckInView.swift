@@ -31,6 +31,7 @@ struct PhotoCheckInView: View {
                 checkInForm
             }
         }
+        .section(.progress)
         .themeBackground()
     }
 

@@ -38,6 +38,7 @@ struct ReceiptScannerView: View {
                 resultsView
             }
         }
+        .section(.recipes)
         .themeBackground()
     }
 

@@ -35,16 +35,20 @@ struct ProfileView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
             }
+            .section(.home)
             .themeBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
+                    Button {
                         HapticManager.light()
                         dismiss()
+                    } label: {
+                        Text("Done")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(Color.violet)
                     }
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(Color.violet)
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -80,10 +84,10 @@ struct ProfileView: View {
             } else {
                 Text("Smart Nutrition")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Color(hex: 0x34D399).opacity(0.7))
+                    .foregroundStyle(Theme.Semantic.onTrack(for: scheme).opacity(0.7))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 5)
-                    .background(Color(hex: 0x34D399).opacity(0.1))
+                    .background(Theme.Semantic.onTrack(for: scheme).opacity(0.1))
                     .clipShape(Capsule())
             }
 
@@ -114,27 +118,20 @@ struct ProfileView: View {
                         .frame(width: 90, height: 90)
                         .clipShape(Circle())
                 } else {
-                    Circle()
-                        .fill(Color.violet.opacity(0.15))
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 48))
+                        .foregroundStyle(Color.violet.opacity(0.4))
                         .frame(width: 90, height: 90)
-                        .overlay(
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 32))
-                                .foregroundStyle(Color.violet.opacity(0.4))
-                        )
                 }
 
-                Circle()
-                    .fill(Color.violet)
-                    .frame(width: 28, height: 28)
-                    .overlay(
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.white)
-                    )
-                    .offset(x: 2, y: 2)
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.violet)
+                    .offset(x: 4, y: 4)
             }
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Change profile photo")
         .photosPicker(isPresented: $showPhotoPicker, selection: $selectedPhoto, matching: .images)
     }
 
@@ -157,13 +154,13 @@ struct ProfileView: View {
             statItem(
                 String(format: "%.1fL", profile?.waterTargetLiters ?? 2.5),
                 label: "Water",
-                color: Color(hex: 0x38BDF8)
+                color: Theme.Semantic.water(for: scheme)
             )
             divider
             statItem(
                 "\(profile?.fiberTargetGrams ?? 25)g",
                 label: "Fiber",
-                color: Color(hex: 0xFBBF24)
+                color: Theme.Semantic.fiber(for: scheme)
             )
         }
         .padding(.vertical, 16)
@@ -237,6 +234,7 @@ struct ProfileView: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Weekly check-in")
     }
 
     // MARK: - Medication Card
@@ -299,8 +297,8 @@ struct ProfileView: View {
             if let profile {
                 targetRow("Protein", value: "\(profile.proteinTargetGrams)g", color: Color.violet)
                 targetRow("Calories", value: "\(profile.calorieTarget)", color: Theme.Text.secondary(for: scheme))
-                targetRow("Water", value: String(format: "%.1fL", profile.waterTargetLiters), color: Color(hex: 0x38BDF8))
-                targetRow("Fiber", value: "\(profile.fiberTargetGrams)g", color: Color(hex: 0xFBBF24))
+                targetRow("Water", value: String(format: "%.1fL", profile.waterTargetLiters), color: Theme.Semantic.water(for: scheme))
+                targetRow("Fiber", value: "\(profile.fiberTargetGrams)g", color: Theme.Semantic.fiber(for: scheme))
             }
         }
     }
@@ -360,6 +358,7 @@ struct ProfileView: View {
             .padding(.vertical, 8)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
     }
 
     // MARK: - Danger Zone
@@ -372,16 +371,18 @@ struct ProfileView: View {
             } label: {
                 Text("Reset Onboarding")
                     .font(.system(size: 13))
-                    .foregroundStyle(Color(hex: 0xF87171).opacity(0.5))
+                    .foregroundStyle(Theme.Semantic.warning(for: scheme).opacity(0.5))
             }
+            .accessibilityLabel("Reset onboarding")
 
             Button {
                 showDeleteConfirm = true
             } label: {
                 Text("Delete Account & All Data")
                     .font(.system(size: 13))
-                    .foregroundStyle(Color(hex: 0xF87171).opacity(0.7))
+                    .foregroundStyle(Theme.Semantic.warning(for: scheme).opacity(0.7))
             }
+            .accessibilityLabel("Delete account and all data")
         }
         .padding(.top, 8)
     }
@@ -471,8 +472,9 @@ struct ProfileView: View {
             try? modelContext.delete(model: GIToleranceRecord.self)
 
             let fileManager = FileManager.default
-            let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            try? fileManager.removeItem(at: documentsPath.appendingPathComponent("ProgressPhotos"))
+            if let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+                try? fileManager.removeItem(at: documentsPath.appendingPathComponent("ProgressPhotos"))
+            }
 
             if let bundleId = Bundle.main.bundleIdentifier {
                 UserDefaults.standard.removePersistentDomain(forName: bundleId)

@@ -48,14 +48,15 @@ struct MealsView: View {
 
                 if let error = errorMessage {
                     Text(error)
-                        .font(.system(size: 13))
-                        .foregroundStyle(Color(hex: 0xF87171))
+                        .font(Typography.bodySmall)
+                        .foregroundStyle(Theme.Semantic.warning(for: scheme))
                         .padding(.horizontal, 20)
                 }
 
                 Spacer(minLength: 80)
             }
         }
+        .section(.home)
         .themeBackground()
         .navigationBarHidden(true)
     }
@@ -66,13 +67,13 @@ struct MealsView: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Today's Meals")
-                    .font(.system(size: 26, weight: .light, design: .serif))
+                    .font(Typography.serifMedium)
                     .foregroundStyle(Theme.Text.primary)
                     .tracking(0.3)
 
                 if !meals.isEmpty {
                     Text("\(totalProtein)g protein  ·  \(totalCal) cal")
-                        .font(.system(size: 13, weight: .regular, design: .monospaced))
+                        .font(Typography.monoSmall)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
             }
@@ -82,9 +83,10 @@ struct MealsView: View {
                 generatePlan()
             } label: {
                 Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 16))
-                    .foregroundStyle(Color.violet.opacity(0.6))
+                    .font(Typography.bodyLarge)
+                    .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.6))
             }
+            .accessibilityLabel("Regenerate meal plan")
             .disabled(isGenerating)
         }
         .padding(.horizontal, 20)
@@ -96,12 +98,12 @@ struct MealsView: View {
             if let mode = profile?.productMode {
                 HStack {
                     Text(mode.rawValue.uppercased())
-                        .font(.system(size: 10, weight: .medium))
+                        .font(Typography.label)
                         .tracking(1)
-                        .foregroundStyle(Color.violet.opacity(0.6))
+                        .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.6))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
-                        .background(Capsule().fill(Color.violet.opacity(0.08)))
+                        .background(Capsule().fill(Theme.Accent.primary(for: scheme).opacity(0.08)))
                     Spacer()
                 }
                 .padding(.horizontal, 20)
@@ -116,7 +118,7 @@ struct MealsView: View {
             MiraWaveform(state: .thinking, size: .hero)
                 .frame(height: 40)
             Text("Mira is building your meal plan...")
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundStyle(Theme.Text.secondary(for: scheme))
         }
         .frame(maxWidth: .infinity)
@@ -128,10 +130,10 @@ struct MealsView: View {
             MiraWaveform(state: .idle, size: .hero)
                 .frame(height: 40)
             Text("No meal plan for today yet")
-                .font(.system(size: 16, weight: .medium))
+                .font(Typography.bodyLargeBold)
                 .foregroundStyle(Theme.Text.secondary(for: scheme))
             Text("Mira will generate a personalized plan based on your goals, medication phase, and dietary needs.")
-                .font(.system(size: 13))
+                .font(Typography.bodySmall)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
@@ -140,14 +142,15 @@ struct MealsView: View {
                 generatePlan()
             } label: {
                 Text("Generate Today's Plan")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(Typography.bodyMediumBold)
                     .foregroundStyle(Theme.Text.primary)
                     .padding(.horizontal, 28)
                     .padding(.vertical, 12)
-                    .background(Color.violet.opacity(0.3))
+                    .background(Theme.Accent.primary(for: scheme).opacity(0.3))
                     .clipShape(Capsule())
-                    .overlay(Capsule().stroke(Color.violet.opacity(0.4), lineWidth: 0.5))
+                    .overlay(Capsule().stroke(Theme.Accent.primary(for: scheme).opacity(0.4), lineWidth: 0.5))
             }
+            .accessibilityLabel("Generate today's meal plan")
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
@@ -165,31 +168,31 @@ struct MealsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text(meal.mealType.rawValue.uppercased())
-                        .font(.system(size: 11, weight: .medium))
+                        .font(Typography.caption)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         .tracking(0.5)
                     Spacer()
                     if meal.isNauseaSafe {
                         HStack(spacing: 4) {
                             Image(systemName: "leaf.fill")
-                                .font(.system(size: 9))
+                                .font(Typography.label)
                             Text("Nausea-safe")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(Typography.label)
                         }
-                        .foregroundStyle(Color(hex: 0x34D399).opacity(0.7))
+                        .foregroundStyle(Theme.Semantic.onTrack(for: scheme).opacity(0.7))
                     }
                 }
 
                 Text(meal.name)
-                    .font(.system(size: 17, weight: .medium))
+                    .font(Typography.bodyLargeBold)
                     .foregroundStyle(Theme.Text.primary)
 
                 HStack(spacing: 16) {
-                    macroTag(Color.violet, "\(Int(meal.proteinGrams))g protein")
+                    macroTag(Theme.Accent.primary(for: scheme), "\(Int(meal.proteinGrams))g protein")
                     macroTag(Theme.Text.tertiary(for: scheme), "\(Int(meal.caloriesTotal)) cal")
                     Spacer()
                     Text("\(meal.prepTimeMinutes) min")
-                        .font(.system(size: 11))
+                        .font(Typography.caption)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
 
@@ -197,17 +200,17 @@ struct MealsView: View {
                     if !meal.ingredients.isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("INGREDIENTS")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(Typography.label)
                                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                                 .tracking(1)
                             ForEach(meal.ingredients, id: \.self) { ingredient in
                                 HStack(alignment: .top, spacing: 8) {
                                     Circle()
-                                        .fill(Color.violet.opacity(0.4))
+                                        .fill(Theme.Accent.primary(for: scheme).opacity(0.4))
                                         .frame(width: 4, height: 4)
                                         .padding(.top, 6)
                                     Text(ingredient)
-                                        .font(.system(size: 13))
+                                        .font(Typography.bodySmall)
                                         .foregroundStyle(Theme.Text.secondary(for: scheme))
                                 }
                             }
@@ -219,7 +222,7 @@ struct MealsView: View {
                        !instructions.isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("INSTRUCTIONS")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(Typography.label)
                                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                                 .tracking(1)
                             let steps = instructions.components(separatedBy: ";")
@@ -227,7 +230,7 @@ struct MealsView: View {
                                 .filter { !$0.isEmpty }
                             ForEach(Array(steps.enumerated()), id: \.offset) { _, step in
                                 Text(step)
-                                    .font(.system(size: 13))
+                                    .font(Typography.bodySmall)
                                     .foregroundStyle(Theme.Text.secondary(for: scheme))
                             }
                         }
@@ -236,7 +239,7 @@ struct MealsView: View {
                 } else {
                     if !meal.ingredients.isEmpty {
                         Text(meal.ingredients.joined(separator: ", "))
-                            .font(.system(size: 11))
+                            .font(Typography.caption)
                             .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .lineLimit(1)
                     }
@@ -260,7 +263,7 @@ struct MealsView: View {
         HStack(spacing: 4) {
             Circle().fill(color).frame(width: 5, height: 5)
             Text(text)
-                .font(.system(size: 12, weight: .regular, design: .monospaced))
+                .font(Typography.monoSmall)
                 .foregroundStyle(Theme.Text.secondary(for: scheme))
         }
     }

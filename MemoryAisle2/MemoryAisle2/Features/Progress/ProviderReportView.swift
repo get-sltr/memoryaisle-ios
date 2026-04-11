@@ -94,6 +94,7 @@ struct ProviderReportView: View {
                 }
             }
         }
+        .section(.progress)
         .themeBackground()
     }
 

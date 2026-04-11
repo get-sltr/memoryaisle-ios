@@ -18,6 +18,7 @@ struct OnboardingFlow: View {
                 .transition(.opacity)
             }
         }
+        .section(.home)
         .themeBackground()
     }
 

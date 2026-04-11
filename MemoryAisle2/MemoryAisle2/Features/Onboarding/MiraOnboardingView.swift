@@ -8,6 +8,7 @@ struct MiraOnboardingView: View {
     @State private var step: MiraQuestion = .intro
     @State private var showChoices = false
     @State private var miraText = ""
+    @State private var voice = VoiceManager()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -37,8 +38,10 @@ struct MiraOnboardingView: View {
             Spacer()
                 .frame(height: 40)
         }
+        .section(.home)
         .themeBackground()
         .onAppear { startConversation() }
+        .onDisappear { voice.stopSpeaking() }
     }
 
     // MARK: - Choices Per Step
@@ -102,11 +105,13 @@ struct MiraOnboardingView: View {
                         get: { profile.age.map { "\($0)" } ?? "" },
                         set: { profile.age = Int($0) }
                     ))
-                    .font(.system(size: 28, weight: .light, design: .monospaced))
+                    .font(Typography.monoLarge)
+                    .fontWeight(.light)
                     .foregroundStyle(Theme.Text.primary)
                     .multilineTextAlignment(.center)
                     .keyboardType(.numberPad)
                     .frame(width: 100)
+                    .accessibilityLabel("Age")
                     .padding(.vertical, 14)
                     .background(Theme.Surface.glass(for: scheme))
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -182,7 +187,7 @@ struct MiraOnboardingView: View {
             action()
         } label: {
             Text(title)
-                .font(.system(size: 15, weight: isSelected ? .semibold : .regular))
+                .font(isSelected ? Typography.bodyMediumBold : Typography.bodyMedium)
                 .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
@@ -194,29 +199,34 @@ struct MiraOnboardingView: View {
                 )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private func numberField(_ placeholder: String, value: Binding<String>) -> some View {
         VStack(spacing: 4) {
             Text(placeholder)
-                .font(.system(size: 10, weight: .medium))
+                .font(Typography.label)
+                .fontWeight(.medium)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
             TextField("", text: value)
-                .font(.system(size: 22, weight: .light, design: .monospaced))
+                .font(Typography.displaySmallMono)
                 .foregroundStyle(Theme.Text.primary)
                 .multilineTextAlignment(.center)
                 .keyboardType(.numberPad)
                 .padding(.vertical, 10)
                 .background(Theme.Surface.glass(for: scheme))
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .accessibilityLabel(placeholder)
         }
     }
 
     // MARK: - Conversation Flow
 
     private func startConversation() {
-        miraText = "Welcome to MemoryAisle. I'm Mira, and I'll help you get set up."
+        miraText = "Hello, my name is Mira. Welcome to MemoryAisle. I will be assisting you with your onboarding process today."
         step = .intro
+        voice.speak(miraText)
         withAnimation(.easeOut(duration: 0.6).delay(0.5)) {
             showChoices = true
         }
@@ -240,6 +250,9 @@ struct MiraOnboardingView: View {
 
         miraText = text
         step = next
+        if !text.isEmpty {
+            voice.speak(text)
+        }
         withAnimation(.easeOut(duration: 0.4)) {
             showChoices = true
         }

@@ -67,8 +67,31 @@ struct MiraChatView: View {
             // Always show input bar
             inputBar
         }
+        .section(.mira)
         .themeBackground()
         .navigationBarHidden(true)
+        .onChange(of: voice.isSpeaking) { wasSpeaking, nowSpeaking in
+            if wasSpeaking && !nowSpeaking && voice.autoListen {
+                Task {
+                    try? await Task.sleep(for: .milliseconds(400))
+                    withAnimation(.easeOut(duration: 0.2)) { micPressed = true }
+                    voice.startListening()
+                }
+            }
+        }
+        .onChange(of: voice.isListening) { _, nowListening in
+            // Keep button visual state in sync with actual voice state.
+            // If voice.isListening becomes false (for any reason - error,
+            // permission denied, recognition timeout), unstick the button.
+            if !nowListening {
+                withAnimation(.easeOut(duration: 0.2)) { micPressed = false }
+            }
+        }
+        .onDisappear {
+            voice.stopSpeaking()
+            voice.stopListening()
+            voice.autoListen = false
+        }
     }
 
     // MARK: - Empty State
@@ -125,12 +148,18 @@ struct MiraChatView: View {
                     sendMessage(voice.transcribedText)
                 }
             } else {
-                // Start listening
+                // Start listening and enable conversation mode
                 Task {
                     let granted = await voice.requestPermissions()
                     if granted {
+                        voice.autoListen = true
                         withAnimation(.easeOut(duration: 0.2)) { micPressed = true }
                         voice.startListening()
+                    } else {
+                        // Permission denied - reset state so UI isn't stuck
+                        await MainActor.run {
+                            withAnimation(.easeOut(duration: 0.2)) { micPressed = false }
+                        }
                     }
                 }
             }
@@ -286,7 +315,7 @@ struct MiraChatView: View {
                 } label: {
                     Image(systemName: "stop.fill")
                         .font(.system(size: 14))
-                        .foregroundStyle(Color(hex: 0xF87171))
+                        .foregroundStyle(Theme.Semantic.warning(for: scheme))
                         .frame(width: 36, height: 36)
                 }
                 .accessibilityLabel("Stop Mira speaking")
@@ -303,6 +332,7 @@ struct MiraChatView: View {
                         Task {
                             let granted = await voice.requestPermissions()
                             if granted {
+                                voice.autoListen = true
                                 micPressed = true
                                 voice.startListening()
                             }
@@ -311,7 +341,7 @@ struct MiraChatView: View {
                 } label: {
                     Image(systemName: voice.isListening ? "waveform" : "mic.fill")
                         .font(Typography.bodyLarge)
-                        .foregroundStyle(voice.isListening ? Color(hex: 0xF87171) : Theme.Accent.primary(for: scheme))
+                        .foregroundStyle(voice.isListening ? Theme.Semantic.warning(for: scheme) : Theme.Accent.primary(for: scheme))
                         .frame(width: 36, height: 36)
                 }
                 .accessibilityLabel(voice.isListening ? "Stop listening" : "Voice input")

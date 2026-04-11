@@ -64,6 +64,7 @@ struct GIToleranceView: View {
                 }
             }
         }
+        .section(.progress)
         .themeBackground()
         .alert("Log Food Reaction", isPresented: $showLogFood) {
             TextField("Food name", text: $logFoodName)

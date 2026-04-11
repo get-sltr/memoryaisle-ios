@@ -60,6 +60,7 @@ struct LegalView: View {
                 .padding(20)
             }
         }
+        .section(.home)
         .themeBackground()
     }
 
