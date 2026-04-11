@@ -6,6 +6,10 @@ struct MealPhotoView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
+    @State private var cameraImageData: Data?
+    @State private var showSourceChoice = false
+    @State private var showCamera = false
+    @State private var showLibraryPicker = false
     @State private var isAnalyzing = false
     @State private var result: MealPhotoResult?
 
@@ -57,7 +61,10 @@ struct MealPhotoView: View {
 
             Spacer()
 
-            PhotosPicker(selection: $selectedPhoto, matching: .images) {
+            Button {
+                HapticManager.light()
+                showSourceChoice = true
+            } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "camera.fill")
                         .font(.system(size: 18))
@@ -68,16 +75,47 @@ struct MealPhotoView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 18)
                 .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.violet.opacity(0.12))
+                    LinearGradient(
+                        colors: [
+                            SectionPalette.primary(.scanner, for: scheme),
+                            SectionPalette.mid(.scanner, for: scheme)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
                 )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.violet.opacity(0.3), lineWidth: 0.5)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .shadow(
+                    color: SectionPalette.primary(.scanner, for: scheme).opacity(0.35),
+                    radius: 20,
+                    y: 4
                 )
-                .shadow(color: Color.violet.opacity(0.25), radius: 20, y: 4)
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Take or choose meal photo")
             .padding(.horizontal, 32)
+            .confirmationDialog(
+                "Add Meal Photo",
+                isPresented: $showSourceChoice,
+                titleVisibility: .visible
+            ) {
+                Button("Take Photo") {
+                    showCamera = true
+                }
+                Button("Choose from Library") {
+                    showLibraryPicker = true
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+            .fullScreenCover(isPresented: $showCamera) {
+                CameraPicker(imageData: $cameraImageData)
+                    .ignoresSafeArea()
+            }
+            .photosPicker(
+                isPresented: $showLibraryPicker,
+                selection: $selectedPhoto,
+                matching: .images
+            )
             .onChange(of: selectedPhoto) { _, newValue in
                 guard let newValue else { return }
                 Task {
@@ -86,6 +124,12 @@ struct MealPhotoView: View {
                         analyzePhoto()
                     }
                 }
+            }
+            .onChange(of: cameraImageData) { _, newValue in
+                guard let newValue else { return }
+                photoData = newValue
+                cameraImageData = nil
+                analyzePhoto()
             }
 
             Spacer()

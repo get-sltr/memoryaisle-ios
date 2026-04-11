@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "434E32F1-2A22-4397-B3A9-601FF2393E16",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:MemoryAisle2.xcodeproj",
+      "identifier" : "8BD860872F84549700EEDDAF",
+      "name" : "MemoryAisle2"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:MemoryAisle2.xcodeproj",
+        "identifier" : "8BD860962F84549900EEDDAF",
+        "name" : "MemoryAisle2Tests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:MemoryAisle2.xcodeproj",
+        "identifier" : "8BD860A02F84549900EEDDAF",
+        "name" : "MemoryAisle2UITests"
+      }
+    }
+  ],
+  "version" : 1
+}
