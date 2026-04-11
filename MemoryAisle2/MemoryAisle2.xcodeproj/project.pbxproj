@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8B5CB0222F88772A00ED24E9 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B5CB0212F88772A00ED24E9 /* StoreKit.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		8BD860982F84549900EEDDAF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -40,11 +44,11 @@
 		8B3F98F92F849BA000710E33 /* MemoryAisleWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MemoryAisleWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B3F98FB2F849BA000710E33 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		8B3F98FD2F849BA000710E33 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		8B5CB0212F88772A00ED24E9 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		8BA557392F8A97B400115A13 /* MemoryAisle2.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = MemoryAisle2.xctestplan; sourceTree = "<group>"; };
 		8BD860882F84549700EEDDAF /* MemoryAisle2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemoryAisle2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BD860972F84549900EEDDAF /* MemoryAisle2Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoryAisle2Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BD860A12F84549900EEDDAF /* MemoryAisle2UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoryAisle2UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D2854FF99EE7B55E725B8555 /* JourneyProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = JourneyProfileView.swift; path = MemoryAisle2/Features/Profile/JourneyProfileView.swift; sourceTree = SOURCE_ROOT; };
-		6C5545FDDF5F300E304B72EA /* SafeSpaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafeSpaceView.swift; path = MemoryAisle2/Features/SafeSpace/SafeSpaceView.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -65,10 +69,22 @@
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		8B5CB0232F88772A00ED24E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8B5CB0222F88772A00ED24E9 /* StoreKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
 		8B3F98FA2F849BA000710E33 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				8B5CB0212F88772A00ED24E9 /* StoreKit.framework */,
 				8B3F98FB2F849BA000710E33 /* WidgetKit.framework */,
 				8B3F98FD2F849BA000710E33 /* SwiftUI.framework */,
 			);
@@ -78,6 +94,7 @@
 		8BD8607F2F84549700EEDDAF = {
 			isa = PBXGroup;
 			children = (
+				8BA557392F8A97B400115A13 /* MemoryAisle2.xctestplan */,
 				8BD8608A2F84549700EEDDAF /* MemoryAisle2 */,
 				8BD8609A2F84549900EEDDAF /* MemoryAisle2Tests */,
 				8BD860A42F84549900EEDDAF /* MemoryAisle2UITests */,
@@ -107,6 +124,7 @@
 				8BD860842F84549700EEDDAF /* Sources */,
 				8BD860862F84549700EEDDAF /* Resources */,
 				8B3F99102F849BA100710E33 /* Embed Foundation Extensions */,
+				8B5CB0232F88772A00ED24E9 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -221,8 +239,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B92F46DC84C74668C861F64C /* SafeSpaceView.swift in Sources */,
-				73BD4A811902C15B7AB9B916 /* JourneyProfileView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -383,8 +399,10 @@
 				INFOPLIST_KEY_CFBundleDisplayName = MemoryAisle;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCameraUsageDescription = "MemoryAisle needs camera access to scan food barcodes and analyze meals.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "MemoryAisle uses Face ID to protect your Safe Space journal and sensitive health data.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "MemoryAisle reads your weight and body composition to personalize protein targets and track progress.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MemoryAisle uses the microphone for voice conversations with Mira.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "MemoryAisle uses your photo library for profile photos, progress check-ins, and meal logging.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MemoryAisle uses speech recognition to transcribe your voice on-device for Mira conversations. Audio is never sent to any server.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -424,8 +442,10 @@
 				INFOPLIST_KEY_CFBundleDisplayName = MemoryAisle;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCameraUsageDescription = "MemoryAisle needs camera access to scan food barcodes and analyze meals.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "MemoryAisle uses Face ID to protect your Safe Space journal and sensitive health data.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "MemoryAisle reads your weight and body composition to personalize protein targets and track progress.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MemoryAisle uses the microphone for voice conversations with Mira.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "MemoryAisle uses your photo library for profile photos, progress check-ins, and meal logging.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MemoryAisle uses speech recognition to transcribe your voice on-device for Mira conversations. Audio is never sent to any server.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
