@@ -35,6 +35,13 @@ Infrastructure/CDK/cdk.out/
 Infrastructure/CDK/node_modules/
 Infrastructure/CDK/dist/
 
+# Lambda node_modules (deployed via zip, never committed)
+Infrastructure/lambda/*/node_modules/
+Infrastructure/lambda/*/*.zip
+
+# Superpowers scratch (brainstorm sessions, visual companion state)
+.superpowers/
+
 # Figma state
 /tmp/dsb-state-*.json
 
