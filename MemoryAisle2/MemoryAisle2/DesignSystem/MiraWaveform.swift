@@ -58,9 +58,28 @@ struct MiraWaveform: View {
     }
 
     var body: some View {
-        TimelineView(
-            .animation(minimumInterval: 1.0 / 30.0, paused: state == .idle)
-        ) { context in
+        // Idle state uses a plain static layout — NO TimelineView so
+        // SwiftUI doesn't schedule any animation frames. Zero CPU cost.
+        // Active states use TimelineView(.animation) for frame-synced
+        // updates that pause automatically when the view goes off-screen.
+        if state == .idle {
+            staticLayout
+        } else {
+            animatedLayout
+        }
+    }
+
+    private var staticLayout: some View {
+        HStack(alignment: .center, spacing: gap) {
+            ForEach(0..<5, id: \.self) { i in
+                bar(at: i, phase: 0)
+            }
+            sparkle(phase: 0)
+        }
+    }
+
+    private var animatedLayout: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: false)) { context in
             let t = context.date.timeIntervalSinceReferenceDate
             let phase = t.truncatingRemainder(dividingBy: 2.4) / 2.4
 

@@ -24,8 +24,18 @@ struct MiraChatView: View {
     @State private var inputText = ""
     @State private var messages: [MiraMessage] = []
     @State private var isTyping = false
-    @State private var voice = VoiceManager()
+    // Lazy — don't allocate VoiceManager (and its AVAudioEngine,
+    // SFSpeechRecognizer, etc.) until the user actually taps the mic.
+    // Pre-instantiating these blocks the main thread on first open.
+    @State private var voice: VoiceManager?
     @FocusState private var isInputFocused: Bool
+
+    private func ensureVoice() -> VoiceManager {
+        if let voice { return voice }
+        let new = VoiceManager()
+        voice = new
+        return new
+    }
 
     private var profile: UserProfile? { profiles.first }
     private var todayLog: NutritionLog? {
@@ -72,14 +82,10 @@ struct MiraChatView: View {
         .section(.mira)
         .themeBackground()
         .navigationBarHidden(true)
-        .onAppear {
-            // Defensive: ensure no conversation loop state leaks in.
-            voice.autoListen = false
-        }
         .onDisappear {
-            voice.stopListening()
-            voice.stopSpeaking()
-            voice.autoListen = false
+            voice?.stopListening()
+            voice?.stopSpeaking()
+            voice?.autoListen = false
         }
     }
 
@@ -97,9 +103,10 @@ struct MiraChatView: View {
 
     // MARK: - Empty State
 
+    private var isListening: Bool { voice?.isListening ?? false }
+
     private var miraState: MiraState {
-        if voice.isListening { return .thinking }
-        return .idle
+        isListening ? .thinking : .idle
     }
 
     private var isOnMedication: Bool {
@@ -141,12 +148,12 @@ struct MiraChatView: View {
                 .foregroundStyle(Theme.Text.primary)
                 .tracking(0.3)
 
-            Text(voice.isListening ? "Listening…" : "Tap Mira to talk, or choose below")
+            Text(isListening ? "Listening…" : "Tap Mira to talk, or choose below")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 10)
                 .contentTransition(.opacity)
-                .animation(.easeInOut(duration: 0.2), value: voice.isListening)
+                .animation(.easeInOut(duration: 0.2), value: isListening)
 
             Spacer()
                 .frame(height: 36)
@@ -174,21 +181,24 @@ struct MiraChatView: View {
                 .padding(.horizontal, 32)
                 .padding(.vertical, 20)
                 .contentShape(Rectangle())
-                .scaleEffect(voice.isListening ? 1.08 : 1.0)
-                .animation(.easeOut(duration: 0.2), value: voice.isListening)
+                .scaleEffect(isListening ? 1.08 : 1.0)
+                .animation(.easeOut(duration: 0.2), value: isListening)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(voice.isListening ? "Stop listening and send" : "Tap Mira to talk")
+        .accessibilityLabel(isListening ? "Stop listening and send" : "Tap Mira to talk")
     }
 
     // Press once to start listening. Press again to stop, transcribe,
     // and send the result as a text message. Mira responds in text.
     // No TTS, no auto-listen, no conversation loop.
     private func toggleMiraVoice() {
-        if voice.isListening {
-            voice.stopListening()
-            let pending = voice.transcribedText.trimmingCharacters(in: .whitespaces)
-            voice.transcribedText = ""
+        // Lazy-create VoiceManager on first use. Keeps screen-open fast.
+        let v = ensureVoice()
+
+        if v.isListening {
+            v.stopListening()
+            let pending = v.transcribedText.trimmingCharacters(in: .whitespaces)
+            v.transcribedText = ""
             if !pending.isEmpty {
                 sendMessage(pending)
             }
@@ -196,10 +206,10 @@ struct MiraChatView: View {
             // @MainActor is required because VoiceManager.startListening
             // touches AVAudioEngine which asserts main-thread affinity.
             Task { @MainActor in
-                let granted = await voice.requestPermissions()
+                let granted = await v.requestPermissions()
                 guard granted else { return }
-                voice.autoListen = false
-                voice.startListening()
+                v.autoListen = false
+                v.startListening()
             }
         }
     }
@@ -312,16 +322,16 @@ struct MiraChatView: View {
                 HapticManager.medium()
                 toggleMiraVoice()
             } label: {
-                Image(systemName: voice.isListening ? "waveform" : "mic.fill")
+                Image(systemName: isListening ? "waveform" : "mic.fill")
                     .font(Typography.bodyLarge)
                     .foregroundStyle(
-                        voice.isListening
+                        isListening
                             ? Theme.Semantic.warning(for: scheme)
                             : Theme.Accent.primary(for: scheme)
                     )
                     .frame(width: 36, height: 36)
             }
-            .accessibilityLabel(voice.isListening ? "Stop and send" : "Dictate message")
+            .accessibilityLabel(isListening ? "Stop and send" : "Dictate message")
 
             TextField("Ask Mira...", text: $inputText)
                 .font(Typography.bodyMedium)
