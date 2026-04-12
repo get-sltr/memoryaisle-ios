@@ -47,7 +47,7 @@ struct VioletButton: View {
                     endPoint: .bottomTrailing
                 )
             )
-            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.button, style: .continuous))
         }
         .buttonStyle(VioletPressStyle())
         .opacity(isLoading ? 0.8 : 1.0)
@@ -84,7 +84,7 @@ struct VioletButtonCompact: View {
             .padding(.horizontal, Theme.Spacing.md)
             .padding(.vertical, Theme.Spacing.sm)
             .background(Color.violetDeep)
-            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.button, style: .continuous))
         }
         .buttonStyle(VioletPressStyle())
     }

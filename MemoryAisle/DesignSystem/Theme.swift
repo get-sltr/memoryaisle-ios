@@ -34,6 +34,12 @@ enum Theme {
                 ? Color.violet.opacity(0.12)
                 : Color.violetDeep.opacity(0.08)
         }
+
+        static func tabBar(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color.violet.opacity(0.03)
+                : Color.violetDeep.opacity(0.02)
+        }
     }
 
     // MARK: Border
@@ -41,8 +47,8 @@ enum Theme {
     enum Border {
         static func glass(for scheme: ColorScheme) -> Color {
             scheme == .dark
-                ? Color.violet.opacity(0.10)
-                : Color.violetDeep.opacity(0.07)
+                ? Color.violet.opacity(0.08)
+                : Color.violetDeep.opacity(0.06)
         }
 
         static func strong(for scheme: ColorScheme) -> Color {
@@ -55,6 +61,12 @@ enum Theme {
             scheme == .dark
                 ? Color.violet.opacity(0.25)
                 : Color.violetDeep.opacity(0.18)
+        }
+
+        static func tabBar(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color.violet.opacity(0.06)
+                : Color.violetDeep.opacity(0.04)
         }
     }
 
@@ -74,6 +86,12 @@ enum Theme {
                 ? Color.white.opacity(0.25)
                 : Color(hex: 0xD1D5DB)
         }
+
+        static func hint(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color.white.opacity(0.12)
+                : Color(hex: 0xE5E7EB)
+        }
     }
 
     // MARK: Accent
@@ -85,6 +103,24 @@ enum Theme {
 
         static func label(for scheme: ColorScheme) -> Color {
             scheme == .dark ? Color.violet.opacity(0.5) : .violetMid
+        }
+
+        static func muted(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color.violet.opacity(0.15)
+                : Color.violetDeep.opacity(0.10)
+        }
+
+        static func ghost(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color.violet.opacity(0.5)
+                : Color.violetDeep.opacity(0.4)
+        }
+
+        static func subtle(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color.violet.opacity(0.08)
+                : Color.violetDeep.opacity(0.05)
         }
     }
 
@@ -118,6 +154,49 @@ enum Theme {
         static func warning(for scheme: ColorScheme) -> Color {
             scheme == .dark ? Color(hex: 0xF87171) : Color(hex: 0xDC2626)
         }
+
+        // MARK: Semantic Backgrounds
+
+        static func onTrackBg(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color(hex: 0x34D399).opacity(0.06)
+                : Color(hex: 0x059669).opacity(0.06)
+        }
+
+        static func behindBg(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color(hex: 0xFBBF24).opacity(0.08)
+                : Color(hex: 0xD97706).opacity(0.06)
+        }
+
+        static func warningBg(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color(hex: 0xF87171).opacity(0.08)
+                : Color(hex: 0xDC2626).opacity(0.06)
+        }
+
+        // MARK: Semantic Borders
+
+        static func onTrackBorder(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color(hex: 0x34D399).opacity(0.12)
+                : Color(hex: 0x059669).opacity(0.10)
+        }
+
+        static func behindBorder(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color(hex: 0xFBBF24).opacity(0.15)
+                : Color(hex: 0xD97706).opacity(0.12)
+        }
+
+        static func warningBorder(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color(hex: 0xF87171).opacity(0.15)
+                : Color(hex: 0xDC2626).opacity(0.12)
+        }
+
+        static let streakActive = Color(hex: 0x6B8F71).opacity(0.5)
+        static let streakInactive = Color.violet.opacity(0.12)
     }
 
     // MARK: Spacing
@@ -129,6 +208,11 @@ enum Theme {
         static let lg: CGFloat = 24
         static let xl: CGFloat = 32
         static let xxl: CGFloat = 48
+
+        static let screenH: CGFloat = 28
+        static let cardPad: CGFloat = 20
+        static let cardGap: CGFloat = 10
+        static let sectionGap: CGFloat = 20
     }
 
     // MARK: Radius
@@ -136,8 +220,10 @@ enum Theme {
     enum Radius {
         static let none: CGFloat = 0
         static let sm: CGFloat = 8
-        static let md: CGFloat = 12
-        static let lg: CGFloat = 18
+        static let md: CGFloat = 14
+        static let lg: CGFloat = 22
+        static let button: CGFloat = 24
+        static let pill: CGFloat = 20
         static let full: CGFloat = 9999
     }
 

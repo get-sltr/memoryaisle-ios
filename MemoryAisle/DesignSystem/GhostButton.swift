@@ -30,9 +30,9 @@ struct GhostButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(Theme.Surface.glass(for: scheme))
-            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.button, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.button, style: .continuous)
                     .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
             )
         }
@@ -70,9 +70,9 @@ struct GhostButtonCompact: View {
             .padding(.horizontal, Theme.Spacing.md)
             .padding(.vertical, Theme.Spacing.sm)
             .background(Theme.Surface.glass(for: scheme))
-            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.button, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.button, style: .continuous)
                     .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
             )
         }

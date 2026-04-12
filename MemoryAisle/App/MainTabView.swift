@@ -99,23 +99,16 @@ struct CustomTabBar: View {
         } label: {
             ZStack {
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [.violetDeep, .violetMid],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 52, height: 52)
-                    .shadow(
-                        color: Color.violetDeep.opacity(0.4),
-                        radius: 8,
-                        y: 4
+                    .fill(Theme.Accent.muted(for: scheme))
+                    .frame(width: 48, height: 48)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.violet.opacity(0.3), lineWidth: Theme.glassBorderWidth)
                     )
 
                 Image(systemName: "barcode.viewfinder")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 20, weight: .regular))
+                    .foregroundStyle(Theme.Accent.primary(for: scheme))
             }
             .offset(y: -12)
         }
@@ -130,11 +123,11 @@ struct CustomTabBar: View {
             .fill(.ultraThinMaterial)
             .overlay(
                 Rectangle()
-                    .fill(Theme.Surface.glass(for: scheme))
+                    .fill(Theme.Surface.tabBar(for: scheme))
             )
             .overlay(alignment: .top) {
                 Rectangle()
-                    .fill(Theme.Border.glass(for: scheme))
+                    .fill(Theme.Border.tabBar(for: scheme))
                     .frame(height: Theme.glassBorderWidth)
             }
     }

@@ -47,7 +47,29 @@ struct PillBadge: View {
     }
 
     private var backgroundColor: Color {
-        foregroundColor.opacity(scheme == .dark ? 0.12 : 0.08)
+        switch status {
+        case .onTrack, .nauseaSafe:
+            Theme.Semantic.onTrackBg(for: scheme)
+        case .behind, .nauseaRisk:
+            Theme.Semantic.behindBg(for: scheme)
+        case .warning, .skip:
+            Theme.Semantic.warningBg(for: scheme)
+        case .neutral:
+            Theme.Text.secondary(for: scheme).opacity(0.08)
+        }
+    }
+
+    private var borderColor: Color {
+        switch status {
+        case .onTrack, .nauseaSafe:
+            Theme.Semantic.onTrackBorder(for: scheme)
+        case .behind, .nauseaRisk:
+            Theme.Semantic.behindBorder(for: scheme)
+        case .warning, .skip:
+            Theme.Semantic.warningBorder(for: scheme)
+        case .neutral:
+            Theme.Text.secondary(for: scheme).opacity(0.12)
+        }
     }
 
     var body: some View {
@@ -56,12 +78,16 @@ struct PillBadge: View {
                 .font(.system(size: 10))
 
             Text(label ?? status.rawValue)
-                .font(Typography.bodySmallBold)
+                .font(Typography.label)
         }
         .foregroundStyle(foregroundColor)
-        .padding(.horizontal, Theme.Spacing.sm + 2)
-        .padding(.vertical, Theme.Spacing.xs + 1)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
         .background(backgroundColor)
         .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .stroke(borderColor, lineWidth: Theme.glassBorderWidth)
+        )
     }
 }
