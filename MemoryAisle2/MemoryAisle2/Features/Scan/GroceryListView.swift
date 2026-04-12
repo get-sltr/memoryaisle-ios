@@ -30,7 +30,7 @@ struct GroceryListView: View {
     @FocusState private var inputFocused: Bool
 
     init() {
-        _categories = State(initialValue: GroceryListSeed.defaultList())
+        _categories = State(initialValue: [])
     }
 
     private var checkedCount: Int {
@@ -51,19 +51,23 @@ struct GroceryListView: View {
                 CloseButton(action: { dismiss() })
             }
 
-            ScrollView(showsIndicators: false) {
-                LazyVStack(spacing: 14) {
-                    ForEach(Array(categories.enumerated()), id: \.element.id) { catIndex, category in
-                        categorySection(catIndex: catIndex, category: category)
-                    }
+            if totalCount == 0 {
+                emptyState
+            } else {
+                ScrollView(showsIndicators: false) {
+                    LazyVStack(spacing: 14) {
+                        ForEach(Array(categories.enumerated()), id: \.element.id) { catIndex, category in
+                            categorySection(catIndex: catIndex, category: category)
+                        }
 
-                    if checkedCount > 0 {
-                        doneShoppingButton
-                    }
+                        if checkedCount > 0 {
+                            doneShoppingButton
+                        }
 
-                    Spacer(minLength: 80)
+                        Spacer(minLength: 80)
+                    }
+                    .padding(.top, 18)
                 }
-                .padding(.top, 18)
             }
 
             inputBar
@@ -81,6 +85,30 @@ struct GroceryListView: View {
         .alert("\(duplicateName) is already on the list", isPresented: $showDuplicateAlert) {
             Button("OK") {}
         }
+    }
+
+    // MARK: - Empty State
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            Image(systemName: "cart")
+                .font(.system(size: 44))
+                .foregroundStyle(SectionPalette.primary(.grocery, for: scheme).opacity(0.3))
+
+            Text("Your grocery list is empty")
+                .font(Typography.bodyLargeBold)
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+
+            Text("Add items below or ask Mira\nto generate a list from your meal plan.")
+                .font(Typography.bodySmall)
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                .multilineTextAlignment(.center)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Category Section
