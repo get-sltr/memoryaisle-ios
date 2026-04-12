@@ -120,7 +120,7 @@ struct HolidayCalendar {
             Holiday(name: "Ramadan Begins", date: .date(2, 18, year: y), culture: .muslim, mealNote: "Fasting sunrise to sunset. Suhoor: high-protein, slow-digesting foods. Iftar: start with dates and water, then protein.", fasting: true),
             Holiday(name: "Laylat al-Qadr", date: .date(3, 15, year: y), culture: .muslim, mealNote: "Night of Power. Light iftar to stay alert for prayer. Protein shake is efficient.", fasting: true),
             Holiday(name: "Eid al-Fitr", date: .date(3, 20, year: y), culture: .muslim, mealNote: "End of Ramadan. Ease back into regular eating. Start with light protein meals. Don't overeat after fasting.", fasting: false),
-            Holiday(name: "Eid al-Adha", date: .date(5, 27, year: y), culture: .muslim, mealNote: "Feast of sacrifice. Lamb and goat are traditional and protein-rich. Watch portion sizes on GLP-1s.", fasting: false),
+            Holiday(name: "Eid al-Adha", date: .date(5, 27, year: y), culture: .muslim, mealNote: "Feast of sacrifice. Lamb and goat are traditional and protein-rich. Mind your portion sizes and chew slowly.", fasting: false),
             Holiday(name: "Islamic New Year", date: .date(6, 17, year: y), culture: .muslim, mealNote: nil, fasting: false),
         ]
     }

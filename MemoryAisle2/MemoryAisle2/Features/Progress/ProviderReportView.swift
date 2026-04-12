@@ -181,7 +181,7 @@ struct ProviderReportView: View {
             dateRange: "\(formatter.string(from: startDate)) - \(formatter.string(from: endDate))",
             medication: profile?.medication?.rawValue ?? "Not specified",
             dose: profile?.doseAmount ?? "Not specified",
-            mode: profile?.productMode.rawValue ?? "Everyday GLP-1",
+            mode: profile?.productMode.rawValue ?? "Everyday",
             avgProtein: avgProtein,
             proteinTarget: profile?.proteinTargetGrams ?? 140,
             proteinHitRate: proteinHitRate,

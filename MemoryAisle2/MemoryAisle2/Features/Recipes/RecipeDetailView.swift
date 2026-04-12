@@ -1,9 +1,20 @@
+import SwiftData
 import SwiftUI
 
 struct RecipeDetailView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
+    @Query private var profiles: [UserProfile]
     let recipe: RecipeItem
+
+    // Mira's recipe tips in RecipesSeed are GLP-1-aware (they reference
+    // nausea days, appetite, dose timing). Hide the tip card entirely
+    // for non-medication users until we have a second set of universal
+    // tips. The recipe itself (ingredients, steps, macros) is still
+    // fully useful for everyone.
+    private var isOnMedication: Bool {
+        profiles.first?.medication != nil
+    }
 
     private var heroSubtitle: String {
         var parts: [String] = ["Serves \(recipe.servings)"]
@@ -27,7 +38,9 @@ struct RecipeDetailView: View {
                     statsRow
                     ingredientsCard
                     stepsCard
-                    miraTipCard
+                    if isOnMedication {
+                        miraTipCard
+                    }
                     GlowButton("Add to today's plan", icon: "plus") {
                         HapticManager.success()
                         dismiss()
