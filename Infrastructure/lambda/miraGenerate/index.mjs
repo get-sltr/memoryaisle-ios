@@ -48,7 +48,7 @@ Keep responses concise (2-4 sentences unless the user asks for detail). Use spec
 
 export const handler = async (event) => {
   const body = JSON.parse(event.body || "{}");
-  const { message, context } = body;
+  const { message, context, imageBase64, imageMediaType } = body;
 
   if (!message) {
     return {
@@ -60,6 +60,21 @@ export const handler = async (event) => {
 
   const userContext = context ? buildAnonymizedContext(context) : "";
 
+  // Build content: vision array when image is present, plain string otherwise
+  const content = imageBase64
+    ? [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: imageMediaType || "image/jpeg",
+            data: imageBase64,
+          },
+        },
+        { type: "text", text: message },
+      ]
+    : message;
+
   try {
     const command = new InvokeModelCommand({
       modelId: "us.anthropic.claude-sonnet-4-20250514-v1:0",
@@ -69,7 +84,7 @@ export const handler = async (event) => {
         anthropic_version: "bedrock-2023-05-31",
         max_tokens: 2500,
         system: SYSTEM_PROMPT + userContext,
-        messages: [{ role: "user", content: message }],
+        messages: [{ role: "user", content }],
       }),
     });
 

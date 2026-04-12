@@ -169,7 +169,7 @@ final class FoodAnalyzer {
         """
 
         let response = try await apiClient.send(
-            message: prompt, context: context
+            message: prompt, context: context, imageData: imageData
         )
 
         return parsePhotoAnalysis(response)

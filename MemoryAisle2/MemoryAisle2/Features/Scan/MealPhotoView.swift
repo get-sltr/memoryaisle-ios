@@ -1,4 +1,5 @@
 import PhotosUI
+import SwiftData
 import SwiftUI
 
 struct MealPhotoView: View {
@@ -11,7 +12,9 @@ struct MealPhotoView: View {
     @State private var showCamera = false
     @State private var showLibraryPicker = false
     @State private var isAnalyzing = false
-    @State private var result: MealPhotoResult?
+    @State private var result: FoodAnalyzer.Analysis?
+    @State private var analysisError: String?
+    @Query private var profiles: [UserProfile]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,6 +36,8 @@ struct MealPhotoView: View {
                 resultView(result)
             } else if isAnalyzing {
                 analyzingView
+            } else if let analysisError {
+                errorView(analysisError)
             } else {
                 captureView
             }
@@ -137,6 +142,52 @@ struct MealPhotoView: View {
         }
     }
 
+    // MARK: - Error
+
+    private func errorView(_ message: String) -> some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            if let photoData, let uiImage = UIImage(data: photoData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 200, height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .opacity(0.5)
+            }
+
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 32))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+
+            Text("Mira couldn't analyze this photo.")
+                .font(.system(size: 16))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+
+            Button {
+                analysisError = nil
+                analyzePhoto()
+            } label: {
+                Text("Try again")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(Color.violet)
+            }
+
+            Button {
+                analysisError = nil
+                photoData = nil
+                selectedPhoto = nil
+            } label: {
+                Text("Take a different photo")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+            }
+
+            Spacer()
+        }
+    }
+
     // MARK: - Analyzing
 
     private var analyzingView: some View {
@@ -168,7 +219,7 @@ struct MealPhotoView: View {
 
     // MARK: - Result
 
-    private func resultView(_ r: MealPhotoResult) -> some View {
+    private func resultView(_ r: FoodAnalyzer.Analysis) -> some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 20) {
                 if let photoData, let uiImage = UIImage(data: photoData) {
@@ -180,25 +231,23 @@ struct MealPhotoView: View {
                         .padding(.horizontal, 20)
                 }
 
-                Text(r.mealName)
+                Text(r.foodName)
                     .font(.system(size: 20, weight: .medium))
                     .foregroundStyle(Theme.Text.primary)
 
-                // Macros
                 HStack(spacing: 16) {
-                    macroCell("Protein", "\(r.protein)g", Color.violet)
-                    macroCell("Calories", "\(r.calories)", Theme.Text.secondary(for: scheme))
-                    macroCell("Fat", "\(r.fat)g", Theme.Text.tertiary(for: scheme))
-                    macroCell("Carbs", "\(r.carbs)g", Theme.Text.tertiary(for: scheme))
+                    macroCell("Protein", "\(Int(r.estimatedProtein))g", Color.violet)
+                    macroCell("Calories", "\(Int(r.estimatedCalories))", Theme.Text.secondary(for: scheme))
+                    macroCell("Fat", "\(Int(r.estimatedFat))g", Theme.Text.tertiary(for: scheme))
+                    macroCell("Carbs", "\(Int(r.estimatedCarbs))g", Theme.Text.tertiary(for: scheme))
                 }
                 .padding(.horizontal, 20)
 
-                // Mira's note
                 HStack(alignment: .top, spacing: 10) {
                     MiraWaveform(state: .idle, size: .hero)
                         .scaleEffect(0.35, anchor: .leading)
                         .frame(width: 30, height: 14)
-                    Text(r.miraNote)
+                    Text(r.explanation)
                         .font(.system(size: 14))
                         .foregroundStyle(Theme.Text.secondary(for: scheme))
                 }
@@ -217,6 +266,7 @@ struct MealPhotoView: View {
 
                 Button {
                     result = nil
+                    analysisError = nil
                     photoData = nil
                     selectedPhoto = nil
                 } label: {
@@ -246,30 +296,26 @@ struct MealPhotoView: View {
     // MARK: - Analysis (Bedrock Claude Vision)
 
     private func analyzePhoto() {
+        guard let photoData else { return }
+        guard let profile = profiles.first else { return }
+
         isAnalyzing = true
-        // AI analysis via Bedrock (simulated until Vision API is wired)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            result = MealPhotoResult(
-                mealName: "Grilled Chicken with Rice & Vegetables",
-                protein: 38,
-                calories: 480,
-                fat: 12,
-                carbs: 45,
-                fiber: 6,
-                miraNote: "Solid meal. 38g protein puts you closer to your target. The vegetables add fiber and micronutrients. Consider adding a side of Greek yogurt for an extra protein boost."
-            )
+        analysisError = nil
+
+        Task {
+            do {
+                let analyzer = FoodAnalyzer()
+                let analysis = try await analyzer.analyzePhoto(
+                    imageData: photoData,
+                    profile: profile
+                )
+                result = analysis
+                HapticManager.success()
+            } catch {
+                analysisError = error.localizedDescription
+                HapticManager.error()
+            }
             isAnalyzing = false
-            HapticManager.success()
         }
     }
-}
-
-struct MealPhotoResult {
-    let mealName: String
-    let protein: Int
-    let calories: Int
-    let fat: Int
-    let carbs: Int
-    let fiber: Int
-    let miraNote: String
 }

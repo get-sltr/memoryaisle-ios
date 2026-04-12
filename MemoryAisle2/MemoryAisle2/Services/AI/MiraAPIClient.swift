@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 struct MiraAPIClient: Sendable {
     private let endpoint = "https://9n2u3mkkma.execute-api.us-east-1.amazonaws.com/prod/mira"
@@ -22,6 +23,8 @@ struct MiraAPIClient: Sendable {
     struct MiraRequest: Codable, Sendable {
         let message: String
         let context: MiraContext?
+        let imageBase64: String?
+        let imageMediaType: String?
     }
 
     struct MiraResponse: Codable, Sendable {
@@ -30,6 +33,14 @@ struct MiraAPIClient: Sendable {
     }
 
     func send(message: String, context: MiraContext?) async throws -> String {
+        try await send(message: message, context: context, imageData: nil)
+    }
+
+    func send(
+        message: String,
+        context: MiraContext?,
+        imageData: Data?
+    ) async throws -> String {
         guard let url = URL(string: endpoint) else {
             throw MiraError.invalidURL
         }
@@ -39,7 +50,17 @@ struct MiraAPIClient: Sendable {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 30
 
-        let body = MiraRequest(message: message, context: context)
+        var encodedImage: String?
+        if let imageData {
+            encodedImage = await MainActor.run { Self.prepareImage(imageData) }
+        }
+
+        let body = MiraRequest(
+            message: message,
+            context: context,
+            imageBase64: encodedImage,
+            imageMediaType: encodedImage != nil ? "image/jpeg" : nil
+        )
         request.httpBody = try JSONEncoder().encode(body)
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -59,6 +80,30 @@ struct MiraAPIClient: Sendable {
         }
 
         return miraResponse.reply ?? "I'm having a moment. Try again?"
+    }
+
+    @MainActor
+    private static func prepareImage(_ data: Data) -> String? {
+        guard let image = UIImage(data: data) else { return nil }
+
+        let maxDimension: CGFloat = 1024
+        let scale = min(
+            maxDimension / max(image.size.width, 1),
+            maxDimension / max(image.size.height, 1),
+            1.0
+        )
+
+        let targetSize = CGSize(
+            width: image.size.width * scale,
+            height: image.size.height * scale
+        )
+
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        let resized = renderer.jpegData(withCompressionQuality: 0.7) { ctx in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+
+        return resized.base64EncodedString()
     }
 }
 
