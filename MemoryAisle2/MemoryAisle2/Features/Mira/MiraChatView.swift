@@ -21,6 +21,15 @@ struct MiraChatView: View {
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
 
+    // Optional initial prompt seeded as Mira's first message when the view
+    // is opened with a specific context (e.g. "Ready to generate your first
+    // meal plan?" from the Day 1 dashboard).
+    let initialPrompt: String?
+
+    init(initialPrompt: String? = nil) {
+        self.initialPrompt = initialPrompt
+    }
+
     @State private var inputText = ""
     @State private var messages: [MiraMessage] = []
     @State private var isTyping = false
@@ -91,6 +100,14 @@ struct MiraChatView: View {
         .section(.mira)
         .themeBackground()
         .navigationBarHidden(true)
+        .onAppear {
+            seedInitialPromptIfNeeded()
+        }
+    }
+
+    private func seedInitialPromptIfNeeded() {
+        guard let prompt = initialPrompt, messages.isEmpty else { return }
+        messages.append(MiraMessage(prompt, isUser: false))
     }
 
     // MARK: - Header bar

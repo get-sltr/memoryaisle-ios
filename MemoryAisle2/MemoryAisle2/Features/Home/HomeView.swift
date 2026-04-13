@@ -22,6 +22,8 @@ struct HomeView: View {
     // Get-started sheet routing
     @State private var showScanSheet = false
     @State private var showMealPhotoSheet = false
+    @State private var showGrocerySheet = false
+    @State private var showMiraMealPlanSheet = false
 
     // Mood capture
     @State private var pickedMood: Mood?
@@ -83,6 +85,14 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showMealPhotoSheet) {
             MealPhotoView()
+        }
+        .sheet(isPresented: $showGrocerySheet) {
+            GroceryListScreen()
+        }
+        .sheet(isPresented: $showMiraMealPlanSheet) {
+            MiraChatView(
+                initialPrompt: "Ready to generate your first meal plan? Tell me about what you like to eat, any ingredients you want to use, and I'll put something together for you."
+            )
         }
     }
 
@@ -553,6 +563,15 @@ struct HomeView: View {
                     showMealPhotoSheet = true
                 }
                 getStartedRow(
+                    title: "Grocery list",
+                    subtitle: "What to grab this week",
+                    icon: "cart.fill",
+                    accent: Color(hex: 0x4ADE80),
+                    highlighted: false
+                ) {
+                    showGrocerySheet = true
+                }
+                getStartedRow(
                     title: "Scan something",
                     subtitle: "See how any food fits your plan",
                     icon: "barcode.viewfinder",
@@ -563,15 +582,12 @@ struct HomeView: View {
                 }
                 getStartedRow(
                     title: "Generate your first meal plan",
-                    subtitle: "AI recipes built for your goals",
-                    icon: "square.stack.3d.up.fill",
-                    accent: Color(hex: 0xFBBF24),
+                    subtitle: "Chat with Mira to build it together",
+                    icon: "sparkles",
+                    accent: Color.violet,
                     highlighted: false
                 ) {
-                    // Routes through Smart Calendar in the menu; presenting
-                    // MealPlanGeneratorView standalone requires parent-owned
-                    // bindings, so open the menu to reach it.
-                    showMenu = true
+                    showMiraMealPlanSheet = true
                 }
             }
         }
