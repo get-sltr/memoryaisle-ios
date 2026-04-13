@@ -16,6 +16,7 @@ extension MiraOnboardingView {
                 .accessibilityLabel(profile.startingPhotoData == nil
                     ? "Add starting photo"
                     : "Change starting photo")
+                .accessibilityAddTraits(.isButton)
                 .confirmationDialog(
                     "Starting photo",
                     isPresented: $showStartingSourceChoice,

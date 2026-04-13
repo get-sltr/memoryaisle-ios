@@ -186,6 +186,8 @@ struct MiraOnboardingView: View {
 
     // MARK: - Shared Components
 
+    /// Internal (not private) so MiraOnboardingView+StartingPhoto.swift can reuse it.
+    /// Do not call from outside MiraOnboardingView or its extensions.
     func choiceButton(
         _ title: String,
         isSelected: Bool = false,
@@ -241,6 +243,9 @@ struct MiraOnboardingView: View {
         }
     }
 
+    /// Internal (not private) so MiraOnboardingView+StartingPhoto.swift can drive
+    /// onboarding navigation from the photo step. Do not call from outside
+    /// MiraOnboardingView or its extensions.
     func advanceTo(_ next: MiraQuestion) {
         withAnimation { showChoices = false }
 
