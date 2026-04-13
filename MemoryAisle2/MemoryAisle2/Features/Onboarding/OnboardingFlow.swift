@@ -46,6 +46,25 @@ struct OnboardingFlow: View {
         user.goalWeightLbs = profile.goalWeightLbs
 
         modelContext.insert(user)
+
+        // Record the journey start date so Reflection can compute "days since"
+        // and anchor anniversary milestones.
+        UserDefaults.standard.set(Date(), forKey: "journeyStartDate")
+
+        // If the user provided a starting photo, create a Day 1 BodyComposition
+        // record. This anchors Reflection's hero comparison and produces the
+        // first-photo milestone moment.
+        if let photoData = profile.startingPhotoData,
+           let weightLbs = profile.weightLbs {
+            let starting = BodyComposition(
+                date: .now,
+                weightLbs: weightLbs,
+                source: .manual,
+                photoData: photoData
+            )
+            modelContext.insert(starting)
+        }
+
         appState.hasCompletedOnboarding = true
     }
 
