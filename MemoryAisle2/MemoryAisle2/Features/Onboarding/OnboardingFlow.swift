@@ -99,6 +99,7 @@ struct OnboardingProfile {
     var weightLbs: Double?
     var heightInches: Int?
     var goalWeightLbs: Double?
+    var startingPhotoData: Data?   // transient, carries photo to completeOnboarding
     var worries: [Worry] = []
     var trainingLevel: TrainingLevel = .none
     var dietaryRestrictions: [DietaryRestriction] = []
