@@ -43,4 +43,22 @@ enum Typography {
     static let bodySmallBold = Font.system(size: 13, weight: .semibold, design: .default)
     static let monoMediumBold = Font.system(size: 17, weight: .semibold, design: .monospaced)
     static let displaySmallMono = Font.system(size: 22, weight: .light, design: .monospaced)
+
+    // MARK: - Ported from Flair pass (used by dashboard components)
+
+    static let micro = Font.system(size: 10, weight: .medium, design: .default)
+    static let data = Font.system(size: 22, weight: .medium, design: .monospaced)
+    static let dataSmall = Font.system(size: 15, weight: .medium, design: .monospaced)
+}
+
+// MARK: - Typography View Modifiers (ported from Flair pass)
+
+extension View {
+    func letterSpaced(_ spacing: CGFloat = 1.0) -> some View {
+        self.tracking(spacing)
+    }
+
+    func tabularFigures() -> some View {
+        self.monospacedDigit()
+    }
 }

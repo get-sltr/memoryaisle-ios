@@ -6,309 +6,257 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Binding var showMenu: Bool
     @Query private var profiles: [UserProfile]
-    @Query(sort: \PantryItem.addedDate, order: .reverse) private var pantryItems: [PantryItem]
-    @State private var newItemText = ""
-    @State private var duplicateItemName: String?
-    @FocusState private var inputFocused: Bool
+    @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
 
     private var profile: UserProfile? { profiles.first }
+    private var todayLog: NutritionLog? {
+        logs.first { Calendar.current.isDateInToday($0.date) }
+    }
 
-    // Group items by category
-    private var groupedItems: [(category: PantryCategory, items: [PantryItem])] {
-        let grouped = Dictionary(grouping: pantryItems, by: \.category)
-        let order: [PantryCategory] = [.protein, .produce, .dairy, .grains, .frozen, .pantryStaple, .snacks, .beverages, .condiments, .other]
-        return order.compactMap { cat in
-            guard let items = grouped[cat], !items.isEmpty else { return nil }
-            return (category: cat, items: items)
-        }
+    private var isGLP1: Bool { profile?.medication != nil }
+
+    private var protein: Double { todayLog?.proteinGrams ?? 0 }
+    private var proteinTarget: Double { Double(profile?.proteinTargetGrams ?? 140) }
+    private var calories: Double { todayLog?.caloriesConsumed ?? 0 }
+    private var calorieTarget: Double { Double(profile?.calorieTarget ?? 1800) }
+    private var water: Double { todayLog?.waterLiters ?? 0 }
+    private var waterTarget: Double { profile?.waterTargetLiters ?? 2.5 }
+
+    private var proteinDeficit: Int {
+        max(0, Int(proteinTarget - protein))
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack {
-                Button {
-                    HapticManager.light()
-                    showMenu = true
-                } label: {
-                    OnboardingLogo(size: 72)
-                }
-                .accessibilityLabel("Open menu")
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(greeting)
-                        .font(Typography.bodySmall)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                    Text("Grocery List")
-                        .font(.system(size: 22, weight: .light, design: .serif))
-                        .foregroundStyle(Theme.Text.primary)
-                        .tracking(0.3)
-                }
-                .padding(.leading, 10)
-
-                Spacer()
-
-                if !pantryItems.isEmpty {
-                    Text("\(pantryItems.count)")
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
-                        .foregroundStyle(SectionPalette.primary(.home, for: scheme).opacity(0.75))
-                        .accessibilityLabel("\(pantryItems.count) items in list")
-                }
+        ScrollView {
+            VStack(spacing: Theme.Spacing.sectionGap) {
+                headerBar
+                greetingBlock
+                StreakDots(activeDays: [0, 1, 2, 4, 5])
+                miraSuggestion
+                glanceTiles
+                bodyComposition
+                medicationOrGoalSlot
+                Spacer(minLength: 80)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 12)
-            .padding(.bottom, 12)
-
-            // List
-            if pantryItems.isEmpty {
-                emptyState
-            } else {
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 16) {
-                        ForEach(groupedItems, id: \.category) { group in
-                            categorySection(group.category, items: group.items)
-                        }
-                    }
-                    .padding(.top, 8)
-                    .padding(.bottom, 100)
-                }
-            }
-
-            Spacer(minLength: 0)
-
-            // Input bar
-            inputBar
         }
-        .section(.home)
         .themeBackground()
         .navigationBarHidden(true)
-        .alert(
-            "Already in your list",
-            isPresented: Binding(
-                get: { duplicateItemName != nil },
-                set: { if !$0 { duplicateItemName = nil } }
-            ),
-            presenting: duplicateItemName
-        ) { _ in
-            Button("Add anyway", role: .destructive) {
-                forceAddItem()
-                duplicateItemName = nil
-            }
-            Button("Cancel", role: .cancel) {
-                duplicateItemName = nil
-            }
-        } message: { name in
-            Text("\(name) is already in your grocery list. Do you want to add another?")
-        }
     }
 
-    // MARK: - Empty State
+    // MARK: - Header Bar
 
-    private var emptyState: some View {
-        VStack(spacing: 16) {
+    private var headerBar: some View {
+        HStack {
+            Button {
+                HapticManager.light()
+                showMenu = true
+            } label: {
+                Text("MEMORYAISLE")
+                    .font(Typography.label)
+                    .letterSpaced(2.0)
+                    .foregroundStyle(Theme.Accent.ghost(for: scheme))
+            }
+            .accessibilityLabel("Open menu")
+
             Spacer()
 
-            Image(systemName: "cart")
-                .font(.system(size: 48))
-                .foregroundStyle(SectionPalette.primary(.home, for: scheme).opacity(0.25))
+            Circle()
+                .fill(Theme.Accent.subtle(for: scheme))
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                )
+        }
+        .padding(.horizontal, Theme.Spacing.screenH)
+        .padding(.top, Theme.Spacing.sm)
+    }
 
-            Text("Your list is empty")
-                .font(.system(size: 18, weight: .light, design: .serif))
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
+    // MARK: - Greeting Block
 
-            Text("Type below or tap the mic to add items")
-                .font(Typography.bodySmall)
+    private var greetingBlock: some View {
+        VStack(spacing: Theme.Spacing.xs) {
+            Text(greeting)
+                .font(Typography.bodyMedium)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
-            Spacer()
+            greetingHeadline
         }
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Category Section
-
-    private func categorySection(_ category: PantryCategory, items: [PantryItem]) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            // Category header
-            HStack(spacing: 8) {
-                Image(systemName: category.icon)
-                    .font(Typography.caption)
-                    .foregroundStyle(categoryColor(category))
-
-                Text(category.rawValue.uppercased())
-                    .font(Typography.label)
-                    .fontWeight(.medium)
-                    .foregroundStyle(categoryColor(category).opacity(0.7))
-                    .tracking(1)
-
-                Rectangle()
-                    .fill(categoryColor(category).opacity(0.1))
-                    .frame(height: 0.5)
-
-                Text("\(items.count)")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundStyle(categoryColor(category).opacity(0.4))
-            }
-            .padding(.horizontal, 20)
-
-            // Items
-            ForEach(items) { item in
-                Button {
-                    HapticManager.success()
-                    withAnimation(.easeOut(duration: 0.25)) {
-                        modelContext.delete(item)
-                    }
-                } label: {
-                    HStack(spacing: 12) {
-                        Circle()
-                            .stroke(categoryColor(item.category).opacity(0.3), lineWidth: 1.5)
-                            .frame(width: 22, height: 22)
-
-                        Text(item.name)
-                            .font(Typography.bodyMedium)
-                            .foregroundStyle(Theme.Text.primary)
-
-                        Spacer()
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
-                }
-                .accessibilityLabel("Mark \(item.name) as bought")
-            }
-        }
+    private var greetingHeadline: Text {
+        Text(headlinePrefix)
+            .font(Typography.displayMedium)
+            .foregroundStyle(Theme.Text.primary)
     }
 
-    // MARK: - Input Bar
-
-    private var inputBar: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "plus.circle.fill")
-                .font(.system(size: 20))
-                .foregroundStyle(SectionPalette.primary(.home, for: scheme).opacity(0.75))
-
-            TextField("Add an item…", text: $newItemText)
-                .font(Typography.bodyLarge)
-                .foregroundStyle(Theme.Text.primary)
-                .focused($inputFocused)
-                .onSubmit { addItem() }
-
-            if !newItemText.isEmpty {
-                Button {
-                    addItem()
-                } label: {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 24))
-                        .foregroundStyle(SectionPalette.primary(.home, for: scheme))
-                }
-                .accessibilityLabel("Add item")
-            } else {
-                Button {
-                    inputFocused = true
-                } label: {
-                    Image(systemName: "mic.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(SectionPalette.primary(.home, for: scheme).opacity(0.5))
-                }
-                .accessibilityLabel("Voice input")
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Rectangle()
-                        .fill(Theme.Surface.glass(for: scheme))
-                )
-                .overlay(alignment: .top) {
-                    Rectangle()
-                        .fill(Theme.Border.glass(for: scheme))
-                        .frame(height: Theme.glassBorderWidth)
-                }
-        )
+    private var headlinePrefix: String {
+        let hour = Calendar.current.component(.hour, from: .now)
+        if hour < 12 { return "Let's build today" }
+        if hour < 17 { return "Keep it going" }
+        if hour < 22 { return "Close it out" }
+        return "Rest well"
     }
-
-    // MARK: - Helpers
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: .now)
+        if hour < 5 { return "Late night" }
         if hour < 12 { return "Good morning" }
         if hour < 17 { return "Good afternoon" }
-        return "Good evening"
+        if hour < 22 { return "Good evening" }
+        return "Late night"
     }
 
-    private func addItem() {
-        let text = newItemText.trimmingCharacters(in: .whitespaces)
-        guard !text.isEmpty else { return }
+    // MARK: - Mira Suggestion
 
-        // Check for duplicate (case-insensitive)
-        let normalized = text.lowercased()
-        if pantryItems.contains(where: { $0.name.lowercased() == normalized }) {
-            duplicateItemName = text
-            HapticManager.warning()
-            return
+    private var miraSuggestion: some View {
+        GlassCard {
+            HStack(alignment: .top, spacing: Theme.Spacing.md) {
+                MiraWaveform(state: .speaking, size: .compact)
+                    .padding(.top, Theme.Spacing.xs)
+
+                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                    Text("Mira")
+                        .font(Typography.label)
+                        .foregroundStyle(Theme.Accent.primary(for: scheme))
+                    Text(miraSuggestionText)
+                        .font(Typography.bodyMedium)
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
+                }
+            }
+            .padding(Theme.Spacing.cardPad)
         }
-
-        let category = categorize(text)
-        let item = PantryItem(name: text, category: category)
-        modelContext.insert(item)
-        newItemText = ""
-        HapticManager.light()
+        .padding(.horizontal, Theme.Spacing.screenH)
     }
 
-    private func forceAddItem() {
-        let text = newItemText.trimmingCharacters(in: .whitespaces)
-        guard !text.isEmpty else { return }
-        let category = categorize(text)
-        let item = PantryItem(name: text, category: category)
-        modelContext.insert(item)
-        newItemText = ""
-        HapticManager.light()
-    }
-
-    private func categorize(_ name: String) -> PantryCategory {
-        let lower = name.lowercased()
-
-        let proteinWords = ["chicken", "beef", "pork", "steak", "salmon", "tuna", "shrimp", "turkey", "fish", "lamb", "bacon", "sausage", "tofu", "tempeh", "egg"]
-        if proteinWords.contains(where: { lower.contains($0) }) { return .protein }
-
-        let produceWords = ["apple", "banana", "orange", "berry", "grape", "lemon", "lime", "avocado", "tomato", "onion", "garlic", "pepper", "lettuce", "spinach", "kale", "broccoli", "carrot", "celery", "cucumber", "potato", "mushroom", "corn", "mango", "pineapple", "watermelon", "strawberry", "blueberry"]
-        if produceWords.contains(where: { lower.contains($0) }) { return .produce }
-
-        let dairyWords = ["milk", "cheese", "yogurt", "butter", "cream", "cottage", "mozzarella", "cheddar", "parmesan"]
-        if dairyWords.contains(where: { lower.contains($0) }) { return .dairy }
-
-        let grainWords = ["bread", "rice", "pasta", "oat", "cereal", "quinoa", "tortilla", "wrap", "bagel", "noodle", "flour"]
-        if grainWords.contains(where: { lower.contains($0) }) { return .grains }
-
-        let frozenWords = ["frozen", "ice cream", "popsicle", "pizza"]
-        if frozenWords.contains(where: { lower.contains($0) }) { return .frozen }
-
-        let beverageWords = ["water", "juice", "soda", "coffee", "tea", "kombucha", "wine", "beer"]
-        if beverageWords.contains(where: { lower.contains($0) }) { return .beverages }
-
-        let snackWords = ["chips", "crackers", "nuts", "popcorn", "granola", "bar", "cookie", "chocolate"]
-        if snackWords.contains(where: { lower.contains($0) }) { return .snacks }
-
-        let condimentWords = ["sauce", "ketchup", "mustard", "mayo", "dressing", "oil", "vinegar", "soy", "salt", "pepper", "spice", "seasoning", "honey", "syrup"]
-        if condimentWords.contains(where: { lower.contains($0) }) { return .condiments }
-
-        return .other
-    }
-
-    private func categoryColor(_ category: PantryCategory) -> Color {
-        switch category {
-        case .protein: Color(hex: 0xF87171)      // coral red
-        case .produce: Color(hex: 0x4ADE80)      // bright green
-        case .dairy: Color(hex: 0x38BDF8)        // sky blue
-        case .grains: Color(hex: 0xFBBF24)       // gold amber
-        case .frozen: Color(hex: 0x67E8F9)       // ice cyan
-        case .pantryStaple: Color(hex: 0xA78BFA) // violet
-        case .snacks: Color(hex: 0xFB923C)       // orange
-        case .beverages: Color(hex: 0x60A5FA)    // indigo blue
-        case .condiments: Color(hex: 0xF472B6)   // pink
-        case .other: Color(hex: 0x9CA3AF)        // gray
+    private var miraSuggestionText: String {
+        if isGLP1 {
+            if proteinDeficit > 30 {
+                return "You're \(proteinDeficit)g behind on protein. Greek yogurt plus hemp seeds closes the gap."
+            } else if water < waterTarget * 0.5 {
+                return "You're behind on hydration. GLP-1s suppress thirst cues. Try a glass now."
+            } else {
+                return "Great progress today. Keep hitting your protein window and stay hydrated."
+            }
+        } else {
+            if proteinDeficit > 30 {
+                return "You're \(proteinDeficit)g behind on protein. A quick snack can close the gap."
+            } else {
+                return "Solid day so far. Keep building on your streak."
+            }
         }
+    }
+
+    // MARK: - Glance Tiles
+
+    private var glanceTiles: some View {
+        HStack(spacing: Theme.Spacing.cardGap) {
+            glanceTile(
+                "PROTEIN",
+                value: "\(Int(protein))",
+                unit: "g",
+                target: "\(Int(proteinTarget))g",
+                category: .protein,
+                progress: proteinTarget > 0 ? protein / proteinTarget : 0
+            )
+            glanceTile(
+                "CALORIES",
+                value: "\(Int(calories))",
+                unit: "",
+                target: "\(Int(calorieTarget))",
+                category: .calories,
+                progress: calorieTarget > 0 ? calories / calorieTarget : 0
+            )
+            glanceTile(
+                "WATER",
+                value: String(format: "%.1f", water),
+                unit: "L",
+                target: String(format: "%.1fL", waterTarget),
+                category: .water,
+                progress: waterTarget > 0 ? water / waterTarget : 0
+            )
+        }
+        .padding(.horizontal, Theme.Spacing.screenH)
+    }
+
+    private func glanceTile(
+        _ title: String,
+        value: String,
+        unit: String,
+        target: String,
+        category: ProgressCategory,
+        progress: Double
+    ) -> some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                Text(title)
+                    .font(Typography.micro)
+                    .letterSpaced(0.8)
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text(value)
+                        .font(Typography.dataSmall)
+                        .tabularFigures()
+                        .foregroundStyle(Theme.Text.primary)
+                    if !unit.isEmpty {
+                        Text(unit)
+                            .font(Typography.caption)
+                            .foregroundStyle(Theme.Text.secondary(for: scheme))
+                    }
+                }
+
+                ProgressBar(progress: progress, category: category, height: 4)
+
+                Text(target)
+                    .font(Typography.caption)
+                    .foregroundStyle(Theme.Text.hint(for: scheme))
+            }
+            .padding(Theme.Spacing.sm + 4)
+        }
+    }
+
+    // MARK: - Body Composition
+
+    private var bodyComposition: some View {
+        BodyCompositionCard(
+            leanMassLbs: 128.4,
+            bodyFatPercent: 24.2,
+            leanMassDelta: 0.3,
+            bodyFatDelta: -0.8,
+            weightHistory: [172, 171, 170.5, 170, 169.2, 169, 168.5],
+            leanMassHistory: [127.8, 127.9, 128.0, 128.1, 128.2, 128.3, 128.4]
+        )
+        .padding(.horizontal, Theme.Spacing.screenH)
+    }
+
+    // MARK: - Medication / Weekly Goal Slot
+
+    @ViewBuilder
+    private var medicationOrGoalSlot: some View {
+        if isGLP1 {
+            MedicationCycleBar(
+                medicationName: profile?.medication?.rawValue ?? "Medication",
+                doseLabel: profile?.doseAmount ?? "",
+                currentDay: currentCycleDay,
+                totalDays: 7
+            )
+            .padding(.horizontal, Theme.Spacing.screenH)
+        } else {
+            WeeklyGoalCard(
+                goalLabel: "Lose 0.5 lbs/week",
+                isOnTrack: proteinDeficit < 20
+            )
+            .padding(.horizontal, Theme.Spacing.screenH)
+        }
+    }
+
+    private var currentCycleDay: Int {
+        guard let injectionDay = profile?.injectionDay else { return 1 }
+        let today = Calendar.current.component(.weekday, from: .now)
+        let elapsed = (today - injectionDay + 7) % 7
+        return elapsed + 1
     }
 }

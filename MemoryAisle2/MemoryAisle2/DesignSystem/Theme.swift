@@ -140,6 +140,13 @@ enum Theme {
                 ? Color.white.opacity(0.25)
                 : Color(hex: 0xD1D5DB)
         }
+
+        // Ported from Flair pass — dimmest text (disabled, placeholders, meta)
+        static func hint(for scheme: ColorScheme) -> Color {
+            scheme == .dark
+                ? Color.white.opacity(0.12)
+                : Color(hex: 0xE5E7EB)
+        }
     }
 
     // MARK: Accent
@@ -151,6 +158,16 @@ enum Theme {
 
         static func label(for scheme: ColorScheme) -> Color {
             scheme == .dark ? Color.violet.opacity(0.5) : .violetMid
+        }
+
+        // Ported from Flair pass — wordmark / section label ghost color
+        static func ghost(for scheme: ColorScheme) -> Color {
+            scheme == .dark ? Color.violet.opacity(0.5) : .violetMid
+        }
+
+        // Ported from Flair pass — subtle background for small accent surfaces
+        static func subtle(for scheme: ColorScheme) -> Color {
+            scheme == .dark ? Color.violet.opacity(0.08) : Color.violetDeep.opacity(0.06)
         }
     }
 
@@ -192,6 +209,10 @@ enum Theme {
         static func success(for scheme: ColorScheme) -> Color {
             scheme == .dark ? Color(hex: 0x4ADE80) : Color(hex: 0x16A34A)
         }
+
+        // Ported from Flair pass — streak-dot / medication-cycle fill colors
+        static let streakActive = Color(red: 0.42, green: 0.56, blue: 0.44).opacity(0.5)
+        static let streakInactive = Color.violet.opacity(0.12)
     }
 
     // MARK: Spacing
@@ -203,6 +224,12 @@ enum Theme {
         static let lg: CGFloat = 24
         static let xl: CGFloat = 32
         static let xxl: CGFloat = 48
+
+        // Semantic aliases ported from Flair pass (used by dashboard components)
+        static let screenH: CGFloat = 28    // left/right screen padding
+        static let cardPad: CGFloat = 20    // internal card padding
+        static let cardGap: CGFloat = 10    // between sibling cards
+        static let sectionGap: CGFloat = 20 // between major home sections
     }
 
     // MARK: Radius
