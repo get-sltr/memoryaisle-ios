@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftUI
 
 struct MiraOnboardingView: View {
@@ -9,6 +10,11 @@ struct MiraOnboardingView: View {
     @State private var showChoices = false
     @State private var miraText = ""
     @State private var voice = VoiceManager()
+    @State private var startingPhotoItem: PhotosPickerItem?
+    @State private var startingCameraData: Data?
+    @State private var showStartingSourceChoice = false
+    @State private var showStartingCamera = false
+    @State private var showStartingLibrary = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -139,8 +145,11 @@ struct MiraOnboardingView: View {
                             set: { profile.goalWeightLbs = Double($0) }
                         ))
                     }
-                    choiceButton("Next") { advanceTo(.medication) }
+                    choiceButton("Next") { advanceTo(.startingPhoto) }
                 }
+
+            case .startingPhoto:
+                startingPhotoChoices
 
             case .medication:
                 choiceButton("Yes") {
@@ -173,6 +182,87 @@ struct MiraOnboardingView: View {
         }
         .padding(.horizontal, 32)
         .transition(.opacity.combined(with: .move(edge: .bottom)))
+    }
+
+    // MARK: - Starting Photo Step
+
+    @ViewBuilder
+    private var startingPhotoChoices: some View {
+        VStack(spacing: 12) {
+            startingPhotoPreview
+                .onTapGesture {
+                    HapticManager.light()
+                    showStartingSourceChoice = true
+                }
+                .accessibilityLabel(profile.startingPhotoData == nil
+                    ? "Add starting photo"
+                    : "Change starting photo")
+                .confirmationDialog(
+                    "Starting photo",
+                    isPresented: $showStartingSourceChoice,
+                    titleVisibility: .visible
+                ) {
+                    Button("Take Photo") { showStartingCamera = true }
+                    Button("Choose from Library") { showStartingLibrary = true }
+                    Button("Cancel", role: .cancel) {}
+                }
+                .fullScreenCover(isPresented: $showStartingCamera) {
+                    CameraPicker(imageData: $startingCameraData)
+                        .ignoresSafeArea()
+                }
+                .photosPicker(
+                    isPresented: $showStartingLibrary,
+                    selection: $startingPhotoItem,
+                    matching: .images
+                )
+                .onChange(of: startingPhotoItem) { _, newValue in
+                    guard let newValue else { return }
+                    Task { @MainActor in
+                        profile.startingPhotoData = try? await newValue.loadTransferable(type: Data.self)
+                    }
+                }
+                .onChange(of: startingCameraData) { _, newValue in
+                    guard let newValue else { return }
+                    profile.startingPhotoData = newValue
+                    startingCameraData = nil
+                }
+
+            choiceButton("Continue") { advanceTo(.medication) }
+            choiceButton("Skip for now") {
+                profile.startingPhotoData = nil
+                advanceTo(.medication)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var startingPhotoPreview: some View {
+        if let data = profile.startingPhotoData,
+           let uiImage = UIImage(data: data) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 140, height: 180)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        } else {
+            VStack(spacing: 8) {
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(Color.violet.opacity(0.4))
+                Text("Add a photo")
+                    .font(Typography.bodySmall)
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+            }
+            .frame(width: 140, height: 180)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Theme.Surface.glass(for: scheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+            )
+        }
     }
 
     // MARK: - Shared Components
@@ -243,6 +333,7 @@ struct MiraOnboardingView: View {
         case .age: "How old are you?"
         case .sex: "What is your biological sex? This helps me calculate your protein targets."
         case .heightWeight: "What's your current weight and where do you want to be?"
+        case .startingPhoto: "Want to set a starting photo? It is optional, and you can always change your mind later."
         case .medication: "Are you on any medication that affects your appetite?"
         case .whichMed: "Which medication?"
         case .ready: buildReadySummary()
@@ -274,7 +365,8 @@ enum MiraQuestion: Int, CaseIterable {
     case age = 4          // How old?
     case sex = 5          // Biological sex
     case heightWeight = 6 // Weight + goal
-    case medication = 7   // On any appetite medication?
-    case whichMed = 8     // Which one?
-    case ready = 9        // Personalized summary
+    case startingPhoto = 7 // Optional starting photo (NEW)
+    case medication = 8   // On any appetite medication?
+    case whichMed = 9     // Which one?
+    case ready = 10       // Personalized summary
 }
