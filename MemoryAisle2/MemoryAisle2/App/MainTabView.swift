@@ -61,6 +61,12 @@ struct MainTabView: View {
                     menuRow("My Journey", icon: "person.fill", color: Color.violet) {
                         activeSheet = .destination(.profile)
                     }
+                    menuRow("Progress", icon: "chart.line.uptrend.xyaxis", color: Color(hex: 0x34D399)) {
+                        activeSheet = .destination(.progress)
+                    }
+                    menuRow("Grocery List", icon: "cart.fill", color: Color(hex: 0x4ADE80)) {
+                        activeSheet = .destination(.groceryList)
+                    }
                     menuRow("Recipes", icon: "book.fill", color: Color(hex: 0xFBBF24)) {
                         activeSheet = .destination(.recipes)
                     }
@@ -76,8 +82,8 @@ struct MainTabView: View {
                     menuRow("My Safe Space", icon: "lock.shield.fill", color: Color(hex: 0x6B6B88)) {
                         activeSheet = .destination(.safeSpace)
                     }
-                    menuRow("Progress", icon: "chart.line.uptrend.xyaxis", color: Color(hex: 0x34D399)) {
-                        activeSheet = .destination(.progress)
+                    menuRow("Reflection", icon: "square.and.pencil", color: Color.violet) {
+                        activeSheet = .destination(.reflection)
                     }
                     menuRow("Subscribe", icon: "star.fill", color: Color(hex: 0xFBBF24)) {
                         activeSheet = .destination(.subscribe)
@@ -143,12 +149,14 @@ struct MainTabView: View {
     private func destinationView(_ dest: MenuDestination) -> some View {
         switch dest {
         case .profile: JourneyProfileView()
+        case .progress: ProgressDashboardView()
+        case .groceryList: GroceryListScreen()
         case .recipes: RecipesView()
         case .scan: ScanView()
         case .calendar: CalendarView()
         case .pantry: PantryView()
         case .safeSpace: SafeSpaceView()
-        case .progress: ProgressDashboardView()
+        case .reflection: ReflectionView()
         case .subscribe: PaywallView()
         case .settings: ProfileView()
         }
@@ -156,7 +164,7 @@ struct MainTabView: View {
 }
 
 enum MenuDestination: String, Identifiable, Hashable {
-    case profile, recipes, scan, calendar, pantry, safeSpace, progress, subscribe, settings
+    case profile, progress, groceryList, recipes, scan, calendar, pantry, safeSpace, reflection, subscribe, settings
     var id: String { rawValue }
 }
 
