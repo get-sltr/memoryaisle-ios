@@ -1,9 +1,12 @@
 import PhotosUI
+import SwiftData
 import SwiftUI
 
 struct PhotoCheckInView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    private let saveService = CheckInSaveService()
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
     @State private var cameraImageData: Data?
@@ -220,25 +223,19 @@ struct PhotoCheckInView: View {
     // MARK: - Save
 
     private func saveCheckIn() {
-        // Save photo locally (never uploaded)
-        if let photoData {
-            let fileManager = FileManager.default
-            guard let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
-            let photosDir = documentsPath.appendingPathComponent("ProgressPhotos", isDirectory: true)
-
-            try? fileManager.createDirectory(at: photosDir, withIntermediateDirectories: true)
-
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd"
-            let filename = "checkin-\(dateFormatter.string(from: .now)).jpg"
-
-            let filePath = photosDir.appendingPathComponent(filename)
-            try? photoData.write(to: filePath)
-        }
-
-        HapticManager.success()
-        withAnimation(.easeOut(duration: 0.3)) {
-            saved = true
+        guard let weightLbs = Double(weight) else { return }
+        do {
+            try saveService.save(
+                weight: weightLbs,
+                photoData: photoData,
+                in: modelContext
+            )
+            HapticManager.success()
+            withAnimation(.easeOut(duration: 0.3)) {
+                saved = true
+            }
+        } catch {
+            // Save failed; stay on the form so the user can retry.
         }
     }
 }
