@@ -144,6 +144,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8BD860AE2F84549900EEDDAF /* Build configuration list for PBXNativeTarget "MemoryAisle2Tests" */;
 			buildPhases = (
+				8BD8609B2F84549900EEDDAF /* Sources */,
 			);
 			buildRules = (
 			);
@@ -236,6 +237,13 @@
 
 /* Begin PBXSourcesBuildPhase section */
 		8BD860842F84549700EEDDAF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8BD8609B2F84549900EEDDAF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
