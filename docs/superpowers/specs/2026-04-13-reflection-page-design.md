@@ -508,21 +508,59 @@ No new `@Model` types. No new fields on existing `@Model` types.
 
 ## 7. Onboarding changes
 
-**Important context** — the multi-step onboarding sequence does NOT live in `OnboardingFlow.swift`. That file is a thin wrapper that displays `MiraOnboardingView` and handles the final `completeOnboarding()` callback. The actual sub-screens (BodyStats, Training, Worries, etc.) are composed inside `Features/Onboarding/MiraOnboardingView.swift`. The insertion point for the new starting photo step is there, not in `OnboardingFlow`.
+**Important context** — the onboarding sub-steps do NOT live in individual screen files. `OnboardingFlow.swift` is a thin wrapper that displays `MiraOnboardingView`, and `MiraOnboardingView.swift` holds the full sub-step sequence as a **state machine** driven by a `MiraQuestion` enum. Each "screen" is a case in the enum and a branch in a single `choicesForCurrentStep` switch. `BodyStatsScreen.swift` exists in the codebase but is dead code from an earlier design — it is not imported anywhere. Do not touch it.
 
-### New file: `Features/Onboarding/StartingPhotoScreen.swift`
+### Extending `MiraOnboardingView` (not a new file)
 
-Inserted inside `MiraOnboardingView`'s sub-step sequence, after `BodyStatsScreen` (which captures weight) and before the next screen. Exact position to be confirmed by reading `MiraOnboardingView.swift` at implementation time — the general principle is: after weight is captured, before training is asked about.
+The starting photo step is added as a new `MiraQuestion` case positioned **after `.heightWeight` and before `.medication`**. The existing state-machine pattern is extended, preserving the continuous-conversation feel of the current flow.
 
-### Screen composition
+### Changes required in `Features/Onboarding/MiraOnboardingView.swift`
 
-- `MiraWaveform(state: .idle, size: .hero)` at top
-- Serif headline: **"Your first photo"**
-- Body text: `"This is optional. You can add a photo now, later, or never. You can always change your mind. It is your journey."`
-- Photo preview area (thumbnail or empty placeholder)
-- Button that opens a `.confirmationDialog`: `"Take Photo"` / `"Choose from Library"` / `"Cancel"` — matches the existing `PhotoCheckInView` pattern so the two flows feel identical
-- Primary button: `GlowButton("Continue")` — always enabled
-- Secondary button: `"Skip for now"` in `Theme.Text.tertiary`, matching existing onboarding skip style
+**1. Add a new enum case** to `MiraQuestion` (currently at lines 269–280):
+
+```swift
+enum MiraQuestion: Int, CaseIterable {
+    case intro = 0
+    case goals = 1
+    case training = 2
+    case dietary = 3
+    case age = 4
+    case sex = 5
+    case heightWeight = 6
+    case startingPhoto = 7   // NEW
+    case medication = 8      // was 7
+    case whichMed = 9        // was 8
+    case ready = 10          // was 9
+}
+```
+
+**2. Add a branch to `choicesForCurrentStep`** for the new step. The UI uses the same `PhotosPickerItem` + `CameraPicker` pattern as `PhotoCheckInView` for consistency:
+
+- Photo preview area: `44pt` glass tile, shows thumbnail when photo selected
+- Button: "Add a photo" → opens `.confirmationDialog` (Take Photo / Choose from Library / Cancel)
+- `choiceButton("Continue")` advances to `.medication` (photo optional — always works)
+- `choiceButton("Skip for now")` also advances to `.medication` without setting the photo
+
+**3. Add Mira question text** to the `advanceTo()` switch (line 238):
+
+```swift
+case .startingPhoto: "Want to set a starting photo? It is optional, and you can always change your mind later."
+```
+
+**4. State variables** added to `MiraOnboardingView`:
+
+```swift
+@State private var startingPhotoItem: PhotosPickerItem?
+@State private var startingPhotoData: Data?
+@State private var startingCameraData: Data?
+@State private var showPhotoSourceChoice = false
+@State private var showStartingCamera = false
+@State private var showStartingLibrary = false
+```
+
+**5. Import** `PhotosUI` at the top of the file.
+
+**6. When photo is captured** (via either source), write to `profile.startingPhotoData` so it carries through to `completeOnboarding()`.
 
 ### `OnboardingProfile` field addition
 
@@ -554,17 +592,17 @@ if let photoData = profile.startingPhotoData,
 }
 ```
 
-### On continue with photo (in `StartingPhotoScreen`)
+### On continue with photo
 
-1. Write `capturedPhotoData` to `profile.startingPhotoData`
-2. Advance to next onboarding screen
+1. Write `startingPhotoData` to `profile.startingPhotoData`
+2. `advanceTo(.medication)`
 
 ### On continue without photo (skipped)
 
 1. Leave `profile.startingPhotoData` as `nil`
-2. Advance to next onboarding screen
+2. `advanceTo(.medication)`
 
-Note that the `BodyComposition` record is only written in `completeOnboarding()`, not in `StartingPhotoScreen`. This keeps the screen pure — it only updates the in-memory profile accumulator, matching the pattern of every other onboarding screen.
+Note that the `BodyComposition` record is only written in `completeOnboarding()`, not in `MiraOnboardingView`. This keeps the onboarding view pure — it only updates the in-memory profile accumulator, matching the pattern of every other step.
 
 ---
 
