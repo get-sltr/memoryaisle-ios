@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftData
 import SwiftUI
 
@@ -7,528 +8,716 @@ struct HomeView: View {
     @Binding var showMenu: Bool
 
     @Query private var profiles: [UserProfile]
-    @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
     @Query(sort: \BodyComposition.date, order: .reverse) private var bodyCompRecords: [BodyComposition]
-    @Query(sort: \Meal.createdAt, order: .reverse) private var meals: [Meal]
 
     private var profile: UserProfile? { profiles.first }
-    private var todayLog: NutritionLog? {
-        logs.first { Calendar.current.isDateInToday($0.date) }
-    }
-    private var latestBodyComp: BodyComposition? { bodyCompRecords.first }
-    private var earliestBodyComp: BodyComposition? { bodyCompRecords.last }
 
-    private var tonightsDinner: Meal? {
-        meals.first { $0.mealType == .dinner }
-    }
+    // Starting photo capture
+    @State private var showStartingSourceChoice = false
+    @State private var showStartingCamera = false
+    @State private var showStartingLibrary = false
+    @State private var startingPhotoItem: PhotosPickerItem?
+    @State private var startingCameraData: Data?
 
-    private var isGLP1: Bool { profile?.medication != nil }
+    // Get-started sheet routing
+    @State private var showScanSheet = false
+    @State private var showMealPhotoSheet = false
 
-    private var protein: Double { todayLog?.proteinGrams ?? 0 }
-    private var proteinTarget: Double { Double(profile?.proteinTargetGrams ?? 140) }
-    private var calories: Double { todayLog?.caloriesConsumed ?? 0 }
-    private var calorieTarget: Double { Double(profile?.calorieTarget ?? 1800) }
+    // Mood capture
+    @State private var pickedMood: Mood?
 
-    private var currentWeightLbs: Double? { latestBodyComp?.weightLbs }
-    private var startWeightLbs: Double? {
-        earliestBodyComp?.weightLbs ?? profile?.weightLbs
-    }
-    private var goalWeightLbs: Double? { profile?.goalWeightLbs }
-
-    private var proteinDeficit: Int {
-        max(0, Int(proteinTarget - protein))
-    }
-
-    // Streak: last 7 days, active if protein target met
-    private var streakActiveDays: [Int] {
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: .now)
-        var active: [Int] = []
-        for offset in 0..<7 {
-            guard let day = cal.date(byAdding: .day, value: -offset, to: today) else { continue }
-            let hit = logs.contains { log in
-                cal.isDate(log.date, inSameDayAs: day) && log.proteinGrams >= proteinTarget
-            }
-            if hit { active.append(6 - offset) }
-        }
-        return active
-    }
-
-    private var streakLabel: String {
-        let count = streakActiveDays.count
-        if count == 0 { return "Ready when you are" }
-        if count == 7 { return "Perfect week" }
-        return "\(count) of 7 days this week"
-    }
+    private let saveService = CheckInSaveService()
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: Theme.Spacing.sectionGap) {
-                headerBar
-                greetingBlock
-                streakBlock
-                miraCard
-                glanceTiles
-                tonightsMealRow
-                bodyCompositionSlot
-                medicationOrGoalSlot
-                Spacer(minLength: 80)
+            VStack(spacing: 14) {
+                topBar
+                welcomeHeader
+                intoCard
+                progressRow
+                dailyTargetsCard
+                todaysMealsCard
+                moodCard
+                getStartedCard
+                footerNote
             }
-            .padding(.top, Theme.Spacing.sm)
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 40)
         }
         .themeBackground()
         .navigationBarHidden(true)
+        .confirmationDialog(
+            "Starting photo",
+            isPresented: $showStartingSourceChoice,
+            titleVisibility: .visible
+        ) {
+            Button("Take Photo") { showStartingCamera = true }
+            Button("Choose from Library") { showStartingLibrary = true }
+            Button("Cancel", role: .cancel) {}
+        }
+        .fullScreenCover(isPresented: $showStartingCamera) {
+            CameraPicker(imageData: $startingCameraData)
+                .ignoresSafeArea()
+        }
+        .photosPicker(
+            isPresented: $showStartingLibrary,
+            selection: $startingPhotoItem,
+            matching: .images
+        )
+        .onChange(of: startingPhotoItem) { _, newValue in
+            guard let newValue else { return }
+            Task { @MainActor in
+                if let data = try? await newValue.loadTransferable(type: Data.self) {
+                    persistStartingPhoto(data)
+                }
+            }
+        }
+        .onChange(of: startingCameraData) { _, newValue in
+            guard let newValue else { return }
+            persistStartingPhoto(newValue)
+            startingCameraData = nil
+        }
+        .sheet(isPresented: $showScanSheet) {
+            ScanView()
+        }
+        .sheet(isPresented: $showMealPhotoSheet) {
+            MealPhotoView()
+        }
     }
 
-    // MARK: - Header bar
+    // MARK: - Top bar
 
-    private var headerBar: some View {
+    private var topBar: some View {
         HStack {
             Button {
                 HapticManager.light()
                 showMenu = true
             } label: {
-                Text("MEMORYAISLE")
-                    .font(Typography.label)
-                    .letterSpaced(2.0)
-                    .foregroundStyle(Theme.Accent.ghost(for: scheme))
+                Text("Dashboard")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
             .accessibilityLabel("Open menu")
 
             Spacer()
 
-            Circle()
-                .fill(Theme.Accent.subtle(for: scheme))
-                .frame(width: 32, height: 32)
-                .overlay(
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                )
-                .accessibilityLabel("Profile")
+            Text(dayLabel)
+                .font(.system(size: 10))
+                .foregroundStyle(Theme.Text.hint(for: scheme))
         }
-        .padding(.horizontal, Theme.Spacing.screenH)
     }
 
-    // MARK: - Greeting block
+    private var dayLabel: String {
+        guard let day = daysSinceJourneyStart() else { return "Day 1" }
+        return "Day \(max(1, day + 1))"
+    }
 
-    private var greetingBlock: some View {
-        VStack(spacing: Theme.Spacing.xs) {
-            Text(greetingLine)
-                .font(Typography.bodyMedium)
+    // MARK: - Welcome header
+
+    private var welcomeHeader: some View {
+        HStack(spacing: 14) {
+            Button {
+                HapticManager.light()
+                showStartingSourceChoice = true
+            } label: {
+                ZStack(alignment: .bottomTrailing) {
+                    Circle()
+                        .fill(Theme.Surface.strong(section: .home, for: scheme))
+                        .frame(width: 58, height: 58)
+                        .overlay(
+                            Circle()
+                                .stroke(Theme.Border.strong(section: .home, for: scheme), lineWidth: Theme.glassBorderWidth)
+                        )
+                        .overlay(avatarContent)
+
+                    Circle()
+                        .fill(Color.violet)
+                        .frame(width: 20, height: 20)
+                        .overlay(
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(Color(hex: 0x0A0914))
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(Color(hex: 0x0A0914), lineWidth: 2)
+                        )
+                        .offset(x: 2, y: 2)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(latestPhotoData == nil ? "Add starting photo" : "Change starting photo")
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(welcomeTitle)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Theme.Text.primary)
+                Text(welcomeSubtitle)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+            }
+
+            Spacer(minLength: 0)
+        }
+    }
+
+    @ViewBuilder
+    private var avatarContent: some View {
+        if let data = latestPhotoData, let uiImage = UIImage(data: data) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 58, height: 58)
+                .clipShape(Circle())
+        } else {
+            Image(systemName: "person.fill")
+                .font(.system(size: 22))
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
+        }
+    }
 
-            headlineWithAccent
+    private var latestPhotoData: Data? {
+        bodyCompRecords.first(where: { $0.photoData != nil })?.photoData
+    }
+
+    private var welcomeTitle: String {
+        let name = profile?.name ?? ""
+        return name.isEmpty ? "Welcome" : "Welcome, \(name)"
+    }
+
+    private var welcomeSubtitle: String {
+        if let day = daysSinceJourneyStart(), day > 0 {
+            return "Day \(day + 1) of your journey"
+        }
+        return "Your journey starts today"
+    }
+
+    // MARK: - Intro card
+
+    private var intoCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Your personalized plan is ready")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color.violet)
+            Text("Based on your profile, we've calculated your daily targets. You can adjust them anytime from your profile.")
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Theme.Surface.strong(section: .home, for: scheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Theme.Border.strong(section: .home, for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
+    }
+
+    // MARK: - Progress row (Starting / Goal / Timeline)
+
+    private var progressRow: some View {
+        HStack(spacing: 8) {
+            progressTile(label: "Starting", value: startingWeightText, unit: "lbs", accent: false)
+            arrowDivider
+            progressTile(label: "Goal", value: goalWeightText, unit: "lbs", accent: true)
+            barDivider
+            progressTile(label: "Timeline", value: timelineValueText, unit: timelineUnitText, accent: false)
+        }
+    }
+
+    private func progressTile(label: String, value: String, unit: String, accent: Bool) -> some View {
+        VStack(spacing: 4) {
+            Text(label)
+                .font(.system(size: 10))
+                .foregroundStyle(accent ? Color.violet : Theme.Text.tertiary(for: scheme))
+            Text(value)
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(accent ? Color.violet : Theme.Text.primary)
+                .monospacedDigit()
+            Text(unit)
+                .font(.system(size: 10))
+                .foregroundStyle(accent ? Color.violet : Theme.Text.tertiary(for: scheme))
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Theme.Surface.glass(for: scheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
     }
 
-    private var greetingLine: String {
-        let hour = Calendar.current.component(.hour, from: .now)
-        if hour < 5 { return "Late night" }
-        if hour < 12 { return "Good morning" }
-        if hour < 17 { return "Good afternoon" }
-        if hour < 22 { return "Good evening" }
-        return "Late night"
+    private var arrowDivider: some View {
+        Image(systemName: "arrow.right")
+            .font(.system(size: 12))
+            .foregroundStyle(Color.violet.opacity(0.25))
     }
 
-    private var headlineWithAccent: some View {
-        HStack(spacing: 0) {
-            Text(headlineLeading)
-                .foregroundStyle(Theme.Text.primary)
-            Text(headlineAccent)
-                .foregroundStyle(Theme.Accent.primary(for: scheme))
-        }
-        .font(Typography.displayMedium)
+    private var barDivider: some View {
+        Image(systemName: "line.3.horizontal")
+            .font(.system(size: 10))
+            .foregroundStyle(Color.violet.opacity(0.25))
     }
 
-    private var headlineLeading: String {
-        let hour = Calendar.current.component(.hour, from: .now)
-        if hour < 12 { return "Let's build " }
-        if hour < 17 { return "Keep it " }
-        if hour < 22 { return "Close it " }
-        return "Rest "
+    private var startingWeightText: String {
+        guard let w = profile?.weightLbs else { return "—" }
+        return "\(Int(w))"
     }
 
-    private var headlineAccent: String {
-        let hour = Calendar.current.component(.hour, from: .now)
-        if hour < 12 { return "today" }
-        if hour < 17 { return "going" }
-        if hour < 22 { return "out" }
-        return "well"
+    private var goalWeightText: String {
+        guard let w = profile?.goalWeightLbs else { return "—" }
+        return "\(Int(w))"
     }
 
-    // MARK: - Streak block
+    private var timelineValueText: String {
+        guard let start = profile?.weightLbs, let goal = profile?.goalWeightLbs else { return "—" }
+        let delta = abs(start - goal)
+        guard delta > 0 else { return "0" }
+        // 0.5 lb per week healthy rate → weeks = delta / 0.5 = delta * 2
+        let weeks = delta * 2
+        let months = Int((weeks / 4.33).rounded())
+        return months >= 1 ? "~\(months)" : "<1"
+    }
 
-    private var streakBlock: some View {
-        VStack(spacing: Theme.Spacing.sm) {
-            StreakDots(activeDays: Set(streakActiveDays))
-            Text(streakLabel)
-                .font(Typography.caption)
+    private var timelineUnitText: String {
+        guard let start = profile?.weightLbs, let goal = profile?.goalWeightLbs else { return "" }
+        let delta = abs(start - goal)
+        guard delta > 0 else { return "weeks" }
+        let weeks = delta * 2
+        let months = Int((weeks / 4.33).rounded())
+        return months >= 1 ? "months" : "weeks"
+    }
+
+    // MARK: - Daily targets card (2x2)
+
+    private var dailyTargetsCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("PROJECTED DAILY TARGETS")
+                .font(.system(size: 11, weight: .regular))
+                .tracking(0.8)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
+
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: 8),
+                    GridItem(.flexible(), spacing: 8)
+                ],
+                spacing: 8
+            ) {
+                targetTile(value: caloriesValue, label: "Calories", color: Color.violet, subtitle: caloriesSubtitle)
+                targetTile(value: proteinValue, label: "Protein", color: Color(hex: 0x4ADE80), subtitle: proteinSubtitle)
+                targetTile(value: carbsValue, label: "Carbs", color: Color(hex: 0xFBBF24), subtitle: nil)
+                targetTile(value: waterValue, label: "Water", color: Color(hex: 0x60A5FA), subtitle: nil)
+            }
+
+            Text("You can adjust these anytime from your profile.")
+                .font(.system(size: 10))
+                .foregroundStyle(Theme.Text.hint(for: scheme))
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 2)
         }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Theme.Surface.glass(for: scheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
     }
 
-    // MARK: - Mira insight card
+    private func targetTile(value: String, label: String, color: Color, subtitle: String?) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.system(size: 20, weight: .semibold))
+                .monospacedDigit()
+                .foregroundStyle(color)
+            Text(label)
+                .font(.system(size: 10))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+            if let subtitle {
+                Text(subtitle)
+                    .font(.system(size: 9))
+                    .foregroundStyle(Theme.Text.hint(for: scheme))
+                    .padding(.top, 1)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Theme.Surface.glass(for: scheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Theme.Border.glass(section: .home, for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
+    }
 
-    private var miraCard: some View {
-        GlassCardStrong {
-            VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-                HStack(alignment: .top, spacing: Theme.Spacing.md) {
-                    MiraWaveform(state: .speaking, size: .compact)
-                        .padding(.top, Theme.Spacing.xs)
+    private var caloriesValue: String {
+        guard let cal = profile?.calorieTarget else { return "—" }
+        return "\(cal)"
+    }
 
-                    VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                        Text("Mira")
-                            .font(Typography.label)
-                            .foregroundStyle(Theme.Accent.primary(for: scheme))
-                        Text(miraMessage)
-                            .font(Typography.bodyMedium)
-                            .foregroundStyle(Theme.Text.secondary(for: scheme))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+    private var caloriesSubtitle: String? {
+        guard let cal = profile?.calorieTarget, cal > 0 else { return nil }
+        // Simple approximation: assume 2000 maintenance, show deficit from there
+        let maintenance = 2000
+        let delta = maintenance - cal
+        guard delta > 0 else { return nil }
+        return "\(delta) cal below baseline"
+    }
 
-                    Spacer(minLength: 0)
-                }
+    private var proteinValue: String {
+        guard let p = profile?.proteinTargetGrams else { return "—" }
+        return "\(p)g"
+    }
 
-                HStack(spacing: Theme.Spacing.sm) {
-                    ForEach(miraActionChips, id: \.self) { chip in
-                        chipButton(chip)
-                    }
+    private var proteinSubtitle: String? {
+        guard let p = profile?.proteinTargetGrams, let w = profile?.weightLbs, w > 0 else { return nil }
+        let perLb = Double(p) / w
+        return String(format: "%.2fg per lb body", perLb)
+    }
+
+    private var carbsValue: String {
+        guard let cal = profile?.calorieTarget, let p = profile?.proteinTargetGrams else { return "—" }
+        // Allocate 35% of calories to carbs
+        let carbsCal = Double(cal) * 0.35
+        let grams = Int(carbsCal / 4)
+        _ = p
+        return "\(grams)g"
+    }
+
+    private var waterValue: String {
+        guard let w = profile?.waterTargetLiters else { return "—" }
+        return String(format: "%.1fL", w)
+    }
+
+    // MARK: - Today's meals card
+
+    private var todaysMealsCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("TODAY'S MEALS")
+                .font(.system(size: 11, weight: .regular))
+                .tracking(0.8)
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+
+            VStack(spacing: 5) {
+                mealSlot(name: "Breakfast", time: "8:00 AM")
+                mealSlot(name: "Lunch", time: "12:30 PM")
+                mealSlot(name: "Snack", time: "3:30 PM")
+                mealSlot(name: "Dinner", time: "6:30 PM")
+            }
+
+            HStack(spacing: 6) {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.violet)
+                Text("Protein first, then veggies, carbs last")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.violet)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Theme.Surface.strong(section: .home, for: scheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(Theme.Border.strong(section: .home, for: scheme), lineWidth: Theme.glassBorderWidth)
+            )
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Theme.Surface.glass(for: scheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
+    }
+
+    private func mealSlot(name: String, time: String) -> some View {
+        HStack {
+            HStack(spacing: 8) {
+                Circle()
+                    .strokeBorder(Theme.Text.hint(for: scheme), lineWidth: 1.5)
+                    .frame(width: 8, height: 8)
+                Text(name)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Theme.Text.primary)
+                Text(time)
+                    .font(.system(size: 10))
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+            }
+            Spacer()
+            Text("Not logged")
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.Text.hint(for: scheme))
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Theme.Surface.glass(for: scheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Theme.Border.glass(section: .home, for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
+    }
+
+    // MARK: - Mood card
+
+    private var moodCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("HOW ARE YOU FEELING?")
+                .font(.system(size: 11, weight: .regular))
+                .tracking(0.8)
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+
+            HStack(spacing: 6) {
+                ForEach(Mood.allCases, id: \.self) { mood in
+                    moodChip(mood)
                 }
             }
-            .padding(Theme.Spacing.cardPad)
         }
-        .padding(.horizontal, Theme.Spacing.screenH)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Theme.Surface.glass(for: scheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
     }
 
-    private var miraMessage: String {
-        if proteinDeficit > 30 {
-            if isGLP1 {
-                return "You're \(proteinDeficit)g shy of your protein floor. Greek yogurt with hemp seeds closes it quick."
-            }
-            return "You're \(proteinDeficit)g shy of your protein floor. A quick snack closes it."
-        }
-        if let weight = currentWeightLbs, let goal = goalWeightLbs, abs(weight - goal) < 1 {
-            return "You are right at your goal weight. Take a second and feel that."
-        }
-        return "Solid start. Keep your protein steady and the rest takes care of itself."
-    }
-
-    private var miraActionChips: [String] {
-        if isGLP1 {
-            return ["Sounds good", "Show me options", "I already ate"]
-        }
-        return ["Sounds good", "Swap it", "I'm eating out"]
-    }
-
-    private func chipButton(_ title: String) -> some View {
-        Button {
-            HapticManager.light()
+    private func moodChip(_ mood: Mood) -> some View {
+        let isPicked = pickedMood == mood
+        return Button {
+            HapticManager.selection()
+            pickedMood = mood
+            recordMood(mood)
         } label: {
-            Text(title)
-                .font(Typography.bodySmall)
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(Theme.Accent.subtle(for: scheme))
-                )
-                .overlay(
-                    Capsule()
-                        .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
-                )
+            VStack(spacing: 2) {
+                Image(systemName: mood.icon)
+                    .font(.system(size: 14))
+                    .foregroundStyle(isPicked ? Color.violet : Theme.Text.tertiary(for: scheme))
+                Text(mood.label)
+                    .font(.system(size: 9))
+                    .foregroundStyle(isPicked ? Color.violet : Theme.Text.tertiary(for: scheme))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(isPicked ? Color.violet.opacity(0.12) : Theme.Surface.glass(for: scheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(isPicked ? Color.violet.opacity(0.3) : Theme.Border.glass(section: .home, for: scheme), lineWidth: Theme.glassBorderWidth)
+            )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(title)
     }
 
-    // MARK: - Glance tiles
+    // MARK: - Get started card
 
-    private var glanceTiles: some View {
-        HStack(spacing: Theme.Spacing.cardGap) {
-            glanceTile(
-                label: "PROTEIN",
-                value: "\(Int(protein))",
-                unit: "g",
-                target: "\(Int(proteinTarget))g",
-                category: .protein,
-                progress: proteinTarget > 0 ? protein / proteinTarget : 0
-            )
-            glanceTile(
-                label: "CALORIES",
-                value: "\(Int(calories))",
-                unit: "",
-                target: "\(Int(calorieTarget))",
-                category: .calories,
-                progress: calorieTarget > 0 ? calories / calorieTarget : 0
-            )
-            weightTile
+    private var getStartedCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("GET STARTED")
+                .font(.system(size: 11, weight: .regular))
+                .tracking(0.8)
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+
+            VStack(spacing: 6) {
+                getStartedRow(
+                    title: "Log your first meal",
+                    subtitle: "Snap a photo of your food",
+                    icon: "camera.fill",
+                    accent: Color(hex: 0x4ADE80),
+                    highlighted: true
+                ) {
+                    showMealPhotoSheet = true
+                }
+                getStartedRow(
+                    title: "Scan something",
+                    subtitle: "See how any food fits your plan",
+                    icon: "barcode.viewfinder",
+                    accent: Color.violet,
+                    highlighted: false
+                ) {
+                    showScanSheet = true
+                }
+                getStartedRow(
+                    title: "Generate your first meal plan",
+                    subtitle: "AI recipes built for your goals",
+                    icon: "square.stack.3d.up.fill",
+                    accent: Color(hex: 0xFBBF24),
+                    highlighted: false
+                ) {
+                    // Routes through Smart Calendar in the menu; presenting
+                    // MealPlanGeneratorView standalone requires parent-owned
+                    // bindings, so open the menu to reach it.
+                    showMenu = true
+                }
+            }
         }
-        .padding(.horizontal, Theme.Spacing.screenH)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Theme.Surface.glass(for: scheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
     }
 
-    private func glanceTile(
-        label: String,
-        value: String,
-        unit: String,
-        target: String,
-        category: ProgressCategory,
-        progress: Double
+    private func getStartedRow(
+        title: String,
+        subtitle: String,
+        icon: String,
+        accent: Color,
+        highlighted: Bool,
+        action: @escaping () -> Void
     ) -> some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                Text(label)
-                    .font(Typography.micro)
-                    .letterSpaced(0.8)
-                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+        Button {
+            HapticManager.light()
+            action()
+        } label: {
+            HStack(spacing: 10) {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(accent.opacity(0.08))
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(accent.opacity(0.14), lineWidth: Theme.glassBorderWidth)
+                    )
+                    .overlay(
+                        Image(systemName: icon)
+                            .font(.system(size: 14))
+                            .foregroundStyle(accent)
+                    )
 
-                HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text(value)
-                        .font(Typography.dataSmall)
-                        .tabularFigures()
-                        .foregroundStyle(Theme.Text.primary)
-                    if !unit.isEmpty {
-                        Text(unit)
-                            .font(Typography.caption)
-                            .foregroundStyle(Theme.Text.secondary(for: scheme))
-                    }
-                }
-
-                ProgressBar(progress: progress, category: category, height: 4)
-
-                Text(target)
-                    .font(Typography.caption)
-                    .foregroundStyle(Theme.Text.hint(for: scheme))
-            }
-            .padding(Theme.Spacing.sm + 4)
-        }
-    }
-
-    private var weightTile: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                Text("WEIGHT")
-                    .font(Typography.micro)
-                    .letterSpaced(0.8)
-                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
-
-                if let current = currentWeightLbs {
-                    HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        Text(String(format: "%.1f", current))
-                            .font(Typography.dataSmall)
-                            .tabularFigures()
-                            .foregroundStyle(Theme.Text.primary)
-                        Text("lbs")
-                            .font(Typography.caption)
-                            .foregroundStyle(Theme.Text.secondary(for: scheme))
-                    }
-                    if let delta = weightDeltaText {
-                        Text(delta)
-                            .font(Typography.caption)
-                            .foregroundStyle(Theme.Semantic.onTrack(for: scheme))
-                    } else if let goal = goalWeightLbs {
-                        Text("\(Int(goal)) goal")
-                            .font(Typography.caption)
-                            .foregroundStyle(Theme.Text.hint(for: scheme))
-                    }
-                } else {
-                    Text("—")
-                        .font(Typography.dataSmall)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(highlighted ? accent : Theme.Text.primary)
+                    Text(subtitle)
+                        .font(.system(size: 10))
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                    Text("Log your first check-in")
-                        .font(Typography.caption)
-                        .foregroundStyle(Theme.Text.hint(for: scheme))
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(highlighted ? accent.opacity(0.35) : Theme.Text.hint(for: scheme))
             }
-            .padding(Theme.Spacing.sm + 4)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(highlighted ? accent.opacity(0.04) : Theme.Surface.glass(for: scheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(highlighted ? accent.opacity(0.12) : Theme.Border.glass(section: .home, for: scheme), lineWidth: Theme.glassBorderWidth)
+            )
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(title). \(subtitle)")
     }
 
-    private var weightDeltaText: String? {
-        guard let current = currentWeightLbs,
-              let start = startWeightLbs,
-              let goal = goalWeightLbs else { return nil }
-        let loss = goal < start
-        let delta = loss ? start - current : current - start
-        if delta <= 0 { return nil }
-        let rounded = String(format: "%.1f", delta)
-        return loss ? "-\(rounded) lbs" : "+\(rounded) lbs"
+    // MARK: - Footer
+
+    private var footerNote: some View {
+        Text("First weigh-in scheduled for \(nextSundayLabel)")
+            .font(.system(size: 10))
+            .foregroundStyle(Theme.Text.hint(for: scheme))
+            .padding(.top, 4)
     }
 
-    // MARK: - Tonight's meal row
+    private var nextSundayLabel: String {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: .now)
+        let weekday = cal.component(.weekday, from: today) // 1=Sun
+        if weekday == 1 { return "today" }
+        let daysUntil = 8 - weekday
+        guard let next = cal.date(byAdding: .day, value: daysUntil, to: today) else { return "Sunday" }
+        let df = DateFormatter()
+        df.dateFormat = "EEEE, MMM d"
+        return df.string(from: next)
+    }
 
-    @ViewBuilder
-    private var tonightsMealRow: some View {
-        if let meal = tonightsDinner {
-            GlassCard {
-                HStack(spacing: Theme.Spacing.md) {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Theme.Accent.subtle(for: scheme))
-                        .frame(width: 44, height: 44)
-                        .overlay(
-                            Image(systemName: "fork.knife")
-                                .font(.system(size: 16))
-                                .foregroundStyle(Theme.Accent.primary(for: scheme))
-                        )
+    // MARK: - Helpers
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("TONIGHT'S MEAL")
-                            .font(Typography.micro)
-                            .letterSpaced(0.8)
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                        Text(meal.name)
-                            .font(Typography.bodyMedium)
-                            .foregroundStyle(Theme.Text.primary)
-                        Text("\(Int(meal.proteinGrams))g protein · \(Int(meal.caloriesTotal)) cal")
-                            .font(Typography.caption)
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                    }
-
-                    Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Theme.Text.hint(for: scheme))
-                }
-                .padding(.vertical, Theme.Spacing.md)
-                .padding(.horizontal, Theme.Spacing.cardPad)
-            }
-            .padding(.horizontal, Theme.Spacing.screenH)
+    private func daysSinceJourneyStart() -> Int? {
+        let start: Date?
+        if let stored = UserDefaults.standard.object(forKey: "journeyStartDate") as? Date {
+            start = stored
+        } else if let earliest = bodyCompRecords.last?.date {
+            start = earliest
         } else {
-            GlassCard {
-                HStack(spacing: Theme.Spacing.md) {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Theme.Accent.subtle(for: scheme))
-                        .frame(width: 44, height: 44)
-                        .overlay(
-                            Image(systemName: "fork.knife")
-                                .font(.system(size: 16))
-                                .foregroundStyle(Theme.Accent.ghost(for: scheme))
-                        )
+            start = profile?.createdAt
+        }
+        guard let start else { return nil }
+        return Calendar.current.dateComponents([.day], from: start, to: .now).day
+    }
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("TONIGHT'S MEAL")
-                            .font(Typography.micro)
-                            .letterSpaced(0.8)
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                        Text("No dinner planned yet")
-                            .font(Typography.bodyMedium)
-                            .foregroundStyle(Theme.Text.secondary(for: scheme))
-                    }
+    private func persistStartingPhoto(_ data: Data) {
+        let weight = profile?.weightLbs ?? 0
+        try? saveService.save(weight: weight, photoData: data, in: modelContext)
+        HapticManager.success()
+    }
 
-                    Spacer()
-                }
-                .padding(.vertical, Theme.Spacing.md)
-                .padding(.horizontal, Theme.Spacing.cardPad)
-            }
-            .padding(.horizontal, Theme.Spacing.screenH)
+    private func recordMood(_ mood: Mood) {
+        let log = SymptomLog(
+            date: .now,
+            nauseaLevel: mood == .nausea ? 3 : 0,
+            appetiteLevel: mood == .noAppetite ? 0 : 3,
+            energyLevel: mood == .fatigue ? 1 : 3
+        )
+        modelContext.insert(log)
+        HapticManager.success()
+    }
+}
+
+// MARK: - Mood enum
+
+private enum Mood: CaseIterable, Hashable {
+    case good
+    case nausea
+    case noAppetite
+    case fatigue
+
+    var label: String {
+        switch self {
+        case .good: return "Good"
+        case .nausea: return "Nausea"
+        case .noAppetite: return "No appetite"
+        case .fatigue: return "Fatigue"
         }
     }
 
-    // MARK: - Body composition slot
-
-    @ViewBuilder
-    private var bodyCompositionSlot: some View {
-        if bodyCompRecords.isEmpty {
-            GlassCard {
-                VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                    Text("BODY COMPOSITION")
-                        .font(Typography.micro)
-                        .letterSpaced(0.8)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
-
-                    Text("No check-ins yet")
-                        .font(Typography.bodyMedium)
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-
-                    Text("Your lean mass, body fat, and weight trend will appear here after your first weekly check-in.")
-                        .font(Typography.caption)
-                        .foregroundStyle(Theme.Text.hint(for: scheme))
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(Theme.Spacing.cardPad)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(.horizontal, Theme.Spacing.screenH)
-        } else if let latest = latestBodyComp {
-            BodyCompositionCard(
-                leanMassLbs: latest.computedLeanMass,
-                bodyFatPercent: latest.bodyFatPercent ?? 0,
-                leanMassDelta: leanMassDelta,
-                bodyFatDelta: bodyFatDelta,
-                weightHistory: weightHistory,
-                leanMassHistory: leanMassHistory
-            )
-            .padding(.horizontal, Theme.Spacing.screenH)
+    var icon: String {
+        switch self {
+        case .good: return "checkmark"
+        case .nausea: return "exclamationmark.triangle"
+        case .noAppetite: return "hourglass"
+        case .fatigue: return "bolt.fill"
         }
-    }
-
-    private var leanMassDelta: Double {
-        guard let latest = latestBodyComp, let earliest = earliestBodyComp, latest.id != earliest.id else {
-            return 0
-        }
-        return latest.computedLeanMass - earliest.computedLeanMass
-    }
-
-    private var bodyFatDelta: Double {
-        guard let latest = latestBodyComp, let earliest = earliestBodyComp,
-              let latestBF = latest.bodyFatPercent, let earliestBF = earliest.bodyFatPercent,
-              latest.id != earliest.id else {
-            return 0
-        }
-        return latestBF - earliestBF
-    }
-
-    private var weightHistory: [Double] {
-        bodyCompRecords.reversed().suffix(7).map { $0.weightLbs }
-    }
-
-    private var leanMassHistory: [Double] {
-        bodyCompRecords.reversed().suffix(7).map { $0.computedLeanMass }
-    }
-
-    // MARK: - Medication / weekly goal slot
-
-    @ViewBuilder
-    private var medicationOrGoalSlot: some View {
-        if isGLP1 {
-            MedicationCycleBar(
-                medicationName: profile?.medication?.rawValue ?? "Medication",
-                doseLabel: profile?.doseAmount ?? "",
-                currentDay: currentCycleDay,
-                totalDays: 7
-            )
-            .padding(.horizontal, Theme.Spacing.screenH)
-        } else {
-            WeeklyGoalCard(
-                goalLabel: weeklyGoalLabel,
-                isOnTrack: proteinDeficit < 20
-            )
-            .padding(.horizontal, Theme.Spacing.screenH)
-        }
-    }
-
-    private var weeklyGoalLabel: String {
-        guard let start = startWeightLbs, let goal = goalWeightLbs else {
-            return "Set your weekly goal"
-        }
-        if goal < start {
-            return "Lose 0.5 lbs/week"
-        } else if goal > start {
-            return "Gain 0.5 lbs/week"
-        }
-        return "Maintain your weight"
-    }
-
-    private var currentCycleDay: Int {
-        guard let injectionDay = profile?.injectionDay else { return 1 }
-        let today = Calendar.current.component(.weekday, from: .now)
-        let elapsed = (today - injectionDay + 7) % 7
-        return elapsed + 1
     }
 }
