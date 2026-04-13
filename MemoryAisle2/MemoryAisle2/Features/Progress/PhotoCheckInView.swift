@@ -174,10 +174,13 @@ struct PhotoCheckInView: View {
                     .padding(.horizontal, 60)
                 }
 
+                let weightValue = Double(weight)
                 GlowButton("Save check-in") {
                     saveCheckIn()
                 }
                 .padding(.horizontal, 32)
+                .disabled(weightValue == nil)
+                .opacity(weightValue == nil ? 0.5 : 1.0)
 
                 Button { dismiss() } label: {
                     Text("Skip this week")
