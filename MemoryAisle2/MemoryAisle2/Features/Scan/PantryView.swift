@@ -5,7 +5,11 @@ struct PantryView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \PantryItem.addedDate, order: .reverse) private var items: [PantryItem]
+    @Query(
+        filter: #Predicate<PantryItem> { $0.isInPantry == true },
+        sort: \PantryItem.addedDate,
+        order: .reverse
+    ) private var items: [PantryItem]
     @State private var showAddItem = false
     @State private var newItemName = ""
     @State private var newItemCategory: PantryCategory = .other
@@ -61,7 +65,11 @@ struct PantryView: View {
             TextField("Item name", text: $newItemName)
             Button("Add") {
                 guard !newItemName.isEmpty else { return }
-                let item = PantryItem(name: newItemName, category: newItemCategory)
+                let item = PantryItem(
+                    name: newItemName,
+                    category: newItemCategory,
+                    isInPantry: true
+                )
                 modelContext.insert(item)
                 newItemName = ""
                 HapticManager.success()

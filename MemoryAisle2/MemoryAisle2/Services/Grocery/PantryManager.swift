@@ -20,7 +20,7 @@ final class PantryManager: ObservableObject {
     }
 
     func addItem(name: String, category: PantryCategory = .other) {
-        let item = PantryItem(name: name, category: category)
+        let item = PantryItem(name: name, category: category, isInPantry: true)
         modelContext.insert(item)
         items.insert(item, at: 0)
     }

@@ -306,7 +306,7 @@ struct ReceiptScannerView: View {
 
     private func addToPantry() {
         for item in extractedItems {
-            let pantryItem = PantryItem(name: item.name)
+            let pantryItem = PantryItem(name: item.name, isInPantry: true)
             modelContext.insert(pantryItem)
         }
     }

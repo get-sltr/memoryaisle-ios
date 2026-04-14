@@ -12,6 +12,13 @@ final class PantryItem {
     var expiryDate: Date?
     var category: PantryCategory
     var isStaple: Bool
+    /// True for items the user has on hand (Pantry destination), false for
+    /// items still on the shopping list (Grocery List destination). The two
+    /// menu screens filter on this so they stop showing each other's data.
+    /// Defaults to false because the most common entry point (Mira's
+    /// addToGroceryList tool, the legacy grocery-list HomeView, the meal
+    /// plan generator) all create items meant for the shopping list.
+    var isInPantry: Bool = false
 
     init(
         name: String,
@@ -21,7 +28,8 @@ final class PantryItem {
         caloriesPer100g: Int = 0,
         expiryDate: Date? = nil,
         category: PantryCategory = .other,
-        isStaple: Bool = false
+        isStaple: Bool = false,
+        isInPantry: Bool = false
     ) {
         self.name = name
         self.brand = brand
@@ -32,6 +40,7 @@ final class PantryItem {
         self.expiryDate = expiryDate
         self.category = category
         self.isStaple = isStaple
+        self.isInPantry = isInPantry
     }
 }
 

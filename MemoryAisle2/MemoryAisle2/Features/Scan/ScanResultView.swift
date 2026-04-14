@@ -190,7 +190,8 @@ struct ScanResultView: View {
             barcode: product.barcode,
             proteinPer100g: Double(product.protein),
             caloriesPer100g: product.calories,
-            category: category
+            category: category,
+            isInPantry: true
         )
         modelContext.insert(item)
     }

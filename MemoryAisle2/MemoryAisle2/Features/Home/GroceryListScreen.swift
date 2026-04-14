@@ -6,7 +6,11 @@ struct GroceryListScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]
-    @Query(sort: \PantryItem.addedDate, order: .reverse) private var pantryItems: [PantryItem]
+    @Query(
+        filter: #Predicate<PantryItem> { $0.isInPantry == false },
+        sort: \PantryItem.addedDate,
+        order: .reverse
+    ) private var pantryItems: [PantryItem]
     @State private var newItemText = ""
     @State private var duplicateItemName: String?
     @FocusState private var inputFocused: Bool
@@ -155,8 +159,11 @@ struct GroceryListScreen: View {
             ForEach(items) { item in
                 Button {
                     HapticManager.success()
+                    // Tap = "I bought it" → move from Grocery List to Pantry.
+                    // Item disappears from grocery list (filter excludes
+                    // isInPantry == true) and appears in PantryView.
                     withAnimation(.easeOut(duration: 0.25)) {
-                        modelContext.delete(item)
+                        item.isInPantry = true
                     }
                 } label: {
                     HStack(spacing: 12) {
@@ -173,7 +180,7 @@ struct GroceryListScreen: View {
                     .padding(.horizontal, 20)
                     .padding(.vertical, 8)
                 }
-                .accessibilityLabel("Mark \(item.name) as bought")
+                .accessibilityLabel("Mark \(item.name) as bought, moves to pantry")
             }
         }
     }
