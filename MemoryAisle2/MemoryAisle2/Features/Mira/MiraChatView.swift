@@ -21,13 +21,14 @@ struct MiraChatView: View {
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
 
-    // Optional initial prompt seeded as Mira's first message when the view
-    // is opened with a specific context (e.g. "Ready to generate your first
-    // meal plan?" from the Day 1 dashboard).
-    let initialPrompt: String?
+    // Optional user-side opener auto-sent through the real Mira API on first
+    // appear. Used by the Day 1 dashboard to launch a contextual chat (e.g.
+    // "Help me generate my first meal plan") so Mira's response is real, not
+    // hardcoded. Default nil keeps existing call sites unchanged.
+    let autoSendMessage: String?
 
-    init(initialPrompt: String? = nil) {
-        self.initialPrompt = initialPrompt
+    init(autoSendMessage: String? = nil) {
+        self.autoSendMessage = autoSendMessage
     }
 
     @State private var inputText = ""
@@ -101,13 +102,13 @@ struct MiraChatView: View {
         .themeBackground()
         .navigationBarHidden(true)
         .onAppear {
-            seedInitialPromptIfNeeded()
+            sendAutoMessageIfNeeded()
         }
     }
 
-    private func seedInitialPromptIfNeeded() {
-        guard let prompt = initialPrompt, messages.isEmpty else { return }
-        messages.append(MiraMessage(prompt, isUser: false))
+    private func sendAutoMessageIfNeeded() {
+        guard let opener = autoSendMessage, messages.isEmpty else { return }
+        sendMessage(opener)
     }
 
     // MARK: - Header bar

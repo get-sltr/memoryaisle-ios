@@ -91,7 +91,7 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showMiraMealPlanSheet) {
             MiraChatView(
-                initialPrompt: "Ready to generate your first meal plan? Tell me about what you like to eat, any ingredients you want to use, and I'll put something together for you."
+                autoSendMessage: "Help me generate my first meal plan."
             )
         }
     }
