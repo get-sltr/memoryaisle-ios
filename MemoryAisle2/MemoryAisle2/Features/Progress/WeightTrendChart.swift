@@ -104,13 +104,18 @@ struct WeightTrendChart: View {
 
     private var emptyState: some View {
         VStack(spacing: 8) {
-            Image(systemName: "heart.fill")
+            Image(systemName: "scalemass")
                 .font(.system(size: 20))
-                .foregroundStyle(Theme.Semantic.warning(for: scheme).opacity(0.3))
+                .foregroundStyle(Color.violet.opacity(0.4))
 
-            Text("Connect HealthKit to see your trend")
+            Text("Your weight trend will live here.")
                 .font(.system(size: 13))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .multilineTextAlignment(.center)
+            Text("Log a check-in from the dashboard or connect HealthKit.")
+                .font(.system(size: 11))
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .frame(height: 120)

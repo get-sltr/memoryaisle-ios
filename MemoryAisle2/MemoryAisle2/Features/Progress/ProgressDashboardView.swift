@@ -39,6 +39,26 @@ struct ProgressDashboardView: View {
         return Int((avg / target) * 100)
     }
 
+    /// Unified weight history combining manual BodyComposition records and
+    /// HealthKit samples, sorted chronologically. The user's first check-in
+    /// shows up here even before they've connected HealthKit, which fixes
+    /// the bug where manual check-ins didn't appear in the trend chart.
+    private var combinedWeightHistory: [(date: Date, value: Double)] {
+        let manual = bodyComp.map { (date: $0.date, value: $0.weightLbs) }
+        let merged = manual + healthKit.weightHistory
+        return merged.sorted { $0.date < $1.date }
+    }
+
+    /// True when the user has at least one source of progress data.
+    /// Drives the top-level empty state for a brand-new user who hasn't
+    /// logged anything yet.
+    private var hasAnyData: Bool {
+        !logs.isEmpty
+            || !bodyComp.isEmpty
+            || !trainingSessions.isEmpty
+            || !healthKit.weightHistory.isEmpty
+    }
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
@@ -57,36 +77,48 @@ struct ProgressDashboardView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
 
-                // Weekly stats
-                HStack(spacing: 10) {
-                    statCard("Protein\nHit Rate", value: "\(proteinHitRate)%", color: Color.violet)
-                    statCard("Avg Daily\nProtein", value: "\(avgProtein)g", color: Color.violet)
-                    statCard("Hydration", value: "\(avgHydration)%", color: Theme.Semantic.water(for: scheme))
+                // Top-level empty state for a brand-new user with no data
+                if !hasAnyData {
+                    topLevelEmptyState
                 }
-                .padding(.horizontal, 20)
 
-                // Today's macros
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("TODAY")
-                        .font(Typography.label)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                        .tracking(1.2)
-
-                    macroRow("Protein", current: todayLog?.proteinGrams ?? 0, target: Double(profile?.proteinTargetGrams ?? 140), unit: "g", color: Color.violet)
-                    macroRow("Water", current: todayLog?.waterLiters ?? 0, target: profile?.waterTargetLiters ?? 2.5, unit: "L", color: Theme.Semantic.water(for: scheme))
-                    macroRow("Fiber", current: todayLog?.fiberGrams ?? 0, target: Double(profile?.fiberTargetGrams ?? 25), unit: "g", color: Theme.Semantic.fiber(for: scheme))
-                    macroRow("Calories", current: todayLog?.caloriesConsumed ?? 0, target: Double(profile?.calorieTarget ?? 1800), unit: "", color: Theme.Text.secondary(for: scheme))
+                // Weekly stats — only render when the user has actually
+                // logged at least one meal this week. Otherwise the cards
+                // would show 0% / 0g / 0% which reads as fake.
+                if !weekLogs.isEmpty {
+                    HStack(spacing: 10) {
+                        statCard("Protein\nHit Rate", value: "\(proteinHitRate)%", color: Color.violet)
+                        statCard("Avg Daily\nProtein", value: "\(avgProtein)g", color: Color.violet)
+                        statCard("Hydration", value: "\(avgHydration)%", color: Theme.Semantic.water(for: scheme))
+                    }
+                    .padding(.horizontal, 20)
                 }
-                .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Theme.Surface.glass(for: scheme))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
-                )
-                .padding(.horizontal, 20)
+
+                // Today's macros — only render when the user has logged
+                // something today. Empty zero rows would look like placecards.
+                if let todayLog {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("TODAY")
+                            .font(Typography.label)
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                            .tracking(1.2)
+
+                        macroRow("Protein", current: todayLog.proteinGrams, target: Double(profile?.proteinTargetGrams ?? 140), unit: "g", color: Color.violet)
+                        macroRow("Water", current: todayLog.waterLiters, target: profile?.waterTargetLiters ?? 2.5, unit: "L", color: Theme.Semantic.water(for: scheme))
+                        macroRow("Fiber", current: todayLog.fiberGrams, target: Double(profile?.fiberTargetGrams ?? 25), unit: "g", color: Theme.Semantic.fiber(for: scheme))
+                        macroRow("Calories", current: todayLog.caloriesConsumed, target: Double(profile?.calorieTarget ?? 1800), unit: "", color: Theme.Text.secondary(for: scheme))
+                    }
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Theme.Surface.glass(for: scheme))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+                    )
+                    .padding(.horizontal, 20)
+                }
 
                 // 7-day chart
                 if !weekLogs.isEmpty {
@@ -133,8 +165,10 @@ struct ProgressDashboardView: View {
                     .padding(.horizontal, 20)
                 }
 
-                // Weight trend chart
-                WeightTrendChart(data: healthKit.weightHistory)
+                // Weight trend chart — combines manual BodyComposition
+                // records with HealthKit samples so manual check-ins show
+                // up in the chart even before HealthKit is connected.
+                WeightTrendChart(data: combinedWeightHistory)
                     .padding(.horizontal, 20)
 
                 // Body composition
@@ -331,6 +365,27 @@ struct ProgressDashboardView: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
         )
+        .padding(.horizontal, 20)
+    }
+
+    private var topLevelEmptyState: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "chart.line.uptrend.xyaxis")
+                .font(.system(size: 28))
+                .foregroundStyle(Color.violet.opacity(0.4))
+            Text("Your progress will live here.")
+                .font(.system(size: 18, weight: .regular, design: .serif))
+                .foregroundStyle(Theme.Text.primary)
+                .multilineTextAlignment(.center)
+            Text("Log a meal from the dashboard or do a weekly check-in to start tracking your week. Connect HealthKit below to pull weight history from Apple Health.")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+                .padding(.horizontal, 24)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
         .padding(.horizontal, 20)
     }
 

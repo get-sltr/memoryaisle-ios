@@ -99,16 +99,22 @@ struct HomeView: View {
     // MARK: - Top bar
 
     private var topBar: some View {
-        HStack {
+        HStack(spacing: 10) {
             Button {
                 HapticManager.light()
                 showMenu = true
             } label: {
-                Text("Dashboard")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                HStack(spacing: 8) {
+                    OnboardingLogo(size: 32)
+                    Text("Dashboard")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                }
             }
+            .buttonStyle(.plain)
             .accessibilityLabel("Open menu")
+            .accessibilityHint("Opens the navigation menu")
+            .accessibilityAddTraits(.isButton)
 
             Spacer()
 
