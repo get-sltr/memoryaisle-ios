@@ -88,6 +88,8 @@ enum ReflectionTestFixtures {
     }
 
     private static func dateOffset(_ days: Int) -> Date {
-        Calendar.current.date(byAdding: .day, value: -days, to: .now) ?? .now
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: .now)
+        return cal.date(byAdding: .day, value: -days, to: today) ?? today
     }
 }
