@@ -13,7 +13,7 @@ final class SubscriptionManager {
     private(set) var purchasedProductIDs: Set<String> = []
     private(set) var isLoading = false
 
-    static let proYearlyID = "com.sltrdigital.memoryaisle.pro.annual"
+    static let proYearlyID = "com.sltrdigital.memoryaisle.pro.yearly"
 
     private var updateTask: Task<Void, Never>?
 
