@@ -28,17 +28,22 @@ struct LegalView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                CloseButton(action: { dismiss() })
-                Spacer()
+            ZStack {
                 Text(page.rawValue)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(Theme.Text.primary)
-                Spacer()
-                Color.clear
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .padding(.horizontal, 60)
+
+                HStack {
+                    CloseButton(action: { dismiss() })
+                    Spacer()
+                }
             }
             .padding(.horizontal, 16)
-            .padding(.top, 12)
+            .padding(.top, 8)
+            .padding(.bottom, 16)
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 16) {
@@ -57,7 +62,9 @@ struct LegalView: View {
 
                     footer
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.top, 4)
+                .padding(.bottom, 40)
             }
         }
         .section(.home)
@@ -168,93 +175,98 @@ struct LegalView: View {
         VStack(alignment: .leading, spacing: 14) {
             legalDate
 
-            legalHeading("2.1 Overview")
-            legalBody("SLTR Digital LLC (\"we,\" \"us,\" or \"our\") operates the MemoryAisle mobile application (\"App\"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our App.")
+            legalHeading("1.1 Overview")
+            legalBody("SLTR Digital LLC (\"we,\" \"us,\" or \"our\") operates the MemoryAisle mobile application (\"App\"). This Privacy Policy explains how we collect, use, store, protect, and (in limited cases) share your information when you use the App. The full version of this policy is published at https://memoryaisle.app/privacy.")
 
-            legalHeading("2.2 Information We Collect")
+            legalHeading("1.2 What We Store On Your Device")
+            legalBody("The following data lives only on your device, encrypted at rest by iOS using your device passcode. We have no access to it and cannot retrieve it under any circumstances:")
+            legalBullet("Body composition records, weight, and progress photographs")
+            legalBullet("Meal records, AI-generated meal plans, and recipe data")
+            legalBullet("Nutrition logs, hydration tracking, and symptom logs")
+            legalBullet("Grocery lists and pantry inventory")
+            legalBullet("Provider reports and training session records")
+            legalBullet("Private journal entries (\"Safe Space\")")
+            legalBody("Because this data exists solely on your device, it cannot be recovered by us if your device is lost, reset, or destroyed. We recommend keeping regular device backups through Apple's standard backup tools.")
 
-            legalSubheading("2.2.1 Information You Provide")
-            legalBullet("Account Information: Email address, name (optional), and authentication credentials via Amazon Cognito")
-            legalBullet("Profile Information: Dietary preferences, allergies, dietary restrictions, training schedule, health goals")
-            legalBullet("Medication Information: GLP-1 medication type, dosage, administration method (injection or oral), dosing schedule. THIS INFORMATION IS ENCRYPTED AT REST AND IN TRANSIT.")
-            legalBullet("Nutrition Data: Meal logs, protein intake, calorie tracking, hydration logs, fiber intake, food preferences, barcode scan history")
-            legalBullet("Symptom Data: Self-reported symptoms including nausea, food aversions, energy levels, digestive comfort. THIS INFORMATION IS ENCRYPTED AT REST AND IN TRANSIT.")
-            legalBullet("Body Composition Data: Weight, body fat percentage (if provided), lean mass estimates")
-            legalBullet("Community Content: Discussion board posts, comments, shared recipes (if community features are active)")
+            legalHeading("1.3 Authentication Credentials")
+            legalBody("Your email address and authentication tokens are stored in secure device credential storage with hardware-backed encryption, accessible only when the device is unlocked by the authenticated user.")
 
-            legalSubheading("2.2.2 Information Collected Automatically")
-            legalBullet("Device Information: Device type, operating system version, unique device identifiers")
-            legalBullet("Usage Data: Features accessed, screens viewed, session duration, interaction patterns")
-            legalBullet("Crash Data: App crash logs and performance diagnostics")
+            legalHeading("1.4 Apple HealthKit")
+            legalBody("With your explicit permission, MemoryAisle integrates with Apple HealthKit:")
+            legalSubheading("Read from Apple HealthKit:")
+            legalBullet("Body weight")
+            legalBullet("Lean body mass")
+            legalBullet("Body fat percentage")
+            legalSubheading("Written to Apple HealthKit:")
+            legalBullet("Dietary calories from logged meals")
+            legalBullet("Dietary protein from logged meals")
+            legalBody("Apple HealthKit data is held in volatile memory only for the duration of active app use. We do not persist, cache, write to disk, or transmit Apple HealthKit data to any server, remote infrastructure, or third party. When the App is closed, all Apple HealthKit data in memory is immediately discarded. This complies with Apple's HealthKit developer guidelines.")
 
-            legalSubheading("2.2.3 Information from Third Parties")
-            legalBullet("Apple HealthKit: With your explicit permission, we read weight, lean body mass, and body fat percentage from HealthKit and write dietary energy (calories) and dietary protein data to HealthKit when you log meals. HealthKit data is NEVER used for advertising or marketing purposes.")
-            legalBullet("Nutrition Databases: When you scan a barcode or search for a food, we query third-party nutrition databases. These queries do not contain your personal information.")
+            legalHeading("1.5 Optional Backup Data")
+            legalBody("Backup synchronization is entirely optional and requires your express opt-in. No data is automatically transmitted. When you choose to sync, the following is sent:")
+            legalBullet("User profile (age, biological sex, current weight, goal weight, anonymized medication class and dosage tier, training level, dietary mode, calculated nutritional targets)")
+            legalBullet("Historical nutrition logs and symptom logs")
+            legalBullet("Pantry items")
+            legalBody("Data NEVER transmitted to backup infrastructure: body composition records, progress photographs, training records, meal plans and meal records, GI tolerance records, grocery lists, private journal entries, and provider reports.")
+            legalBody("Backup data is transmitted over encrypted network connections and stored in an encrypted database with industry-standard managed encryption using a customer-managed encryption key. Access is restricted to authenticated requests through our secure API endpoints.")
 
-            legalHeading("2.3 How We Use Your Information")
-            legalBody("We use your information to:")
-            legalBullet("Provide and maintain the App")
-            legalBullet("Generate personalized meal plans and nutrition guidance")
-            legalBullet("Power the AI assistant (Mira) with contextual awareness of your preferences and goals")
-            legalBullet("Track your nutritional progress and provide insights")
-            legalBullet("Generate grocery lists based on your meal plans")
-            legalBullet("Provide barcode scan verdicts relevant to your dietary profile")
-            legalBullet("Generate provider reports at your request")
-            legalBullet("Send notifications (with your permission) for hydration reminders, protein targets, and meal suggestions")
-            legalBullet("Improve the App and develop new features")
-            legalBullet("Respond to your inquiries and provide customer support")
+            legalHeading("1.6 AI Processing (Mira)")
+            legalBody("When you interact with Mira, your typed message is transmitted to a third-party AI model service for processing. Before transmission we run an on-device anonymization layer over your contextual data.")
+            legalSubheading("Sent to the AI service:")
+            legalBullet("Your typed message text")
+            legalBullet("Anonymized medication class (a generic pharmacological category, not a brand name)")
+            legalBullet("Anonymized dosage tier (e.g., \"moderate\")")
+            legalBullet("Derived nutritional metrics: protein target, protein consumed today, water consumed, training level, dietary restrictions")
+            legalSubheading("NEVER sent to the AI service:")
+            legalBullet("Your real name or email address")
+            legalBullet("Your age, biological sex, body weight, height, or goal weight")
+            legalBullet("Your progress photographs, journal entries, or provider reports")
+            legalBullet("Your location data or any device identifiers")
+            legalBody("If you voluntarily include personal information in your messages (e.g., \"I weigh 145 pounds\"), that text will be processed by the AI service. We do not use your Mira conversations to train, improve, or fine-tune any AI model, and we do not share your conversations with any third party for marketing or advertising.")
 
-            legalHeading("2.4 How We Do NOT Use Your Information")
-            legalBody("We DO NOT:")
-            legalBullet("Sell your personal information to any third party. Ever.")
-            legalBullet("Use your health, medication, or nutrition data for advertising or marketing purposes")
-            legalBullet("Share your medication information with any third party (including pharmacies, pharmaceutical companies, insurance companies, or data brokers)")
-            legalBullet("Use HealthKit data for any purpose other than providing App functionality you requested")
-            legalBullet("Store raw audio from voice interactions beyond the duration needed for transcription")
-            legalBullet("Create de-identified datasets from medication data for sale or licensing")
+            legalHeading("1.7 Private Journal (Safe Space)")
+            legalBody("The Private Journal is subject to enhanced protections:")
+            legalBullet("Stored exclusively in the device-local secure database")
+            legalBullet("Never transmitted to our servers, backup infrastructure, AI services, or any third party under any circumstances")
+            legalBullet("Requires Face ID or Touch ID to view")
+            legalBullet("We have no technical capability to access, read, recover, or reconstruct journal entries")
+            legalBullet("Journal entries cannot be subpoenaed from us because we do not possess them")
 
-            legalHeading("2.5 AI Processing")
-            legalBody("When you interact with Mira (the AI assistant), your prompts are sent to Amazon Web Services (AWS) Bedrock for processing by an AI model (Claude by Anthropic). These prompts include contextual information about your nutritional profile, dietary preferences, and current meal plan state. They do NOT include your full name, email address, or raw medication data. Prompts are not stored by the AI provider beyond the duration of the request.")
+            legalHeading("1.8 What We Do NOT Collect")
+            legalBullet("Location data or GPS coordinates")
+            legalBullet("Device advertising identifiers (IDFA)")
+            legalBullet("Browsing history or web activity")
+            legalBullet("Contacts, call logs, or SMS messages")
+            legalBullet("Financial information or payment card data")
+            legalBullet("Social media account information")
+            legalBullet("Biometric data (Face ID/Touch ID is processed solely by iOS)")
+            legalBullet("Cross-app tracking data of any kind")
 
-            legalHeading("2.6 Data Security")
-            legalBody("We implement industry-standard security measures including:")
-            legalBullet("Encryption of all data in transit using TLS 1.3")
-            legalBullet("Encryption of sensitive data at rest using AES-256 (medication data, symptom data, health information)")
-            legalBullet("Authentication via Amazon Cognito with JSON Web Tokens (JWT)")
-            legalBullet("API rate limiting and WAF (Web Application Firewall) protection")
-            legalBullet("Credentials stored in iOS Keychain, not in application storage")
-            legalBullet("No personal health data stored in iCloud")
+            legalHeading("1.9 No Analytics or Tracking SDKs")
+            legalBody("MemoryAisle contains zero third-party analytics, advertising, crash reporting, or user tracking SDKs. The only outbound network calls are to our own secure API endpoints. There are no shadow data flows or hidden trackers.")
 
-            legalHeading("2.7 Data Retention")
-            legalBullet("Account data: Retained for the duration of your account plus 30 days after deletion request")
-            legalBullet("Nutrition logs: Retained for the duration of your account")
-            legalBullet("Voice transcriptions: Processed in real-time and not stored after transcription is complete")
-            legalBullet("Barcode scan results: Cached locally on device for 30 days for offline access")
-            legalBullet("Community posts: Retained until deleted by you or removed by moderation")
+            legalHeading("1.10 Data Security")
+            legalBullet("On-device data is encrypted at rest by iOS using your device passcode")
+            legalBullet("Backup data is encrypted at rest with industry-standard managed encryption")
+            legalBullet("All network traffic uses encrypted network connections")
+            legalBullet("Authentication credentials are stored in hardware-backed secure device storage")
+            legalBullet("Backend access is restricted by least-privilege controls and authenticated API endpoints")
+            legalBullet("Web traffic filtering, audit logging, and continuous threat detection are enabled on our backend")
 
-            legalHeading("2.8 Data Deletion")
-            legalBody("You may request deletion of all your data at any time through the App (Profile > Delete Account) or by emailing legal@memoryaisle.app. Upon receiving a deletion request:")
-            legalBullet("All server-side data will be permanently deleted within 24 hours")
-            legalBullet("Local data on your device will be cleared immediately upon account deletion in the App")
-            legalBullet("Community posts you created will be anonymized (username replaced with \"Deleted User\")")
-            legalBullet("This action is irreversible")
+            legalHeading("1.11 Account Deletion")
+            legalBody("You may delete your account and all associated backup data at any time from the Profile section. Account deletion permanently removes backup data from our infrastructure, wipes on-device data, ends your session, and deactivates your account record. This action is irreversible.")
 
-            legalHeading("2.9 Children's Privacy")
-            legalBody("The App is not intended for use by anyone under the age of 18. We do not knowingly collect personal information from children under 18. If you are a parent or guardian and believe your child has provided us with personal information, please contact us at legal@memoryaisle.app and we will promptly delete such information.")
+            legalHeading("1.12 Your Rights")
+            legalBody("Depending on where you live, you may have rights to access, delete, correct, or port your personal information. We do not sell or share your personal information for advertising. To exercise any privacy right, contact privacy@memoryaisle.app and we will respond within the timeframe required by applicable law.")
 
-            legalHeading("2.10 California Privacy Rights (CCPA)")
-            legalBody("If you are a California resident, you have the right to:")
-            legalBullet("Request disclosure of the categories and specific pieces of personal information we collect")
-            legalBullet("Request deletion of your personal information")
-            legalBullet("Opt out of the sale of your personal information (we do not sell personal information)")
-            legalBullet("Not be discriminated against for exercising your privacy rights")
-            legalBody("To exercise these rights, contact legal@memoryaisle.app.")
+            legalHeading("1.13 Children's Privacy")
+            legalBody("MemoryAisle is not intended for use by individuals under 13. We do not knowingly collect personal information from children under 13.")
 
-            legalHeading("2.11 International Users")
-            legalBody("The App is operated from the United States. If you are accessing the App from outside the United States, please be aware that your information may be transferred to, stored, and processed in the United States where our servers are located and our central database is operated.")
+            legalHeading("1.14 Changes to This Policy")
+            legalBody("We may update this Privacy Policy from time to time. We will update the \"Last Updated\" date and, where required by law, request your consent to material changes.")
 
-            legalHeading("2.12 Changes to Privacy Policy")
-            legalBody("We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy in the App and updating the \"Last Updated\" date. You are advised to review this Privacy Policy periodically.")
+            legalHeading("1.15 Contact")
+            legalBody("SLTR Digital LLC\nLos Angeles, California\nprivacy@memoryaisle.app")
         }
     }
 
@@ -265,11 +277,11 @@ struct LegalView: View {
             legalDate
             legalWarning("THIS DOCUMENT MUST BE DISPLAYED PROMINENTLY IN THE APP AND ACCEPTED BY USERS DURING ONBOARDING.")
 
-            legalHeading("3.1 Not Medical Advice")
+            legalHeading("1.1 Not Medical Advice")
             legalWarning("MemoryAisle is a nutrition planning and wellness information application. IT IS NOT A MEDICAL SERVICE, MEDICAL DEVICE, OR HEALTHCARE PROVIDER.")
             legalBody("All information provided by MemoryAisle, including but not limited to meal plans, nutritional guidance, protein targets, hydration recommendations, symptom-related food suggestions, barcode scan verdicts, and AI-generated conversational responses from Mira, is for GENERAL INFORMATIONAL AND EDUCATIONAL PURPOSES ONLY.")
 
-            legalHeading("3.2 GLP-1 Medication Disclaimer")
+            legalHeading("1.2 GLP-1 Medication Disclaimer")
             legalBody("MemoryAisle provides features that accommodate users who are taking GLP-1 receptor agonist medications. This accommodation includes meal timing suggestions, appetite-aware portion sizing, and symptom-responsive food recommendations.")
             legalWarning("THIS DOES NOT CONSTITUTE MEDICAL MANAGEMENT OF YOUR GLP-1 THERAPY.")
             legalBullet("We do NOT prescribe, recommend, dispense, or endorse any medication")
@@ -279,7 +291,7 @@ struct LegalView: View {
             legalBullet("Information about GLP-1 medications referenced in the App is sourced from publicly available medical literature and is provided for educational context only")
             legalBullet("Medication names (Ozempic, Wegovy, Mounjaro, Zepbound, Foundayo, Rybelsus, and others) are registered trademarks of their respective manufacturers and their inclusion in the App does not imply endorsement, affiliation, or sponsorship")
 
-            legalHeading("3.3 Consult Your Healthcare Provider")
+            legalHeading("1.3 Consult Your Healthcare Provider")
             legalBody("ALWAYS consult your healthcare provider before:")
             legalBullet("Making significant changes to your diet while on GLP-1 medications")
             legalBullet("Starting or modifying an exercise program while on GLP-1 medications")
@@ -287,7 +299,7 @@ struct LegalView: View {
             legalBullet("Making dietary changes to address symptoms related to your medication")
             legalBullet("Using information from this App to make decisions about your medication regimen")
 
-            legalHeading("3.4 Emergency Situations")
+            legalHeading("1.4 Emergency Situations")
             legalBody("If you experience any of the following, STOP using the App for nutritional guidance and seek immediate medical attention:")
             legalBullet("Severe abdominal pain (possible sign of pancreatitis)")
             legalBullet("Persistent vomiting or inability to keep fluids down")
@@ -297,10 +309,10 @@ struct LegalView: View {
             legalBullet("Any other symptoms that concern you")
             legalWarning("In case of emergency, call 911 or your local emergency number.")
 
-            legalHeading("3.5 No Guarantee of Results")
+            legalHeading("1.5 No Guarantee of Results")
             legalBody("MemoryAisle does not guarantee any specific health outcomes, weight loss results, body composition changes, or symptom improvements. Individual results vary based on numerous factors including genetics, adherence to plans, medication response, activity level, pre-existing conditions, and many other variables beyond the control of this App.")
 
-            legalHeading("3.6 Third-Party Trademarks")
+            legalHeading("1.6 Third-Party Trademarks")
             legalBody("Ozempic and Wegovy are registered trademarks of Novo Nordisk A/S. Mounjaro and Zepbound are registered trademarks of Eli Lilly and Company. Foundayo is a registered trademark of Eli Lilly and Company. Rybelsus is a registered trademark of Novo Nordisk A/S. MemoryAisle is not affiliated with, endorsed by, or sponsored by any pharmaceutical manufacturer. The use of these names is for identification and informational purposes only.")
         }
     }
@@ -311,10 +323,10 @@ struct LegalView: View {
         VStack(alignment: .leading, spacing: 14) {
             legalDate
 
-            legalHeading("4.1 Purpose")
+            legalHeading("1.1 Purpose")
             legalBody("The MemoryAisle community exists to provide peer support, share experiences, and exchange practical tips related to nutrition, meal planning, and wellness. It is NOT a forum for medical advice.")
 
-            legalHeading("4.2 Rules")
+            legalHeading("1.2 Rules")
             legalSubheading("What is welcome:")
             legalBullet("Sharing recipes and meal ideas")
             legalBullet("Discussing nausea management tips (food-related, not medication-related)")
@@ -337,10 +349,10 @@ struct LegalView: View {
             legalBullet("Spam, self-promotion, or commercial solicitation")
             legalBullet("Sharing personal contact information")
 
-            legalHeading("4.3 Moderation")
+            legalHeading("1.3 Moderation")
             legalBody("All community content is subject to moderation. We use a combination of AI-assisted flagging and human review. Posts that violate community guidelines will be removed. Repeated violations will result in temporary or permanent suspension of community privileges.")
 
-            legalHeading("4.4 Disclaimer")
+            legalHeading("1.4 Disclaimer")
             legalBody("Posts in the community represent the personal experiences and opinions of individual users. They do NOT represent the views of SLTR Digital LLC, and they should NOT be treated as medical advice, nutritional prescriptions, or professional guidance. Always consult your healthcare provider before making health decisions based on information shared in the community.")
         }
     }
@@ -351,34 +363,34 @@ struct LegalView: View {
         VStack(alignment: .leading, spacing: 14) {
             legalDate
 
-            legalHeading("5. DATA PROCESSING ADDENDUM")
+            legalHeading("1. DATA PROCESSING ADDENDUM")
 
-            legalHeading("5.1 Health Data Classification")
-            legalBody("MemoryAisle processes the following categories of health-related data:")
+            legalHeading("1.1 Health Data Classification")
+            legalBody("MemoryAisle processes the following categories of health-related data. All data classified as HIGH or MEDIUM sensitivity is encrypted at rest and transmitted only over encrypted network connections.")
 
             legalSubheading("Medication type and dose")
             legalBullet("Sensitivity Level: HIGH")
-            legalBullet("Encryption: AES-256 at rest, TLS 1.3 in transit")
+            legalBullet("Encryption: Encrypted at rest, encrypted in transit")
             legalBullet("Retention: Duration of account + 30 days")
 
             legalSubheading("Symptom logs")
             legalBullet("Sensitivity Level: HIGH")
-            legalBullet("Encryption: AES-256 at rest, TLS 1.3 in transit")
+            legalBullet("Encryption: Encrypted at rest, encrypted in transit")
             legalBullet("Retention: Duration of account + 30 days")
 
             legalSubheading("Body weight and composition")
             legalBullet("Sensitivity Level: MEDIUM")
-            legalBullet("Encryption: AES-256 at rest, TLS 1.3 in transit")
+            legalBullet("Encryption: Encrypted at rest, encrypted in transit")
             legalBullet("Retention: Duration of account + 30 days")
 
             legalSubheading("Nutrition logs (meals, macros)")
             legalBullet("Sensitivity Level: MEDIUM")
-            legalBullet("Encryption: TLS 1.3 in transit")
+            legalBullet("Encryption: Encrypted in transit")
             legalBullet("Retention: Duration of account + 30 days")
 
             legalSubheading("Dietary preferences")
             legalBullet("Sensitivity Level: LOW")
-            legalBullet("Encryption: TLS 1.3 in transit")
+            legalBullet("Encryption: Encrypted in transit")
             legalBullet("Retention: Duration of account + 30 days")
 
             legalSubheading("Barcode scan history")
@@ -386,44 +398,40 @@ struct LegalView: View {
             legalBullet("Encryption: Local device only")
             legalBullet("Retention: 30 days")
 
-            legalSubheading("Voice transcriptions")
-            legalBullet("Sensitivity Level: MEDIUM")
-            legalBullet("Encryption: Processed in-memory only")
-            legalBullet("Retention: Not stored")
+            legalHeading("1.2 Categories of Sub-processors")
+            legalBody("We rely on the following categories of third-party services. We do not name specific vendors here as a security and operational best practice; specific identities are disclosed only where legally required (for example, in privacy questionnaires submitted to platform operators such as Apple).")
 
-            legalHeading("5.2 Sub-processors")
+            legalSubheading("Backend infrastructure provider")
+            legalBullet("Purpose: Hosting, encrypted storage, authentication, and secure API endpoints")
+            legalBullet("Data Accessed: Server-side backup data (encrypted)")
 
-            legalSubheading("Amazon Web Services (AWS)")
-            legalBullet("Purpose: Cloud infrastructure, database, authentication, AI processing")
-            legalBullet("Data Accessed: All server-side data (encrypted)")
+            legalSubheading("AI model service")
+            legalBullet("Purpose: Powering Mira's nutritional guidance and meal generation")
+            legalBullet("Data Accessed: Anonymized nutritional context and your typed messages (no PII)")
 
-            legalSubheading("Anthropic (via AWS Bedrock)")
-            legalBullet("Purpose: AI meal generation and conversational responses")
-            legalBullet("Data Accessed: Anonymized nutritional context (no PII)")
-
-            legalSubheading("FatSecret or Nutritionix")
-            legalBullet("Purpose: Nutrition database lookups")
-            legalBullet("Data Accessed: Food names and barcodes (no user identity)")
+            legalSubheading("Nutrition database provider")
+            legalBullet("Purpose: Food name and barcode lookups")
+            legalBullet("Data Accessed: Food names and barcodes only (no user identity)")
 
             legalSubheading("Apple HealthKit")
             legalBullet("Purpose: Health data integration (read body composition, write nutrition)")
             legalBullet("Data Accessed: On-device only (not transmitted to our servers). Reads: weight, lean body mass, body fat percentage. Writes: dietary energy consumed, dietary protein.")
 
-            legalHeading("5.3 Apple App Store Requirements")
+            legalHeading("1.3 Apple App Store Requirements")
             legalBody("Per Apple's Health & Fitness app requirements:")
             legalBullet("Health and fitness data collected through the App is never used for advertising")
             legalBullet("Health and fitness data is never sold to data brokers")
-            legalBullet("HealthKit data is never stored in iCloud")
-            legalBullet("We do not write false or inaccurate data to HealthKit")
-            legalBullet("Users can revoke HealthKit access at any time through iOS Settings")
+            legalBullet("Apple HealthKit data is never stored in any cross-device sync service")
+            legalBullet("We do not write false or inaccurate data to Apple HealthKit")
+            legalBullet("Users can revoke Apple HealthKit access at any time through iOS Settings")
             legalBody("Per Apple's Spring 2026 Medical Device Disclosure requirement:")
             legalBullet("MemoryAisle is declared as NOT a regulated medical device in any jurisdiction")
             legalBullet("The App does not function as a Software as a Medical Device (SaMD)")
             legalBullet("The App does not perform clinical diagnostic, monitoring, or therapeutic functions")
 
-            legalHeading("6. ACCEPTABLE USE POLICY")
+            legalHeading("2. ACCEPTABLE USE POLICY")
 
-            legalHeading("6.1 Prohibited Uses")
+            legalHeading("2.1 Prohibited Uses")
             legalBody("You agree not to use the App to:")
             legalBullet("Provide or solicit medical advice to or from other users")
             legalBullet("Misrepresent yourself as a healthcare provider, registered dietitian, or medical professional")
@@ -434,23 +442,21 @@ struct LegalView: View {
             legalBullet("Collect or harvest personal information of other users")
             legalBullet("Resell, redistribute, or commercially exploit any content from the App")
 
-            legalHeading("7. COOKIE AND TRACKING POLICY (WEB)")
+            legalHeading("3. WEBSITE COOKIES")
 
-            legalHeading("7.1 Website (memoryaisle.app)")
-            legalBody("If you visit our website, we use:")
-            legalBullet("Essential cookies: Required for website functionality (session management, authentication)")
-            legalBullet("Analytics cookies: Google Analytics (GA4) to understand website traffic and usage patterns. These cookies collect anonymous usage data and do not track individual health information.")
-            legalBody("We do NOT use:")
+            legalHeading("3.1 Website (memoryaisle.app)")
+            legalBody("If you visit our website, we use only essential cookies required for website functionality (such as session management and authentication). We do NOT use:")
             legalBullet("Advertising or targeting cookies")
             legalBullet("Third-party tracking pixels")
             legalBullet("Cross-site tracking technologies")
+            legalBullet("Third-party analytics services that track individual users")
         }
     }
 
     // MARK: - Components
 
     private var legalDate: some View {
-        Text("Last Updated: April 6, 2026")
+        Text("Last Updated: April 14, 2026")
             .font(.system(size: 11))
             .foregroundStyle(Theme.Text.tertiary(for: scheme))
     }

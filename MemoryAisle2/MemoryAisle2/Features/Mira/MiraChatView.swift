@@ -14,10 +14,26 @@ struct MiraMessage: Identifiable {
     }
 }
 
+/// What kind of conversation this chat session is. Affects which affordances
+/// appear under Mira's replies — for example, the recipe browser opens chats
+/// in `.recipeBrowser` mode so the "Save to Recipes" button can show up under
+/// recipe-shaped responses without polluting normal Mira conversations.
+enum MiraChatMode: Equatable {
+    case general
+    case recipeBrowser
+}
+
+private struct RecipeSavePayload: Identifiable {
+    let id = UUID()
+    let bodyText: String
+}
+
 struct MiraChatView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(SubscriptionManager.self) private var subscriptionManager
+    @Environment(MiraUsageTracker.self) private var miraUsage
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
 
@@ -26,10 +42,15 @@ struct MiraChatView: View {
     // "Help me generate my first meal plan") so Mira's response is real, not
     // hardcoded. Default nil keeps existing call sites unchanged.
     let autoSendMessage: String?
+    let mode: MiraChatMode
 
-    init(autoSendMessage: String? = nil) {
+    init(autoSendMessage: String? = nil, mode: MiraChatMode = .general) {
         self.autoSendMessage = autoSendMessage
+        self.mode = mode
     }
+
+    @State private var recipeSavePayload: RecipeSavePayload?
+    @State private var showPaywall = false
 
     @State private var inputText = ""
     @State private var messages: [MiraMessage] = []
@@ -102,7 +123,14 @@ struct MiraChatView: View {
         .themeBackground()
         .navigationBarHidden(true)
         .onAppear {
+            miraUsage.refresh()
             sendAutoMessageIfNeeded()
+        }
+        .sheet(item: $recipeSavePayload) { payload in
+            SaveRecipeSheet(bodyText: payload.bodyText)
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
         }
     }
 
@@ -227,10 +255,46 @@ struct MiraChatView: View {
                             : RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous)
                                 .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                     )
+
+                if shouldShowSaveButton(for: message) {
+                    saveRecipeButton(for: message.text)
+                }
             }
 
             if !message.isUser { Spacer(minLength: 60) }
         }
+    }
+
+    private func shouldShowSaveButton(for message: MiraMessage) -> Bool {
+        !message.isUser
+            && mode == .recipeBrowser
+            && message.text.looksLikeRecipe
+    }
+
+    private func saveRecipeButton(for text: String) -> some View {
+        Button {
+            HapticManager.light()
+            recipeSavePayload = RecipeSavePayload(bodyText: text)
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "bookmark.fill")
+                    .font(.system(size: 11))
+                Text("Save to Recipes")
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .foregroundStyle(Color.violet)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(Capsule().fill(Theme.Surface.glass(for: scheme)))
+            .overlay(
+                Capsule().stroke(
+                    Theme.Border.glass(for: scheme),
+                    lineWidth: Theme.glassBorderWidth
+                )
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Save this recipe")
     }
 
     // MARK: - Typing Indicator
@@ -301,12 +365,32 @@ struct MiraChatView: View {
 
     @State private var conversation: MiraConversation?
 
+    private var isPro: Bool {
+        subscriptionManager.tier == .pro
+    }
+
     private func sendMessage(_ text: String) {
+        // Gate: free users get N Mira requests per day. Pro bypasses.
+        if !isPro {
+            miraUsage.refresh()
+            if miraUsage.hasReachedLimit {
+                presentLimitReachedMessage()
+                return
+            }
+        }
+
         HapticManager.medium()
         let userMsg = MiraMessage(text, isUser: true)
         withAnimation(Theme.Motion.spring) {
             messages.append(userMsg)
             isTyping = true
+        }
+
+        // Count this request against the free-tier daily quota. Recorded
+        // up front (not after the response) so retries on a stuck request
+        // can't be used to bypass the gate.
+        if !isPro {
+            miraUsage.record()
         }
 
         // Lazily create the conversation orchestrator on first send so it
@@ -372,6 +456,21 @@ struct MiraChatView: View {
                     }
                 }
             }
+        }
+    }
+
+    /// Cheerleader voice — never judgy. Drops a friendly Mira message into
+    /// the conversation explaining the daily limit, then shows the paywall
+    /// after a short beat so the user has time to read the message before
+    /// the sheet slides up.
+    private func presentLimitReachedMessage() {
+        HapticManager.light()
+        let copy = "You've used your \(FreeTierLimits.miraRequestsPerDay) free chats with me today. Unlock unlimited Mira with Pro and we can keep going whenever you need me."
+        withAnimation(Theme.Motion.spring) {
+            messages.append(MiraMessage(copy))
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            showPaywall = true
         }
     }
 }

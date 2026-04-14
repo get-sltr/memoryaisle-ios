@@ -15,29 +15,33 @@ struct ProviderReportGenerator {
         let avgWater: Double
         let avgNausea: Double
         let avgEnergy: Double
+        let daysLogged: Int
         let weightStart: Double?
         let weightEnd: Double?
     }
 
-    static func generatePDF(data: ReportData) -> Data {
-        let pageWidth: CGFloat = 612
-        let pageHeight: CGFloat = 792
-        let margin: CGFloat = 50
+    private static let pageWidth: CGFloat = 612
+    private static let pageHeight: CGFloat = 792
+    private static let pageMargin: CGFloat = 50
+    /// Bottom safe-area threshold. When `y` crosses this, a new page is
+    /// started. Reserves room for the footer.
+    private static let pageBottomLimit: CGFloat = 730
 
-        let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight))
+    static func generatePDF(data: ReportData) -> Data {
+        let renderer = UIGraphicsPDFRenderer(
+            bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
+        )
 
         return renderer.pdfData { context in
             context.beginPage()
-
-            var y: CGFloat = margin
+            var y: CGFloat = pageMargin
 
             // Title
             let titleAttrs: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 24, weight: .light),
                 .foregroundColor: UIColor.label
             ]
-            let title = "MemoryAisle Weekly Report"
-            title.draw(at: CGPoint(x: margin, y: y), withAttributes: titleAttrs)
+            "MemoryAisle Weekly Report".draw(at: CGPoint(x: pageMargin, y: y), withAttributes: titleAttrs)
             y += 36
 
             // Date range
@@ -45,74 +49,110 @@ struct ProviderReportGenerator {
                 .font: UIFont.systemFont(ofSize: 12),
                 .foregroundColor: UIColor.secondaryLabel
             ]
-            data.dateRange.draw(at: CGPoint(x: margin, y: y), withAttributes: subtitleAttrs)
+            data.dateRange.draw(at: CGPoint(x: pageMargin, y: y), withAttributes: subtitleAttrs)
             y += 30
 
             // Medication info
-            y = drawSection("Medication", at: y, margin: margin)
-            y = drawRow("Medication", value: data.medication, at: y, margin: margin, width: pageWidth)
-            y = drawRow("Dose", value: data.dose, at: y, margin: margin, width: pageWidth)
-            y = drawRow("Mode", value: data.mode, at: y, margin: margin, width: pageWidth)
+            y = drawSection("Medication", at: y, context: context)
+            y = drawRow("Medication", value: data.medication, at: y, context: context)
+            y = drawRow("Dose", value: data.dose, at: y, context: context)
+            y = drawRow("Mode", value: data.mode, at: y, context: context)
             y += 16
 
             // Nutrition
-            y = drawSection("Nutrition Summary", at: y, margin: margin)
-            y = drawRow("Avg Daily Protein", value: "\(data.avgProtein)g / \(data.proteinTarget)g", at: y, margin: margin, width: pageWidth)
-            y = drawRow("Protein Hit Rate", value: "\(data.proteinHitRate)%", at: y, margin: margin, width: pageWidth)
-            y = drawRow("Avg Daily Calories", value: "\(data.avgCalories)", at: y, margin: margin, width: pageWidth)
-            y = drawRow("Avg Daily Water", value: String(format: "%.1fL", data.avgWater), at: y, margin: margin, width: pageWidth)
+            y = drawSection("Nutrition Summary", at: y, context: context)
+            y = drawRow("Avg Daily Protein", value: "\(data.avgProtein)g / \(data.proteinTarget)g", at: y, context: context)
+            y = drawRow("Protein Hit Rate", value: "\(data.proteinHitRate)%", at: y, context: context)
+            y = drawRow("Avg Daily Calories", value: "\(data.avgCalories)", at: y, context: context)
+            y = drawRow("Avg Daily Water", value: String(format: "%.1fL", data.avgWater), at: y, context: context)
             y += 16
 
             // Symptoms
-            y = drawSection("Symptom Summary", at: y, margin: margin)
-            y = drawRow("Avg Nausea Level", value: String(format: "%.1f / 5", data.avgNausea), at: y, margin: margin, width: pageWidth)
-            y = drawRow("Avg Energy Level", value: String(format: "%.1f / 5", data.avgEnergy), at: y, margin: margin, width: pageWidth)
+            y = drawSection("Symptom Summary", at: y, context: context)
+            y = drawRow("Avg Nausea Level", value: String(format: "%.1f / 5", data.avgNausea), at: y, context: context)
+            y = drawRow("Avg Energy Level", value: String(format: "%.1f / 5", data.avgEnergy), at: y, context: context)
+            y = drawRow("Days Logged", value: "\(data.daysLogged)", at: y, context: context)
             y += 16
 
             // Weight
             if let start = data.weightStart, let end = data.weightEnd {
-                y = drawSection("Weight", at: y, margin: margin)
-                y = drawRow("Start of Week", value: String(format: "%.1f lbs", start), at: y, margin: margin, width: pageWidth)
-                y = drawRow("End of Week", value: String(format: "%.1f lbs", end), at: y, margin: margin, width: pageWidth)
+                y = drawSection("Weight", at: y, context: context)
+                y = drawRow("Start of Week", value: String(format: "%.1f lbs", start), at: y, context: context)
+                y = drawRow("End of Week", value: String(format: "%.1f lbs", end), at: y, context: context)
                 let change = end - start
                 let sign = change >= 0 ? "+" : ""
-                y = drawRow("Change", value: "\(sign)\(String(format: "%.1f", change)) lbs", at: y, margin: margin, width: pageWidth)
+                y = drawRow("Change", value: "\(sign)\(String(format: "%.1f", change)) lbs", at: y, context: context)
                 y += 16
             }
 
             // Disclaimer
             y += 20
+            y = pageBreakIfNeeded(y, height: 60, context: context)
             let disclaimerAttrs: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 9),
                 .foregroundColor: UIColor.tertiaryLabel
             ]
             let disclaimer = "Generated by MemoryAisle. This report is for informational purposes only and does not constitute medical advice. Always consult your prescriber for medication-related decisions."
-            let disclaimerRect = CGRect(x: margin, y: y, width: pageWidth - margin * 2, height: 60)
+            let disclaimerRect = CGRect(
+                x: pageMargin,
+                y: y,
+                width: pageWidth - pageMargin * 2,
+                height: 60
+            )
             disclaimer.draw(in: disclaimerRect, withAttributes: disclaimerAttrs)
 
-            // Footer
-            let footerAttrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 8),
-                .foregroundColor: UIColor.quaternaryLabel
-            ]
-            let footer = "SLTR Digital LLC  ·  memoryaisle.app"
-            footer.draw(at: CGPoint(x: margin, y: pageHeight - margin), withAttributes: footerAttrs)
+            // Footer (drawn on every page during pageBreakIfNeeded)
+            drawFooter()
         }
+    }
+
+    /// Starts a new PDF page if drawing `height` more units at `y` would
+    /// cross the bottom safe area. Returns the y-coordinate to continue
+    /// drawing at (either unchanged, or reset to top-of-new-page).
+    private static func pageBreakIfNeeded(
+        _ y: CGFloat,
+        height: CGFloat,
+        context: UIGraphicsPDFRendererContext
+    ) -> CGFloat {
+        if y + height > pageBottomLimit {
+            drawFooter()
+            context.beginPage()
+            return pageMargin
+        }
+        return y
+    }
+
+    private static func drawFooter() {
+        let footerAttrs: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 8),
+            .foregroundColor: UIColor.quaternaryLabel
+        ]
+        "SLTR Digital LLC  ·  memoryaisle.app".draw(
+            at: CGPoint(x: pageMargin, y: pageHeight - pageMargin),
+            withAttributes: footerAttrs
+        )
     }
 
     // MARK: - Drawing Helpers
 
-    private static func drawSection(_ title: String, at y: CGFloat, margin: CGFloat) -> CGFloat {
+    private static func drawSection(
+        _ title: String,
+        at y: CGFloat,
+        context: UIGraphicsPDFRendererContext
+    ) -> CGFloat {
+        // Section header needs ~28 units of room for title + separator
+        let safeY = pageBreakIfNeeded(y, height: 32, context: context)
+
         let attrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14, weight: .semibold),
             .foregroundColor: UIColor.label
         ]
-        title.draw(at: CGPoint(x: margin, y: y), withAttributes: attrs)
+        title.draw(at: CGPoint(x: pageMargin, y: safeY), withAttributes: attrs)
 
-        let lineY = y + 20
+        let lineY = safeY + 20
         let path = UIBezierPath()
-        path.move(to: CGPoint(x: margin, y: lineY))
-        path.addLine(to: CGPoint(x: margin + 200, y: lineY))
+        path.move(to: CGPoint(x: pageMargin, y: lineY))
+        path.addLine(to: CGPoint(x: pageMargin + 200, y: lineY))
         UIColor.separator.setStroke()
         path.lineWidth = 0.5
         path.stroke()
@@ -120,7 +160,14 @@ struct ProviderReportGenerator {
         return lineY + 8
     }
 
-    private static func drawRow(_ label: String, value: String, at y: CGFloat, margin: CGFloat, width: CGFloat) -> CGFloat {
+    private static func drawRow(
+        _ label: String,
+        value: String,
+        at y: CGFloat,
+        context: UIGraphicsPDFRendererContext
+    ) -> CGFloat {
+        let safeY = pageBreakIfNeeded(y, height: 18, context: context)
+
         let labelAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 11),
             .foregroundColor: UIColor.secondaryLabel
@@ -130,11 +177,14 @@ struct ProviderReportGenerator {
             .foregroundColor: UIColor.label
         ]
 
-        label.draw(at: CGPoint(x: margin, y: y), withAttributes: labelAttrs)
+        label.draw(at: CGPoint(x: pageMargin, y: safeY), withAttributes: labelAttrs)
 
         let valueSize = value.size(withAttributes: valueAttrs)
-        value.draw(at: CGPoint(x: width - margin - valueSize.width, y: y), withAttributes: valueAttrs)
+        value.draw(
+            at: CGPoint(x: pageWidth - pageMargin - valueSize.width, y: safeY),
+            withAttributes: valueAttrs
+        )
 
-        return y + 18
+        return safeY + 18
     }
 }

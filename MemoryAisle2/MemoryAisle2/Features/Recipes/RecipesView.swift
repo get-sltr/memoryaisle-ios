@@ -52,13 +52,22 @@ enum RecipeCategory: String, CaseIterable {
     }
 }
 
+private struct MiraRecipeQuery: Identifiable {
+    let id = UUID()
+    let text: String
+}
+
 struct RecipesView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]
     @State private var selectedCategory: RecipeCategory?
     @State private var selectedRecipe: RecipeItem?
+    @State private var selectedSavedRecipe: SavedRecipe?
+    @State private var recipeQuery: String = ""
+    @State private var miraQuery: MiraRecipeQuery?
     @State private var showReceiptScanner = false
+    @FocusState private var inputFocused: Bool
 
     private var profile: UserProfile? { profiles.first }
     private var isOnMedication: Bool { profile?.medication != nil }
@@ -69,12 +78,9 @@ struct RecipesView: View {
     }
 
     private var heroSubtitle: String {
-        let count = RecipesSeed.all.count
-        if isOnMedication {
-            return "\(count) recipes · tuned for GLP-1"
-        } else {
-            return "\(count) high-protein recipes · built for your goals"
-        }
+        isOnMedication
+            ? "Recipes tuned for GLP-1 · ask Mira for more"
+            : "High-protein recipes · ask Mira for more"
     }
 
     var body: some View {
@@ -94,6 +100,10 @@ struct RecipesView: View {
             ScrollView(showsIndicators: false) {
                 LazyVStack(spacing: 18) {
                     todaysPlan
+                    SavedRecipesSection { saved in
+                        selectedSavedRecipe = saved
+                    }
+                    miraSearchBar
                     categoryFilter
                     ForEach(filteredRecipes) { recipe in
                         recipeCard(recipe)
@@ -109,16 +119,68 @@ struct RecipesView: View {
         .sheet(item: $selectedRecipe) { recipe in
             RecipeDetailView(recipe: recipe)
         }
+        .sheet(item: $selectedSavedRecipe) { saved in
+            SavedRecipeDetailView(recipe: saved)
+        }
+        .sheet(item: $miraQuery) { query in
+            MiraChatView(autoSendMessage: query.text, mode: .recipeBrowser)
+        }
         .sheet(isPresented: $showReceiptScanner) {
             ReceiptScannerView()
         }
+    }
+
+    // MARK: - Mira Search Bar
+
+    private var miraSearchBar: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 15))
+                .foregroundStyle(SectionPalette.primary(.recipes, for: scheme).opacity(0.75))
+
+            TextField("Browse more recipes with Mira…", text: $recipeQuery)
+                .font(Typography.bodyLarge)
+                .foregroundStyle(Theme.Text.primary)
+                .focused($inputFocused)
+                .submitLabel(.search)
+                .onSubmit { askMira(recipeQuery) }
+
+            if !recipeQuery.isEmpty {
+                Button {
+                    askMira(recipeQuery)
+                } label: {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(SectionPalette.primary(.recipes, for: scheme))
+                }
+                .accessibilityLabel("Ask Mira")
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(Theme.Section.glass(.recipes, for: scheme))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Theme.Section.border(.recipes, for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
+        .padding(.horizontal, 20)
+    }
+
+    private func askMira(_ prompt: String) {
+        let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        HapticManager.light()
+        inputFocused = false
+        recipeQuery = ""
+        miraQuery = MiraRecipeQuery(text: "Suggest a recipe: \(trimmed)")
     }
 
     // MARK: - Today's Plan
 
     private var todaysPlan: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("TODAY'S PLAN")
+            Text("A FEW OF OUR FAVORITES")
                 .font(Typography.label)
                 .foregroundStyle(SectionPalette.soft(.recipes))
                 .tracking(1.2)

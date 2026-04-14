@@ -4,7 +4,7 @@ import SwiftUI
 struct PaywallView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
-    @State private var subscriptionManager = SubscriptionManager()
+    @Environment(SubscriptionManager.self) private var subscriptionManager
     @State private var isPurchasing = false
     @State private var showError = false
 
@@ -90,11 +90,11 @@ struct PaywallView: View {
 
                     // CTA
                     VStack(spacing: 14) {
-                        GlowButton(isPurchasing ? "Processing..." : "Start Pro") {
+                        GlowButton(ctaTitle) {
                             guard !isPurchasing else { return }
                             Task { await handlePurchase() }
                         }
-                        .accessibilityLabel(isPurchasing ? "Processing purchase" : "Start Pro subscription")
+                        .accessibilityLabel(ctaAccessibility)
                         .padding(.horizontal, 32)
 
                         Button {
@@ -171,19 +171,52 @@ struct PaywallView: View {
         )
     }
 
+    // MARK: - CTA State
+
+    /// The CTA always shows "Start Pro" (or "Processing…" during a
+    /// purchase) so the paywall renders cleanly regardless of whether
+    /// StoreKit has finished fetching products yet. The tap handler
+    /// takes care of the "products not loaded yet" case on its own.
+    private var ctaTitle: String {
+        isPurchasing ? "Processing..." : "Start Pro"
+    }
+
+    private var ctaAccessibility: String {
+        isPurchasing ? "Processing purchase" : "Start Pro subscription"
+    }
+
     // MARK: - Purchase
 
+    /// Attempts the purchase. If StoreKit hasn't loaded the product yet
+    /// (slow network, fast-tapping user, or a temporarily unavailable
+    /// App Store Connect entry), this retries `loadProducts()` first,
+    /// then falls through to the purchase. If the product is still
+    /// unavailable after the retry, surfaces the error alert so the
+    /// user gets feedback instead of a dead button.
     private func handlePurchase() async {
         isPurchasing = true
+        defer { isPurchasing = false }
+
+        if subscriptionManager.products.isEmpty {
+            await subscriptionManager.loadProducts()
+        }
+
+        guard !subscriptionManager.products.isEmpty else {
+            showError = true
+            return
+        }
+
         do {
             let success = try await subscriptionManager.purchase()
             if success {
                 HapticManager.success()
                 dismiss()
             }
+            // success == false here means userCancelled or pending —
+            // both are silent on purpose so the user isn't yelled at
+            // for dismissing Apple's confirmation sheet.
         } catch {
             showError = true
         }
-        isPurchasing = false
     }
 }

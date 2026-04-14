@@ -30,7 +30,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.sltrdigital.memoryaisle.pro.yearly",
+          "productID" : "com.sltrdigital.memoryaisle.pro.annual",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Pro Yearly",
           "subscriptionGroupID" : "memoryaisle_pro",

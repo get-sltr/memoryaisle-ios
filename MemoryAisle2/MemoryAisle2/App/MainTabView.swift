@@ -2,8 +2,31 @@ import SwiftUI
 
 struct MainTabView: View {
     @Environment(AppState.self) private var appState
+    @Environment(SubscriptionManager.self) private var subscriptionManager
     @Environment(\.colorScheme) private var scheme
     @State private var activeSheet: MainSheet?
+
+    private var isPro: Bool { subscriptionManager.tier == .pro }
+
+    /// Routes a tapped menu destination through the gate. Pro-only
+    /// destinations open the paywall sheet for free users instead of
+    /// the real screen, so we never show partial Pro content.
+    private func openDestination(_ dest: MenuDestination) {
+        if !isPro && Self.proGatedDestinations.contains(dest) {
+            activeSheet = .destination(.subscribe)
+        } else {
+            activeSheet = .destination(dest)
+        }
+    }
+
+    /// Pro-only destinations. Anything intelligence- or analytics-heavy
+    /// lives behind the paywall; the rest of the menu stays free so the
+    /// user can still log meals, scan, manage groceries, journal, and
+    /// chat with Mira (which has its own per-day quota).
+    private static let proGatedDestinations: Set<MenuDestination> = [
+        .progress,
+        .reflection
+    ]
 
     // Synthetic binding to convert activeSheet into a showMenu binding
     // so HomeView's menu button still works with its existing API.
@@ -59,34 +82,36 @@ struct MainTabView: View {
                 // Menu items
                 VStack(spacing: 4) {
                     menuRow("My Journey", icon: "person.fill", color: Color.violet) {
-                        activeSheet = .destination(.profile)
+                        openDestination(.profile)
                     }
-                    menuRow("Progress", icon: "chart.line.uptrend.xyaxis", color: Color(hex: 0x34D399)) {
-                        activeSheet = .destination(.progress)
+                    menuRow("Progress", icon: "chart.line.uptrend.xyaxis", color: Color(hex: 0x34D399), proLocked: !isPro) {
+                        openDestination(.progress)
                     }
                     menuRow("Grocery List", icon: "cart.fill", color: Color(hex: 0x4ADE80)) {
-                        activeSheet = .destination(.groceryList)
+                        openDestination(.groceryList)
                     }
                     menuRow("Recipes", icon: "book.fill", color: Color(hex: 0xFBBF24)) {
-                        activeSheet = .destination(.recipes)
+                        openDestination(.recipes)
                     }
                     menuRow("Scan", icon: "barcode.viewfinder", color: Color(hex: 0x60A5FA)) {
-                        activeSheet = .destination(.scan)
+                        openDestination(.scan)
                     }
                     menuRow("Smart Calendar", icon: "calendar", color: Color(hex: 0x38BDF8)) {
-                        activeSheet = .destination(.calendar)
+                        openDestination(.calendar)
                     }
                     menuRow("Pantry", icon: "refrigerator.fill", color: Color(hex: 0x4ADE80)) {
-                        activeSheet = .destination(.pantry)
+                        openDestination(.pantry)
                     }
                     menuRow("My Safe Space", icon: "lock.shield.fill", color: Color(hex: 0x6B6B88)) {
-                        activeSheet = .destination(.safeSpace)
+                        openDestination(.safeSpace)
                     }
-                    menuRow("Reflection", icon: "square.and.pencil", color: Color.violet) {
-                        activeSheet = .destination(.reflection)
+                    menuRow("Reflection", icon: "square.and.pencil", color: Color.violet, proLocked: !isPro) {
+                        openDestination(.reflection)
                     }
-                    menuRow("Subscribe", icon: "star.fill", color: Color(hex: 0xFBBF24)) {
-                        activeSheet = .destination(.subscribe)
+                    if !isPro {
+                        menuRow("Subscribe", icon: "star.fill", color: Color(hex: 0xFBBF24)) {
+                            activeSheet = .destination(.subscribe)
+                        }
                     }
 
                     Divider()
@@ -94,7 +119,7 @@ struct MainTabView: View {
                         .padding(.vertical, 8)
 
                     menuRow("Settings", icon: "gearshape.fill", color: Theme.Text.tertiary(for: scheme)) {
-                        activeSheet = .destination(.settings)
+                        openDestination(.settings)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -117,7 +142,13 @@ struct MainTabView: View {
         }
     }
 
-    private func menuRow(_ title: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
+    private func menuRow(
+        _ title: String,
+        icon: String,
+        color: Color,
+        proLocked: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
         Button {
             HapticManager.light()
             action()
@@ -132,9 +163,24 @@ struct MainTabView: View {
                     .font(.system(size: 16))
                     .foregroundStyle(Theme.Text.primary)
 
+                if proLocked {
+                    Text("PRO")
+                        .font(.system(size: 9, weight: .semibold))
+                        .tracking(0.6)
+                        .foregroundStyle(Color(hex: 0xFBBF24))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(
+                            Capsule().fill(Color(hex: 0xFBBF24).opacity(0.12))
+                        )
+                        .overlay(
+                            Capsule().stroke(Color(hex: 0xFBBF24).opacity(0.3), lineWidth: 0.5)
+                        )
+                }
+
                 Spacer()
 
-                Image(systemName: "chevron.right")
+                Image(systemName: proLocked ? "lock.fill" : "chevron.right")
                     .font(.system(size: 11))
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
@@ -142,7 +188,7 @@ struct MainTabView: View {
             .padding(.horizontal, 4)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(title)
+        .accessibilityLabel(proLocked ? "\(title), Pro feature" : title)
     }
 
     @ViewBuilder

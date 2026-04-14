@@ -3,6 +3,8 @@ import SwiftUI
 struct ScanView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(SubscriptionManager.self) private var subscriptionManager
+    @Environment(BarcodeUsageTracker.self) private var barcodeUsage
     @State private var scanLineOffset: CGFloat = -100
     @State private var showGroceryList = false
     @State private var showPantry = false
@@ -11,6 +13,10 @@ struct ScanView: View {
     @State private var selectedMode: ScanMode = .barcode
     @State private var isScanning = false
     @State private var scannedProduct: ScannedProduct?
+    @State private var showPaywall = false
+    @State private var showLimitAlert = false
+
+    private var isPro: Bool { subscriptionManager.tier == .pro }
 
     private enum ScanMode: Hashable {
         case barcode, photo, search
@@ -36,6 +42,14 @@ struct ScanView: View {
         .sheet(item: $scannedProduct) { product in
             ScanResultView(product: product)
         }
+        .sheet(isPresented: $showPaywall) { PaywallView() }
+        .alert("Daily scan limit reached", isPresented: $showLimitAlert) {
+            Button("See Pro") { showPaywall = true }
+            Button("Not now", role: .cancel) { }
+        } message: {
+            Text("Free accounts get \(FreeTierLimits.barcodeScansPerDay) barcode scans per day. Unlock unlimited scans with Pro.")
+        }
+        .onAppear { barcodeUsage.refresh() }
     }
 
     // MARK: - Header
@@ -157,6 +171,13 @@ struct ScanView: View {
             HapticManager.heavy()
             switch selectedMode {
             case .barcode:
+                if !isPro {
+                    barcodeUsage.refresh()
+                    if barcodeUsage.hasReachedLimit {
+                        showLimitAlert = true
+                        return
+                    }
+                }
                 withAnimation(.easeOut(duration: 0.2)) { isScanning.toggle() }
             case .photo:
                 showMealPhoto = true
@@ -207,6 +228,13 @@ struct ScanView: View {
     private func handleBarcode(_ barcode: String) {
         HapticManager.success()
         isScanning = false
+
+        // Count this scan against the free-tier daily quota. Recorded
+        // here (after a successful read, before the lookup network
+        // request) so failed reads don't burn a slot.
+        if !isPro {
+            barcodeUsage.record()
+        }
 
         Task {
             do {

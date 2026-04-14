@@ -80,6 +80,9 @@
             ReferencedContainer = "container:MemoryAisle2.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <StoreKitConfigurationFileReference
+         identifier = "../../MemoryAisle2/MemoryAisleProducts.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

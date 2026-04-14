@@ -13,9 +13,32 @@ final class SubscriptionManager {
     private(set) var purchasedProductIDs: Set<String> = []
     private(set) var isLoading = false
 
-    static let proYearlyID = "com.sltrdigital.memoryaisle.pro.yearly"
+    static let proAnnualID = "com.sltrdigital.memoryaisle.pro.annual"
 
     private var updateTask: Task<Void, Never>?
+
+    init() {
+        // Honour the App Reviewer override at construction time so any
+        // gating decision made before `updateSubscriptionStatus()` runs
+        // still treats the reviewer device as Pro.
+        if AppReviewerSeedService.isMarkedAsReviewer {
+            tier = .pro
+        }
+        // StoreKit 2 requires a Task iterating Transaction.updates to be
+        // active from app launch, otherwise async transaction outcomes
+        // (Ask-to-Buy approvals, background renewals, refunds) are lost
+        // and Xcode logs a runtime warning under StoreKit.
+        startListening()
+    }
+
+    /// Re-evaluates the local Pro flag from `AppReviewerSeedService` so a
+    /// just-signed-in reviewer flips to Pro tier immediately, without
+    /// waiting for the next StoreKit refresh.
+    func refreshOverrides() {
+        if AppReviewerSeedService.isMarkedAsReviewer {
+            tier = .pro
+        }
+    }
 
     func startListening() {
         updateTask = Task {
@@ -32,7 +55,7 @@ final class SubscriptionManager {
     func loadProducts() async {
         isLoading = true
         do {
-            products = try await Product.products(for: [Self.proYearlyID])
+            products = try await Product.products(for: [Self.proAnnualID])
         } catch {
             products = []
         }
@@ -83,7 +106,9 @@ final class SubscriptionManager {
         }
 
         purchasedProductIDs = activePurchases
-        tier = activePurchases.contains(Self.proYearlyID) ? .pro : .free
+        let hasPaidPro = activePurchases.contains(Self.proAnnualID)
+        let hasReviewerPro = AppReviewerSeedService.isMarkedAsReviewer
+        tier = (hasPaidPro || hasReviewerPro) ? .pro : .free
     }
 
     // MARK: - Transaction Listener

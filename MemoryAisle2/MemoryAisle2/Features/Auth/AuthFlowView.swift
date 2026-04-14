@@ -1,4 +1,5 @@
 import AuthenticationServices
+import SwiftData
 import SwiftUI
 
 enum AuthScreen {
@@ -9,13 +10,25 @@ enum AuthScreen {
 
 struct AuthFlowView: View {
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
+    @Environment(SubscriptionManager.self) private var subscriptionManager
     @State private var authManager = CognitoAuthManager()
     @State private var screen: AuthScreen = .signIn
     @State private var email = ""
     @State private var password = ""
     @State private var verifyCode = ""
     @State private var showLegal: LegalPage?
+
+    /// Hook called after every successful sign-in path (email, Apple,
+    /// session restore). Detects the App Reviewer email, persists the
+    /// override, seeds demo data on first run, and refreshes the shared
+    /// SubscriptionManager so the rest of the app sees Pro tier
+    /// immediately without waiting for the next StoreKit refresh.
+    private func handlePostSignIn(email: String?) {
+        AppReviewerSeedService.handleSignIn(email: email, modelContext: modelContext)
+        subscriptionManager.refreshOverrides()
+    }
 
     var body: some View {
         ZStack {
@@ -38,6 +51,7 @@ struct AuthFlowView: View {
         .task {
             await authManager.restoreSession()
             if authManager.isSignedIn {
+                handlePostSignIn(email: authManager.email)
                 appState.authStatus = .signedIn
             }
         }
@@ -83,8 +97,9 @@ struct AuthFlowView: View {
                     handleAppleSignIn(result)
                 }
                 .signInWithAppleButtonStyle(.white)
-                .frame(height: 50)
+                .frame(maxWidth: 375, minHeight: 50, maxHeight: 50)
                 .clipShape(Capsule())
+                .frame(maxWidth: .infinity)
 
                 // Divider
                 HStack {
@@ -104,6 +119,7 @@ struct AuthFlowView: View {
                     Task {
                         if await authManager.signIn(email: email, password: password) {
                             HapticManager.success()
+                            handlePostSignIn(email: email)
                             appState.authStatus = .signedIn
                         }
                     }
@@ -118,9 +134,12 @@ struct AuthFlowView: View {
                         .foregroundStyle(Theme.Text.secondary(for: scheme))
                 }
                 .accessibilityLabel("Don't have an account? Sign up")
+
+                legalLinksNotice
+                    .padding(.top, 8)
             }
             .padding(.horizontal, 32)
-            .padding(.bottom, 56)
+            .padding(.bottom, 40)
         }
     }
 
@@ -162,33 +181,9 @@ struct AuthFlowView: View {
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 8)
 
-            VStack(spacing: 2) {
-                Text("By signing up, you agree to our")
-                    .font(Typography.caption)
-                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                HStack(spacing: 4) {
-                    Button { showLegal = .terms } label: {
-                        Text("Terms of Service")
-                            .font(Typography.caption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(Color.violet)
-                            .underline()
-                    }
-                    .accessibilityLabel("View Terms of Service")
-                    Text("and")
-                        .font(Typography.caption)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                    Button { showLegal = .privacy } label: {
-                        Text("Privacy Policy")
-                            .font(Typography.caption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(Color.violet)
-                            .underline()
-                    }
-                    .accessibilityLabel("View Privacy Policy")
-                }
-            }
-            .padding(.top, 4)
+            legalLinksNotice
+                .padding(.horizontal, 32)
+                .padding(.top, 12)
 
             if let error = authManager.error {
                 Text(error)
@@ -321,6 +316,33 @@ struct AuthFlowView: View {
         .accessibilityLabel(placeholder)
     }
 
+    // MARK: - Legal Links
+
+    private var legalLinksNotice: some View {
+        let markdown: LocalizedStringKey = "By continuing you agree to our [Terms of Service](ma-legal://terms) · [Privacy Policy](ma-legal://privacy) · [Medical Disclaimer](ma-legal://medical) · [Community Guidelines](ma-legal://community) · [Data Policy](ma-legal://data-policy)"
+
+        return Text(markdown)
+            .font(Typography.caption)
+            .foregroundStyle(Theme.Text.tertiary(for: scheme))
+            .tint(Color.violet)
+            .multilineTextAlignment(.center)
+            .lineSpacing(3)
+            .fixedSize(horizontal: false, vertical: true)
+            .environment(\.openURL, OpenURLAction { url in
+                switch url.host {
+                case "terms": showLegal = .terms
+                case "privacy": showLegal = .privacy
+                case "medical": showLegal = .medical
+                case "community": showLegal = .community
+                case "data-policy": showLegal = .dataPolicy
+                default: break
+                }
+                return .handled
+            })
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Legal agreements. Terms of Service, Privacy Policy, Medical Disclaimer, Community Guidelines, Data Policy")
+    }
+
     // MARK: - Apple Sign In
 
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
@@ -344,6 +366,7 @@ struct AuthFlowView: View {
                 }
 
                 HapticManager.success()
+                handlePostSignIn(email: email.isEmpty ? nil : email)
                 appState.authStatus = .signedIn
             }
         case .failure:

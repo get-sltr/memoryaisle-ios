@@ -292,15 +292,118 @@ struct ProfileView: View {
 
     // MARK: - Targets
 
+    /// User-editable daily targets. Each row is a Stepper bound to the
+    /// corresponding property on `UserProfile`; changes persist through
+    /// SwiftData automatically with no explicit save call required.
+    ///
+    /// Ranges are deliberately generous so users on very different
+    /// protocols (cutting vs. bulking, low-cal vs. high-cal) aren't
+    /// blocked from setting what they need. Step sizes are chosen for
+    /// ergonomic tapping — 5 for protein/fiber, 50 for calories, 0.1
+    /// for water.
     private var targetsCard: some View {
         section("Daily Targets") {
             if let profile {
-                targetRow("Protein", value: "\(profile.proteinTargetGrams)g", color: Color.violet)
-                targetRow("Calories", value: "\(profile.calorieTarget)", color: Theme.Text.secondary(for: scheme))
-                targetRow("Water", value: String(format: "%.1fL", profile.waterTargetLiters), color: Theme.Semantic.water(for: scheme))
-                targetRow("Fiber", value: "\(profile.fiberTargetGrams)g", color: Theme.Semantic.fiber(for: scheme))
+                editableIntTarget(
+                    label: "Protein",
+                    color: Color.violet,
+                    value: Binding(
+                        get: { profile.proteinTargetGrams },
+                        set: { profile.proteinTargetGrams = $0 }
+                    ),
+                    suffix: "g",
+                    range: 40...300,
+                    step: 5
+                )
+                editableIntTarget(
+                    label: "Calories",
+                    color: Theme.Text.secondary(for: scheme),
+                    value: Binding(
+                        get: { profile.calorieTarget },
+                        set: { profile.calorieTarget = $0 }
+                    ),
+                    suffix: "",
+                    range: 800...4000,
+                    step: 50
+                )
+                editableDoubleTarget(
+                    label: "Water",
+                    color: Theme.Semantic.water(for: scheme),
+                    value: Binding(
+                        get: { profile.waterTargetLiters },
+                        set: { profile.waterTargetLiters = $0 }
+                    ),
+                    format: { String(format: "%.1fL", $0) },
+                    range: 1.0...5.0,
+                    step: 0.1
+                )
+                editableIntTarget(
+                    label: "Fiber",
+                    color: Theme.Semantic.fiber(for: scheme),
+                    value: Binding(
+                        get: { profile.fiberTargetGrams },
+                        set: { profile.fiberTargetGrams = $0 }
+                    ),
+                    suffix: "g",
+                    range: 10...60,
+                    step: 1
+                )
             }
         }
+    }
+
+    private func editableIntTarget(
+        label: String,
+        color: Color,
+        value: Binding<Int>,
+        suffix: String,
+        range: ClosedRange<Int>,
+        step: Int
+    ) -> some View {
+        HStack {
+            Circle().fill(color).frame(width: 6, height: 6)
+            Text(label)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+            Spacer()
+            Text("\(value.wrappedValue)\(suffix)")
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .foregroundStyle(Theme.Text.primary)
+                .frame(minWidth: 56, alignment: .trailing)
+            Stepper("", value: value, in: range, step: step)
+                .labelsHidden()
+                .onChange(of: value.wrappedValue) { _, _ in
+                    HapticManager.selection()
+                }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func editableDoubleTarget(
+        label: String,
+        color: Color,
+        value: Binding<Double>,
+        format: @escaping (Double) -> String,
+        range: ClosedRange<Double>,
+        step: Double
+    ) -> some View {
+        HStack {
+            Circle().fill(color).frame(width: 6, height: 6)
+            Text(label)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+            Spacer()
+            Text(format(value.wrappedValue))
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .foregroundStyle(Theme.Text.primary)
+                .frame(minWidth: 56, alignment: .trailing)
+            Stepper("", value: value, in: range, step: step)
+                .labelsHidden()
+                .onChange(of: value.wrappedValue) { _, _ in
+                    HapticManager.selection()
+                }
+        }
+        .padding(.vertical, 2)
     }
 
     // MARK: - Settings

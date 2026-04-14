@@ -4,12 +4,30 @@ import SwiftUI
 @main
 struct MemoryAisleApp: App {
     @State private var appState = AppState()
+    @State private var subscriptionManager = SubscriptionManager()
+    @State private var miraUsage = MiraUsageTracker()
+    @State private var barcodeUsage = BarcodeUsageTracker()
+
+    init() {
+        // iOS does not create Library/Application Support automatically.
+        // SwiftData writes its store there, so pre-create the directory to
+        // avoid a noisy CoreData "Failed to create file" recovery on first launch.
+        _ = try? FileManager.default.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+    }
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .buttonStyle(.plain)
                 .environment(appState)
+                .environment(subscriptionManager)
+                .environment(miraUsage)
+                .environment(barcodeUsage)
                 .modelContainer(for: [
                     UserProfile.self,
                     NutritionLog.self,
@@ -23,7 +41,8 @@ struct MemoryAisleApp: App {
                     MedicationProfile.self,
                     TrainingSession.self,
                     BodyComposition.self,
-                    ProviderReport.self
+                    ProviderReport.self,
+                    SavedRecipe.self
                 ])
         }
     }

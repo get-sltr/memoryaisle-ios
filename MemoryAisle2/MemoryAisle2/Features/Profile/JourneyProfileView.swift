@@ -222,7 +222,8 @@ struct JourneyProfileView: View {
                 : [("Breakfast", "7:00 AM", 620), ("Snack", "10:00 AM", 400), ("Lunch", "12:30 PM", 700), ("Snack", "3:30 PM", 380), ("Dinner", "7:00 PM", 700)]
 
             VStack(spacing: 5) {
-                ForEach(meals, id: \.0) { name, time, cal in
+                ForEach(Array(meals.enumerated()), id: \.offset) { _, meal in
+                    let (name, time, cal) = meal
                     HStack {
                         Text(name)
                             .font(Typography.bodySmallBold)

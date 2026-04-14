@@ -7,6 +7,7 @@ struct ProviderReportView: View {
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
     @Query(sort: \SymptomLog.date, order: .reverse) private var symptoms: [SymptomLog]
+    @Query(sort: \BodyComposition.date, order: .reverse) private var bodyComp: [BodyComposition]
     @State private var isGenerating = false
 
     private var profile: UserProfile? { profiles.first }
@@ -20,6 +21,18 @@ struct ProviderReportView: View {
         let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .now
         return symptoms.filter { $0.date > weekAgo }
     }
+
+    /// Body composition records inside the report window, sorted oldest to
+    /// newest so `first` and `last` give us the start and end of the week.
+    private var weekBodyComp: [BodyComposition] {
+        let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .now
+        return bodyComp
+            .filter { $0.date > weekAgo }
+            .sorted { $0.date < $1.date }
+    }
+
+    private var weekStartWeight: Double? { weekBodyComp.first?.weightLbs }
+    private var weekEndWeight: Double? { weekBodyComp.last?.weightLbs }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -80,9 +93,20 @@ struct ProviderReportView: View {
                         previewRow("Mode", value: profile?.productMode.rawValue ?? "Everyday")
                     }
 
-                    GlowButton(isGenerating ? "Generating..." : "Generate & Share PDF") {
-                        generateAndShare()
+                    if let start = weekStartWeight, let end = weekEndWeight {
+                        previewSection("Weight") {
+                            previewRow("Start of Week", value: String(format: "%.1f lbs", start))
+                            previewRow("End of Week", value: String(format: "%.1f lbs", end))
+                            let change = end - start
+                            let sign = change >= 0 ? "+" : ""
+                            previewRow("Change", value: "\(sign)\(String(format: "%.1f", change)) lbs")
+                        }
                     }
+
+                    GlowButton(isGenerating ? "Generating..." : "Generate & Share PDF") {
+                        Task { await generateAndShare() }
+                    }
+                    .disabled(isGenerating)
                     .padding(.horizontal, 32)
 
                     Text("PDF includes a medical disclaimer.\nNo personal data is shared with third parties.")
@@ -168,9 +192,10 @@ struct ProviderReportView: View {
 
     // MARK: - Generate
 
-    private func generateAndShare() {
+    private func generateAndShare() async {
         isGenerating = true
         HapticManager.medium()
+        defer { isGenerating = false }
 
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -189,22 +214,45 @@ struct ProviderReportView: View {
             avgWater: avgWater,
             avgNausea: avgNausea,
             avgEnergy: avgEnergy,
-            weightStart: nil,
-            weightEnd: nil
+            daysLogged: weekSymptoms.count,
+            weightStart: weekStartWeight,
+            weightEnd: weekEndWeight
         )
+
+        // Yield once before the synchronous PDF render so SwiftUI gets a
+        // chance to commit the "Generating…" state. Without this the
+        // button label flashed too fast to read.
+        await Task.yield()
 
         let pdfData = ProviderReportGenerator.generatePDF(data: reportData)
 
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("MemoryAisle-Report.pdf")
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MemoryAisle-Report.pdf")
         try? pdfData.write(to: tempURL)
 
-        let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+        presentShareSheet(for: tempURL)
+    }
 
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = windowScene.windows.first?.rootViewController {
-            rootVC.present(activityVC, animated: true)
+    /// Presents the system share sheet from the active key window. Falls
+    /// back gracefully if no window is available rather than crashing.
+    private func presentShareSheet(for url: URL) {
+        let activityVC = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+
+        let scenes = UIApplication.shared.connectedScenes
+        guard let windowScene = scenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }) ?? scenes.first as? UIWindowScene,
+              let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) ?? windowScene.windows.first,
+              let rootVC = keyWindow.rootViewController else {
+            return
         }
 
-        isGenerating = false
+        // Walk to the topmost presented controller so the share sheet
+        // attaches to whatever modal is currently on screen.
+        var top = rootVC
+        while let presented = top.presentedViewController {
+            top = presented
+        }
+        top.present(activityVC, animated: true)
     }
 }
