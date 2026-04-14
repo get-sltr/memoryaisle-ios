@@ -299,7 +299,7 @@ struct MiraChatView: View {
         inputText = ""
     }
 
-    private let miraClient = MiraAPIClient()
+    @State private var conversation: MiraConversation?
 
     private func sendMessage(_ text: String) {
         HapticManager.medium()
@@ -307,6 +307,14 @@ struct MiraChatView: View {
         withAnimation(Theme.Motion.spring) {
             messages.append(userMsg)
             isTyping = true
+        }
+
+        // Lazily create the conversation orchestrator on first send so it
+        // captures the current modelContext.
+        if conversation == nil {
+            conversation = MiraConversation(
+                executor: MiraToolExecutor(context: modelContext)
+            )
         }
 
         let context: MiraAPIClient.MiraContext
@@ -348,7 +356,7 @@ struct MiraChatView: View {
 
         Task {
             do {
-                let reply = try await miraClient.send(message: text, context: context)
+                let reply = try await conversation?.send(userText: text, context: context) ?? ""
                 await MainActor.run {
                     withAnimation(Theme.Motion.spring) {
                         isTyping = false

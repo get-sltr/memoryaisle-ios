@@ -32,6 +32,27 @@ struct MiraAPIClient: Sendable {
         let error: String?
     }
 
+    /// A single tool call requested by Claude in a tool-use response.
+    struct ToolUse: Sendable {
+        let id: String
+        let name: String
+        let input: [String: Any]
+    }
+
+    /// The result of a tool-use-aware send. May contain pure text, may contain
+    /// tool_use blocks that the caller must execute and continue with, or both.
+    struct ToolAwareResponse: Sendable {
+        /// Text content from the assistant. May be empty when stopReason is "tool_use".
+        let text: String
+        /// The full assistant content blocks, kept verbatim so the caller can echo
+        /// them back as the assistant turn in the next request's messages array.
+        let assistantContent: [[String: Any]]
+        /// Tool calls Claude wants the client to execute.
+        let toolUses: [ToolUse]
+        /// Bedrock stop reason: "end_turn", "tool_use", "max_tokens", etc.
+        let stopReason: String?
+    }
+
     func send(message: String, context: MiraContext?) async throws -> String {
         try await send(message: message, context: context, imageData: nil)
     }
@@ -80,6 +101,94 @@ struct MiraAPIClient: Sendable {
         }
 
         return miraResponse.reply ?? "I'm having a moment. Try again?"
+    }
+
+    /// Tool-use-aware send. Takes the full conversation messages array (in
+    /// Anthropic's format — each message is a dict with "role" and "content")
+    /// and returns either pure text or a list of tool calls Claude wants the
+    /// client to execute. The caller is responsible for the loop.
+    func send(
+        messages: [[String: Any]],
+        context: MiraContext?,
+        useTools: Bool
+    ) async throws -> ToolAwareResponse {
+        guard let url = URL(string: endpoint) else {
+            throw MiraError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30
+
+        var body: [String: Any] = [
+            "messages": messages,
+            "useTools": useTools
+        ]
+        if let context {
+            body["context"] = encodeContextDict(context)
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw MiraError.networkError
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            throw MiraError.serverError(httpResponse.statusCode)
+        }
+
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw MiraError.networkError
+        }
+
+        if let errorMsg = json["error"] as? String {
+            throw MiraError.apiError(errorMsg)
+        }
+
+        let text = (json["reply"] as? String) ?? ""
+        let stopReason = json["stopReason"] as? String
+        let assistantContent = (json["assistantContent"] as? [[String: Any]]) ?? []
+
+        var toolUses: [ToolUse] = []
+        if let rawUses = json["toolUses"] as? [[String: Any]] {
+            for raw in rawUses {
+                guard let id = raw["id"] as? String,
+                      let name = raw["name"] as? String,
+                      let input = raw["input"] as? [String: Any]
+                else { continue }
+                toolUses.append(ToolUse(id: id, name: name, input: input))
+            }
+        }
+
+        return ToolAwareResponse(
+            text: text,
+            assistantContent: assistantContent,
+            toolUses: toolUses,
+            stopReason: stopReason
+        )
+    }
+
+    /// Convert MiraContext to a JSON-serializable dictionary. We can't use
+    /// JSONEncoder with [String: Any] mixing, so we hand-build the dict.
+    private func encodeContextDict(_ ctx: MiraContext) -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let v = ctx.medicationClass { dict["medicationClass"] = v }
+        if let v = ctx.doseTier { dict["doseTier"] = v }
+        if let v = ctx.daysSinceDose { dict["daysSinceDose"] = v }
+        if let v = ctx.phase { dict["phase"] = v }
+        if let v = ctx.symptomState { dict["symptomState"] = v }
+        if let v = ctx.mode { dict["mode"] = v }
+        if let v = ctx.proteinTarget { dict["proteinTarget"] = v }
+        if let v = ctx.proteinToday { dict["proteinToday"] = v }
+        if let v = ctx.waterToday { dict["waterToday"] = v }
+        if let v = ctx.trainingLevel { dict["trainingLevel"] = v }
+        if let v = ctx.trainingToday { dict["trainingToday"] = v }
+        if let v = ctx.calorieTarget { dict["calorieTarget"] = v }
+        if let v = ctx.dietaryRestrictions { dict["dietaryRestrictions"] = v }
+        return dict
     }
 
     @MainActor

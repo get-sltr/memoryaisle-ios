@@ -70,60 +70,189 @@ Your expertise:
 - FOR MEDICATION USERS ONLY: symptom-adaptive eating, meal planning around medication cycles, hydration reminders, maintenance and taper nutrition.
 - FOR NON-MEDICATION USERS ONLY: pre/post-workout meals, pure training nutrition, body composition focus without symptom context.
 
-For short conversational replies (greetings, questions about targets, general check-ins), keep responses to 2-4 sentences. For recipes and meal plans, go as long as needed. Use specific numbers when possible (grams of protein, portion sizes, calories). Never use em dashes.`;
+For short conversational replies (greetings, questions about targets, general check-ins), keep responses to 2-4 sentences. For recipes and meal plans, go as long as needed. Use specific numbers when possible (grams of protein, portion sizes, calories). Never use em dashes.
+
+TOOLS (this is how you perform real actions in the user's app):
+
+When the tools array is present in your request, you have access to real functions that modify the user's data on their device. When the user asks you to DO something concrete, CALL THE APPROPRIATE TOOL instead of describing what you would do or asking follow-up questions.
+
+Guidelines:
+- If the user asks to "add X to my grocery list", "export ingredients", "put X on the shopping list", "I need to buy Y" — call addToGroceryList immediately with whatever items fit.
+- If the user says "I had X for lunch", "log my breakfast", "I just ate Y" — call logMeal with the best estimate of protein and calories from your culinary knowledge. Do not ask the user for precise macros.
+- If the user asks "how's my protein today", "am I on track", "what's left" — call getTodayNutrition to read live numbers before answering.
+- If you need to reference the user's goals and the context doesn't already include them, call getUserTargets.
+- When the user asks for a recipe AND wants the ingredients in their grocery list, first generate the recipe in text, then call addToGroceryList with the ingredient names (no quantities — shopper-friendly names only, e.g. "chicken breast" not "2 lbs chicken breast").
+- You may call tools in sequence. Each tool result will come back as a tool_result message, and you should then continue the conversation with a natural text reply that references what you did.
+- Do NOT stall by asking "would you like me to" or "should I" when the user has already told you what they want. If they said "add this to my grocery list" they want it added. Call the tool.
+
+OFF-LIMITS: You have no tools for the "My Safe Space" destination in the app menu, and you must never claim to have access to it. If the user asks you to do anything involving My Safe Space, say something like "My Safe Space is yours alone, I don't have access there. Tap it from the menu whenever you want." Then move on.`;
+
+const TOOLS = [
+  {
+    name: "addToGroceryList",
+    description:
+      "Add one or more items to the user's on-device grocery list. Use when the user asks to add items, export a recipe's ingredients, or save a shopping list. Items will be added as PantryItem records and auto-categorized. Keep item names short and shopper-friendly.",
+    input_schema: {
+      type: "object",
+      properties: {
+        items: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Grocery item names, short and shopper-friendly (e.g. 'chicken breast', 'soy sauce', 'ramen noodles'). Do NOT include quantities in the name.",
+        },
+      },
+      required: ["items"],
+    },
+  },
+  {
+    name: "logMeal",
+    description:
+      "Log a meal the user has just eaten, adding its nutrition to today's totals. The user's dashboard updates automatically. Estimate protein and calories from your culinary knowledge if the user doesn't provide exact numbers.",
+    input_schema: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          description:
+            "Short name of the meal (e.g. 'Greek yogurt with berries', 'grilled chicken salad').",
+        },
+        proteinGrams: {
+          type: "number",
+          description: "Estimated grams of protein in the meal.",
+        },
+        calories: {
+          type: "number",
+          description: "Estimated total calories in the meal.",
+        },
+        fiberGrams: {
+          type: "number",
+          description:
+            "Estimated grams of fiber in the meal. Pass 0 if you have no estimate.",
+        },
+      },
+      required: ["name", "proteinGrams", "calories"],
+    },
+  },
+  {
+    name: "getTodayNutrition",
+    description:
+      "Fetch the user's running nutrition totals for today (protein, calories, water, fiber). Use when the user asks about today's progress, what's left, or whether they're on track.",
+    input_schema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "getUserTargets",
+    description:
+      "Fetch the user's current daily targets (protein, calories, water, fiber) and weight goal. Use when you need fresh target data that might not be in the system context.",
+    input_schema: {
+      type: "object",
+      properties: {},
+    },
+  },
+];
 
 export const handler = async (event) => {
   const body = JSON.parse(event.body || "{}");
-  const { message, context, imageBase64, imageMediaType } = body;
+  const {
+    message,
+    messages,
+    context,
+    imageBase64,
+    imageMediaType,
+    useTools,
+  } = body;
 
-  if (!message) {
+  // Backward-compatible request shape: accept either
+  //   { message, context, imageBase64 }   — legacy single-message mode
+  //   { messages, context, useTools }     — multi-turn tool-use mode
+  //
+  // When useTools is true, the tools array is passed to Claude and tool_use
+  // responses are returned verbatim so the iOS client can execute the tool
+  // locally and send the result back as a follow-up call.
+
+  let conversationMessages;
+
+  if (Array.isArray(messages) && messages.length > 0) {
+    // Multi-turn mode: trust the client's conversation array as-is.
+    conversationMessages = messages;
+  } else if (message) {
+    // Legacy single-message mode.
+    const content = imageBase64
+      ? [
+          {
+            type: "image",
+            source: {
+              type: "base64",
+              media_type: imageMediaType || "image/jpeg",
+              data: imageBase64,
+            },
+          },
+          { type: "text", text: message },
+        ]
+      : message;
+    conversationMessages = [{ role: "user", content }];
+  } else {
     return {
       statusCode: 400,
       headers: corsHeaders(),
-      body: JSON.stringify({ error: "Message is required" }),
+      body: JSON.stringify({ error: "Message or messages array is required" }),
     };
   }
 
   const userContext = context ? buildAnonymizedContext(context) : "";
 
-  // Build content: vision array when image is present, plain string otherwise
-  const content = imageBase64
-    ? [
-        {
-          type: "image",
-          source: {
-            type: "base64",
-            media_type: imageMediaType || "image/jpeg",
-            data: imageBase64,
-          },
-        },
-        { type: "text", text: message },
-      ]
-    : message;
+  const requestBody = {
+    anthropic_version: "bedrock-2023-05-31",
+    max_tokens: 2500,
+    system: SYSTEM_PROMPT + userContext,
+    messages: conversationMessages,
+  };
+
+  if (useTools) {
+    requestBody.tools = TOOLS;
+  }
 
   try {
     const command = new InvokeModelCommand({
       modelId: "us.anthropic.claude-sonnet-4-20250514-v1:0",
       contentType: "application/json",
       accept: "application/json",
-      body: JSON.stringify({
-        anthropic_version: "bedrock-2023-05-31",
-        max_tokens: 2500,
-        system: SYSTEM_PROMPT + userContext,
-        messages: [{ role: "user", content }],
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     const response = await client.send(command);
     const result = JSON.parse(new TextDecoder().decode(response.body));
+
+    // Pull out text + tool_use from the content blocks
+    const contentBlocks = Array.isArray(result.content) ? result.content : [];
+    const textBlocks = contentBlocks.filter((b) => b.type === "text");
+    const toolUseBlocks = contentBlocks.filter((b) => b.type === "tool_use");
     const reply =
-      result.content?.[0]?.text ||
-      "I'm having trouble right now. Try again in a moment.";
+      textBlocks.map((b) => b.text).join("\n\n") ||
+      (toolUseBlocks.length === 0
+        ? "I'm having trouble right now. Try again in a moment."
+        : "");
 
     return {
       statusCode: 200,
       headers: corsHeaders(),
-      body: JSON.stringify({ reply }),
+      body: JSON.stringify({
+        reply,
+        stopReason: result.stop_reason || null,
+        // Echo the full assistant content back so the client can append it to
+        // the next messages array on tool-result follow-ups. Claude expects
+        // the assistant's tool_use content to be in the history before the
+        // matching user tool_result.
+        assistantContent: contentBlocks,
+        toolUses: toolUseBlocks.map((b) => ({
+          id: b.id,
+          name: b.name,
+          input: b.input,
+        })),
+      }),
     };
   } catch (error) {
     console.error("Bedrock error:", error);
