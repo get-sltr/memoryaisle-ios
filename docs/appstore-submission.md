@@ -120,8 +120,9 @@ IMPORTANT CONTEXT FOR REVIEW:
 - The app uses HealthKit read-only (weight, body composition) to personalize nutrition targets
 
 DEMO ACCOUNT:
-Email: review@memoryaisle.app
-Password: AppReview2026!
+Reviewer credentials are entered directly in App Store Connect under
+App Review → App Information → Sign-In required. They are intentionally
+not stored in this repository.
 
 SUBSCRIPTION:
 $49.99/year via StoreKit 2. Free tier includes basic features. Pro unlocks unlimited meal plans, barcode scans, and provider reports.
@@ -147,7 +148,7 @@ For questions: kevin@sltrdigital.com
 - [ ] Privacy policy URL live at memoryaisle.app/privacy
 - [ ] Terms of service URL live at memoryaisle.app/terms
 - [ ] Support URL live at memoryaisle.app/support
-- [ ] Demo account created (review@memoryaisle.app)
+- [ ] Demo account created (appreview@memoryaisle.app)
 - [ ] Medical disclaimer visible on nutrition screens
 - [ ] HealthKit usage description in Info.plist
 - [ ] Camera usage description in Info.plist (barcode scanner)
