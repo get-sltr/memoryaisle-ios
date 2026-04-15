@@ -30,6 +30,11 @@ final class SubscriptionManager {
         // (Ask-to-Buy approvals, background renewals, refunds) are lost
         // and Xcode logs a runtime warning under StoreKit.
         startListening()
+        // Query Transaction.currentEntitlements at launch so a reinstalled
+        // app recognizes an existing Apple ID subscription before the user
+        // hits a Pro gate. Without this, tier stays .free until the paywall
+        // happens to appear and its .task runs updateSubscriptionStatus().
+        Task { await updateSubscriptionStatus() }
     }
 
     /// Re-evaluates the local Pro flag from `AppReviewerSeedService` so a

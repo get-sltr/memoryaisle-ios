@@ -3,6 +3,7 @@ import SwiftUI
 
 @main
 struct MemoryAisleApp: App {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var appState = AppState()
     @State private var subscriptionManager = SubscriptionManager()
     @State private var miraUsage = MiraUsageTracker()
@@ -44,6 +45,14 @@ struct MemoryAisleApp: App {
                     ProviderReport.self,
                     SavedRecipe.self
                 ])
+                // Re-query StoreKit whenever the app becomes active so a
+                // subscription purchased on another device, a cancellation
+                // processed while backgrounded, or an Apple ID switch is
+                // reflected without requiring a relaunch.
+                .onChange(of: scenePhase) { _, newPhase in
+                    guard newPhase == .active else { return }
+                    Task { await subscriptionManager.updateSubscriptionStatus() }
+                }
         }
     }
 }
