@@ -215,8 +215,9 @@ struct MealPhotoView: View {
                 if let photoData, let uiImage = UIImage(data: photoData) {
                     Image(uiImage: uiImage)
                         .resizable()
-                        .scaledToFill()
-                        .frame(height: 200)
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 220)
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         .padding(.horizontal, 20)
                 }
@@ -224,6 +225,9 @@ struct MealPhotoView: View {
                 Text(r.foodName)
                     .font(.system(size: 20, weight: .medium))
                     .foregroundStyle(Theme.Text.primary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 20)
 
                 HStack(spacing: 16) {
                     macroCell("Protein", "\(Int(r.estimatedProtein))g", Color.violet)
