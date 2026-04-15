@@ -58,8 +58,20 @@ struct MiraChatView: View {
     @FocusState private var isInputFocused: Bool
 
     private var profile: UserProfile? { profiles.first }
-    private var todayLog: NutritionLog? {
-        logs.first { Calendar.current.isDateInToday($0.date) }
+
+    /// Summed protein across every NutritionLog dated today. Each meal is
+    /// its own row in the new model, so picking a single "todayLog" would
+    /// under-report whenever more than one meal has been logged.
+    private var todayProteinTotal: Double {
+        logs
+            .filter { Calendar.current.isDateInToday($0.date) }
+            .reduce(0) { $0 + $1.proteinGrams }
+    }
+
+    private var todayWaterTotal: Double {
+        logs
+            .filter { Calendar.current.isDateInToday($0.date) }
+            .reduce(0) { $0 + $1.waterLiters }
     }
 
     private var isOnMedication: Bool {
@@ -407,8 +419,8 @@ struct MiraChatView: View {
                 profile: p,
                 cyclePhase: nil,
                 symptomState: "unknown",
-                proteinConsumed: Int(todayLog?.proteinGrams ?? 0),
-                waterConsumed: todayLog?.waterLiters ?? 0,
+                proteinConsumed: Int(todayProteinTotal),
+                waterConsumed: todayWaterTotal,
                 isTrainingDay: false
             )
             context = MiraAPIClient.MiraContext(

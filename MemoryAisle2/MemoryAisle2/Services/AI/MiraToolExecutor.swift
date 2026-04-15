@@ -94,26 +94,18 @@ final class MiraToolExecutor {
         let calories = numberValue(input["calories"]) ?? 0
         let fiber = numberValue(input["fiberGrams"]) ?? 0
 
-        // Roll into today's NutritionLog if one exists, otherwise create it.
-        let descriptor = FetchDescriptor<NutritionLog>(sortBy: [SortDescriptor(\.date, order: .reverse)])
-        let logs = (try? context.fetch(descriptor)) ?? []
-        let cal = Calendar.current
-        let todayLog = logs.first { cal.isDateInToday($0.date) }
-
-        if let existing = todayLog {
-            existing.proteinGrams += protein
-            existing.caloriesConsumed += calories
-            existing.fiberGrams += fiber
-        } else {
-            let log = NutritionLog(
-                date: .now,
-                proteinGrams: protein,
-                caloriesConsumed: calories,
-                waterLiters: 0,
-                fiberGrams: fiber
-            )
-            context.insert(log)
-        }
+        // Each chat-logged meal gets its own NutritionLog row so the dashboard
+        // and Reflection see meals as discrete events. Daily totals are
+        // computed at read sites by summing today's rows.
+        let log = NutritionLog(
+            date: .now,
+            proteinGrams: protein,
+            caloriesConsumed: calories,
+            waterLiters: 0,
+            fiberGrams: fiber,
+            foodName: name
+        )
+        context.insert(log)
 
         do {
             try context.save()
@@ -130,10 +122,15 @@ final class MiraToolExecutor {
         let descriptor = FetchDescriptor<NutritionLog>(sortBy: [SortDescriptor(\.date, order: .reverse)])
         let logs = (try? context.fetch(descriptor)) ?? []
         let cal = Calendar.current
-        guard let today = logs.first(where: { cal.isDateInToday($0.date) }) else {
+        let todays = logs.filter { cal.isDateInToday($0.date) }
+        guard !todays.isEmpty else {
             return "No meals logged yet today. Protein: 0g. Calories: 0. Water: 0L. Fiber: 0g."
         }
-        return "Today so far — protein: \(Int(today.proteinGrams))g, calories: \(Int(today.caloriesConsumed)), water: \(String(format: "%.1f", today.waterLiters))L, fiber: \(Int(today.fiberGrams))g."
+        let protein = todays.reduce(0) { $0 + $1.proteinGrams }
+        let calories = todays.reduce(0) { $0 + $1.caloriesConsumed }
+        let water = todays.reduce(0) { $0 + $1.waterLiters }
+        let fiber = todays.reduce(0) { $0 + $1.fiberGrams }
+        return "Today so far — protein: \(Int(protein))g, calories: \(Int(calories)), water: \(String(format: "%.1f", water))L, fiber: \(Int(fiber))g."
     }
 
     // MARK: - getUserTargets

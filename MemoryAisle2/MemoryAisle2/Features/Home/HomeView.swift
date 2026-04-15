@@ -9,8 +9,15 @@ struct HomeView: View {
 
     @Query private var profiles: [UserProfile]
     @Query(sort: \BodyComposition.date, order: .reverse) private var bodyCompRecords: [BodyComposition]
+    @Query(sort: \NutritionLog.date, order: .reverse) private var nutritionLogs: [NutritionLog]
 
     private var profile: UserProfile? { profiles.first }
+
+    private var todaysLoggedMeals: [NutritionLog] {
+        nutritionLogs.filter {
+            Calendar.current.isDateInToday($0.date) && $0.foodName != nil
+        }
+    }
 
     // Starting photo capture
     @State private var showStartingSourceChoice = false
@@ -422,16 +429,27 @@ struct HomeView: View {
 
     private var todaysMealsCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("TODAY'S MEALS")
-                .font(.system(size: 11, weight: .regular))
-                .tracking(0.8)
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+            HStack {
+                Text("TODAY'S MEALS")
+                    .font(.system(size: 11, weight: .regular))
+                    .tracking(0.8)
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                Spacer()
+                if !todaysLoggedMeals.isEmpty {
+                    Text("\(todaysLoggedMeals.count) logged")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.violet)
+                }
+            }
 
-            VStack(spacing: 5) {
-                mealSlot(name: "Breakfast", time: "8:00 AM")
-                mealSlot(name: "Lunch", time: "12:30 PM")
-                mealSlot(name: "Snack", time: "3:30 PM")
-                mealSlot(name: "Dinner", time: "6:30 PM")
+            if todaysLoggedMeals.isEmpty {
+                emptyMealsState
+            } else {
+                VStack(spacing: 5) {
+                    ForEach(todaysLoggedMeals.reversed()) { log in
+                        loggedMealRow(log)
+                    }
+                }
             }
 
             HStack(spacing: 6) {
@@ -465,23 +483,61 @@ struct HomeView: View {
         )
     }
 
-    private func mealSlot(name: String, time: String) -> some View {
-        HStack {
-            HStack(spacing: 8) {
-                Circle()
-                    .strokeBorder(Theme.Text.hint(for: scheme), lineWidth: 1.5)
-                    .frame(width: 8, height: 8)
-                Text(name)
+    private var emptyMealsState: some View {
+        Button {
+            HapticManager.light()
+            showMealPhotoSheet = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.violet)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("No meals logged yet today")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Theme.Text.primary)
+                    Text("Tap to snap your first meal")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Theme.Text.hint(for: scheme))
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Theme.Surface.glass(for: scheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(Theme.Border.glass(section: .home, for: scheme), lineWidth: Theme.glassBorderWidth)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Log your first meal")
+        .accessibilityHint("Opens the meal photo capture")
+    }
+
+    private func loggedMealRow(_ log: NutritionLog) -> some View {
+        HStack(spacing: 10) {
+            Circle()
+                .fill(Color.violet)
+                .frame(width: 8, height: 8)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(log.foodName ?? "Meal")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Theme.Text.primary)
-                Text(time)
+                    .lineLimit(1)
+                Text(mealTimeLabel(log.date))
                     .font(.system(size: 10))
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }
             Spacer()
-            Text("Not logged")
-                .font(.system(size: 11))
-                .foregroundStyle(Theme.Text.hint(for: scheme))
+            Text("\(Int(log.proteinGrams))g P")
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundStyle(Color.violet)
         }
         .padding(10)
         .background(
@@ -492,6 +548,12 @@ struct HomeView: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(Theme.Border.glass(section: .home, for: scheme), lineWidth: Theme.glassBorderWidth)
         )
+    }
+
+    private func mealTimeLabel(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "h:mm a"
+        return f.string(from: date)
     }
 
     // MARK: - Mood card

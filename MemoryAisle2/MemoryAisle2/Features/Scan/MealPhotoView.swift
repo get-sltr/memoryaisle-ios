@@ -5,6 +5,7 @@ import SwiftUI
 struct MealPhotoView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
     @State private var cameraImageData: Data?
@@ -259,8 +260,7 @@ struct MealPhotoView: View {
                 .padding(.horizontal, 20)
 
                 GlowButton("Log this meal") {
-                    HapticManager.success()
-                    dismiss()
+                    saveMeal(r)
                 }
                 .padding(.horizontal, 32)
 
@@ -291,6 +291,24 @@ struct MealPhotoView: View {
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
         }
         .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Persistence
+
+    private func saveMeal(_ analysis: FoodAnalyzer.Analysis) {
+        let log = NutritionLog(
+            date: .now,
+            proteinGrams: analysis.estimatedProtein,
+            caloriesConsumed: analysis.estimatedCalories,
+            waterLiters: 0,
+            fiberGrams: 0,
+            foodName: analysis.foodName,
+            photoData: photoData
+        )
+        modelContext.insert(log)
+        try? modelContext.save()
+        HapticManager.success()
+        dismiss()
     }
 
     // MARK: - Analysis (Bedrock Claude Vision)

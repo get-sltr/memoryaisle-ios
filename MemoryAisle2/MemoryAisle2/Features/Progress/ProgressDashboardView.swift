@@ -13,8 +13,23 @@ struct ProgressDashboardView: View {
     @State private var showProviderReport = false
 
     private var profile: UserProfile? { profiles.first }
-    private var todayLog: NutritionLog? {
-        logs.first { Calendar.current.isDateInToday($0.date) }
+
+    private var todaysLogs: [NutritionLog] {
+        logs.filter { Calendar.current.isDateInToday($0.date) }
+    }
+
+    /// Aggregated totals for today, summed across every NutritionLog row
+    /// dated today. The model stores one row per meal event, so the
+    /// dashboard must sum rather than read a single "daily" row.
+    private var todayTotals: (protein: Double, water: Double, fiber: Double, calories: Double)? {
+        let rows = todaysLogs
+        guard !rows.isEmpty else { return nil }
+        return (
+            protein: rows.reduce(0) { $0 + $1.proteinGrams },
+            water: rows.reduce(0) { $0 + $1.waterLiters },
+            fiber: rows.reduce(0) { $0 + $1.fiberGrams },
+            calories: rows.reduce(0) { $0 + $1.caloriesConsumed }
+        )
     }
 
     private var weekLogs: [NutritionLog] {
@@ -96,17 +111,17 @@ struct ProgressDashboardView: View {
 
                 // Today's macros — only render when the user has logged
                 // something today. Empty zero rows would look like placecards.
-                if let todayLog {
+                if let todayTotals {
                     VStack(alignment: .leading, spacing: 14) {
                         Text("TODAY")
                             .font(Typography.label)
                             .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .tracking(1.2)
 
-                        macroRow("Protein", current: todayLog.proteinGrams, target: Double(profile?.proteinTargetGrams ?? 140), unit: "g", color: Color.violet)
-                        macroRow("Water", current: todayLog.waterLiters, target: profile?.waterTargetLiters ?? 2.5, unit: "L", color: Theme.Semantic.water(for: scheme))
-                        macroRow("Fiber", current: todayLog.fiberGrams, target: Double(profile?.fiberTargetGrams ?? 25), unit: "g", color: Theme.Semantic.fiber(for: scheme))
-                        macroRow("Calories", current: todayLog.caloriesConsumed, target: Double(profile?.calorieTarget ?? 1800), unit: "", color: Theme.Text.secondary(for: scheme))
+                        macroRow("Protein", current: todayTotals.protein, target: Double(profile?.proteinTargetGrams ?? 140), unit: "g", color: Color.violet)
+                        macroRow("Water", current: todayTotals.water, target: profile?.waterTargetLiters ?? 2.5, unit: "L", color: Theme.Semantic.water(for: scheme))
+                        macroRow("Fiber", current: todayTotals.fiber, target: Double(profile?.fiberTargetGrams ?? 25), unit: "g", color: Theme.Semantic.fiber(for: scheme))
+                        macroRow("Calories", current: todayTotals.calories, target: Double(profile?.calorieTarget ?? 1800), unit: "", color: Theme.Text.secondary(for: scheme))
                     }
                     .padding(16)
                     .background(

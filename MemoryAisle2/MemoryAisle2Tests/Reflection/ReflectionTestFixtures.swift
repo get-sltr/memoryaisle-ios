@@ -46,14 +46,18 @@ enum ReflectionTestFixtures {
         protein: Double = 120,
         calories: Double = 1800,
         water: Double = 2.0,
-        fiber: Double = 25
+        fiber: Double = 25,
+        foodName: String? = nil,
+        photo: Data? = nil
     ) -> NutritionLog {
         NutritionLog(
             date: dateOffset(daysAgo),
             proteinGrams: protein,
             caloriesConsumed: calories,
             waterLiters: water,
-            fiberGrams: fiber
+            fiberGrams: fiber,
+            foodName: foodName,
+            photoData: photo
         )
     }
 
