@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 struct MainTabView: View {
@@ -5,6 +6,7 @@ struct MainTabView: View {
     @Environment(SubscriptionManager.self) private var subscriptionManager
     @Environment(\.colorScheme) private var scheme
     @State private var activeSheet: MainSheet?
+    @State private var showManageSubscriptions = false
 
     private var isPro: Bool { subscriptionManager.tier == .pro }
 
@@ -108,8 +110,20 @@ struct MainTabView: View {
                     menuRow("Reflection", icon: "square.and.pencil", color: Color.violet, proLocked: !isPro) {
                         openDestination(.reflection)
                     }
-                    if !isPro {
-                        menuRow("Subscribe", icon: "star.fill", color: Color(hex: 0xFBBF24)) {
+                    // One row, two modes. Free users upgrade via the paywall.
+                    // Pro users open Apple's native subscription management
+                    // sheet (renewal date, cancel, change plan) so they have
+                    // an in-app path to manage or restore their subscription.
+                    // Hiding this entirely for Pro users broke 3.1.2 and left
+                    // Pro users with zero way to reach Restore Purchases.
+                    menuRow(
+                        isPro ? "Manage Subscription" : "Subscribe",
+                        icon: isPro ? "creditcard.fill" : "star.fill",
+                        color: Color(hex: 0xFBBF24)
+                    ) {
+                        if isPro {
+                            showManageSubscriptions = true
+                        } else {
                             activeSheet = .destination(.subscribe)
                         }
                     }
@@ -139,6 +153,7 @@ struct MainTabView: View {
                     .buttonStyle(.plain)
                 }
             }
+            .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
         }
     }
 
