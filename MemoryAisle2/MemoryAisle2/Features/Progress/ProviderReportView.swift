@@ -36,18 +36,7 @@ struct ProviderReportView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                CloseButton(action: { dismiss() })
-                    .section(.progress)
-                Spacer()
-                Text("Provider Report")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(Theme.Text.primary)
-                Spacer()
-                Color.clear
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
+            SheetHeader(title: "Provider Report", onClose: { dismiss() })
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {

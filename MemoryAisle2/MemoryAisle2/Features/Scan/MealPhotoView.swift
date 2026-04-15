@@ -19,19 +19,8 @@ struct MealPhotoView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                CloseButton(action: { dismiss() })
-                    .section(.scanner)
-                Spacer()
-                Text("Meal Photo")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(Theme.Text.primary)
-                Spacer()
-                Color.clear
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
+            SheetHeader(title: "Meal Photo", onClose: { dismiss() })
+                .section(.scanner)
 
             if let result {
                 resultView(result)

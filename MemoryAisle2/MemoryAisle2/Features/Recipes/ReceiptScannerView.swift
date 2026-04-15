@@ -18,19 +18,7 @@ struct ReceiptScannerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                CloseButton(action: { dismiss() })
-                    .section(.recipes)
-                Spacer()
-                Text("Receipt Scanner")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(Theme.Text.primary)
-                Spacer()
-                Color.clear
-                    .frame(width: 14, height: 14)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
+            SheetHeader(title: "Receipt Scanner", onClose: { dismiss() })
 
             if extractedItems.isEmpty {
                 captureView

@@ -18,19 +18,7 @@ struct PhotoCheckInView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                CloseButton(action: { dismiss() })
-                    .section(.progress)
-                Spacer()
-                Text("Weekly Check-in")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(Theme.Text.primary)
-                Spacer()
-                Color.clear
-                    .frame(width: 14, height: 14)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
+            SheetHeader(title: "Weekly Check-in", onClose: { dismiss() })
 
             if saved {
                 savedView

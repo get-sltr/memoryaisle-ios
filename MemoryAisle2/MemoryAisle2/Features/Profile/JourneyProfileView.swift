@@ -49,16 +49,18 @@ struct JourneyProfileView: View {
 
     private var headerSection: some View {
         VStack(spacing: 0) {
-            HStack {
-                CloseButton(action: { dismiss() })
-                Spacer()
+            ZStack {
                 Text("My journey")
                     .font(Typography.bodySmall)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                Spacer()
-                Color.clear
-                    .frame(width: 14, height: 14)
+                    .accessibilityAddTraits(.isHeader)
+
+                HStack {
+                    CloseButton(action: { dismiss() })
+                    Spacer()
+                }
             }
+            .frame(height: 44)
             .padding(.bottom, 18)
 
             journeyCard

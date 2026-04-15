@@ -11,23 +11,8 @@ struct FoodSearchView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                CloseButton(action: { dismiss() })
-                    .section(.scanner)
-
-                Spacer()
-
-                Text("Search Foods")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(Theme.Text.primary)
-
-                Spacer()
-
-                Color.clear
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
+            SheetHeader(title: "Search Foods", onClose: { dismiss() })
+                .section(.scanner)
 
             // Search bar
             HStack(spacing: 10) {
