@@ -25,6 +25,12 @@ struct AuthFlowView: View {
     /// override, seeds demo data on first run, and refreshes the shared
     /// SubscriptionManager so the rest of the app sees Pro tier
     /// immediately without waiting for the next StoreKit refresh.
+    ///
+    /// Does **not** touch local SwiftData. MemoryAisle is a personal
+    /// GLP-1 prescription tracker — one user per device — so there is
+    /// no shared-device multi-user scenario to defend against, and
+    /// Reflection depends on the full longitudinal history surviving
+    /// every sign-out / sign-in round trip.
     private func handlePostSignIn(email: String?) {
         AppReviewerSeedService.handleSignIn(email: email, modelContext: modelContext)
         subscriptionManager.refreshOverrides()

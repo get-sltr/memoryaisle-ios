@@ -119,44 +119,28 @@ final class CognitoAuthManager {
         clearSession()
     }
 
-    /// Full sign-out used by the Profile Sign Out button and the
-    /// "Delete All Data" flow. In order:
+    /// Coordinated sign-out used by the Profile Sign Out button and
+    /// the "Delete All Data" flow. Does **not** purge local SwiftData —
+    /// MemoryAisle is a longitudinal journey app, so a user signing
+    /// out in week 4 must find their logs, medication cycle, check-ins
+    /// and saved recipes intact when they sign back in. Multi-user /
+    /// account-switch privacy is handled on sign-**in** instead, by
+    /// `AuthFlowView.handlePostSignIn` which diffs the incoming email
+    /// against the last signed-in email and wipes only when the
+    /// account actually changes.
     ///
-    /// 1. Clear the App Reviewer Pro override so the next user on this
-    ///    device is not granted Pro.
-    /// 2. Delete every user-owned SwiftData row from the shared
-    ///    container. Without this, signing in as a different user on
-    ///    the same device would inherit the previous user's profile,
-    ///    nutrition logs, symptoms, medication history, check-ins, and
-    ///    saved recipes — a shared-device privacy leak.
-    /// 3. Tear down keychain + in-memory auth state (the existing
-    ///    `signOut()` path).
-    /// 4. Re-evaluate subscription tier so any stale Pro state from
-    ///    the previous session is dropped.
+    /// This function:
+    /// 1. Clears the App Reviewer Pro override (`clearReviewerFlag`)
+    ///    so the next user on this device is not granted Pro.
+    /// 2. Tears down keychain + in-memory auth state.
+    /// 3. Re-evaluates the subscription tier so any stale Pro state
+    ///    from the previous session is dropped (a real paid StoreKit
+    ///    entitlement survives and is correctly restored).
     static func signOutEverywhere(
         modelContext: ModelContext,
         subscription: SubscriptionManager
     ) async {
         AppReviewerSeedService.clearReviewerFlag()
-
-        // Every user-owned model type registered in the shared
-        // container. Mirror this list if a new SwiftData type is added
-        // in `MemoryAisleApp.modelContainer(for:)`.
-        try? modelContext.delete(model: UserProfile.self)
-        try? modelContext.delete(model: NutritionLog.self)
-        try? modelContext.delete(model: SymptomLog.self)
-        try? modelContext.delete(model: MedicationProfile.self)
-        try? modelContext.delete(model: BodyComposition.self)
-        try? modelContext.delete(model: TrainingSession.self)
-        try? modelContext.delete(model: PantryItem.self)
-        try? modelContext.delete(model: GIToleranceRecord.self)
-        try? modelContext.delete(model: FoodItem.self)
-        try? modelContext.delete(model: Meal.self)
-        try? modelContext.delete(model: MealPlan.self)
-        try? modelContext.delete(model: GroceryList.self)
-        try? modelContext.delete(model: ProviderReport.self)
-        try? modelContext.delete(model: SavedRecipe.self)
-        try? modelContext.save()
 
         CognitoAuthManager().signOut()
 
