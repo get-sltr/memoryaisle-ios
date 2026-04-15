@@ -1,6 +1,8 @@
 import Foundation
 import Security
+import SwiftData
 
+@MainActor
 @Observable
 final class CognitoAuthManager {
     private(set) var isSignedIn = false
@@ -105,12 +107,60 @@ final class CognitoAuthManager {
 
     // MARK: - Sign Out
 
+    /// Minimal sign-out: clears in-memory auth state and the keychain.
+    /// Prefer `signOutEverywhere(modelContext:subscription:)` from UI
+    /// code so local user data, the reviewer Pro override, and the
+    /// subscription tier are all reset together.
     func signOut() {
         isSignedIn = false
         accessToken = nil
         userId = nil
         email = nil
         clearSession()
+    }
+
+    /// Full sign-out used by the Profile Sign Out button and the
+    /// "Delete All Data" flow. In order:
+    ///
+    /// 1. Clear the App Reviewer Pro override so the next user on this
+    ///    device is not granted Pro.
+    /// 2. Delete every user-owned SwiftData row from the shared
+    ///    container. Without this, signing in as a different user on
+    ///    the same device would inherit the previous user's profile,
+    ///    nutrition logs, symptoms, medication history, check-ins, and
+    ///    saved recipes — a shared-device privacy leak.
+    /// 3. Tear down keychain + in-memory auth state (the existing
+    ///    `signOut()` path).
+    /// 4. Re-evaluate subscription tier so any stale Pro state from
+    ///    the previous session is dropped.
+    static func signOutEverywhere(
+        modelContext: ModelContext,
+        subscription: SubscriptionManager
+    ) async {
+        AppReviewerSeedService.clearReviewerFlag()
+
+        // Every user-owned model type registered in the shared
+        // container. Mirror this list if a new SwiftData type is added
+        // in `MemoryAisleApp.modelContainer(for:)`.
+        try? modelContext.delete(model: UserProfile.self)
+        try? modelContext.delete(model: NutritionLog.self)
+        try? modelContext.delete(model: SymptomLog.self)
+        try? modelContext.delete(model: MedicationProfile.self)
+        try? modelContext.delete(model: BodyComposition.self)
+        try? modelContext.delete(model: TrainingSession.self)
+        try? modelContext.delete(model: PantryItem.self)
+        try? modelContext.delete(model: GIToleranceRecord.self)
+        try? modelContext.delete(model: FoodItem.self)
+        try? modelContext.delete(model: Meal.self)
+        try? modelContext.delete(model: MealPlan.self)
+        try? modelContext.delete(model: GroceryList.self)
+        try? modelContext.delete(model: ProviderReport.self)
+        try? modelContext.delete(model: SavedRecipe.self)
+        try? modelContext.save()
+
+        CognitoAuthManager().signOut()
+
+        await subscription.updateSubscriptionStatus()
     }
 
     // MARK: - Restore Session

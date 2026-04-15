@@ -1,15 +1,15 @@
-import Combine
 import Foundation
 import SwiftData
 
 @MainActor
-final class MedicationManager: ObservableObject {
+@Observable
+final class MedicationManager {
     private let modelContext: ModelContext
 
-    @Published var activeProfile: MedicationProfile?
-    @Published var currentPhase: CyclePhase?
-    @Published var appetiteLevel: Double = 0.5
-    @Published var nauseaRisk: Double = 0.0
+    var activeProfile: MedicationProfile?
+    var currentPhase: CyclePhase?
+    var appetiteLevel: Double = 0.5
+    var nauseaRisk: Double = 0.0
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext

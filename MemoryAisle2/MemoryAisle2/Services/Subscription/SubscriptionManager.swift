@@ -6,6 +6,7 @@ enum SubscriptionTier {
     case pro
 }
 
+@MainActor
 @Observable
 final class SubscriptionManager {
     private(set) var tier: SubscriptionTier = .free

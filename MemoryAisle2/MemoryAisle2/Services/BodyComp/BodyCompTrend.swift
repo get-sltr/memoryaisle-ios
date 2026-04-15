@@ -1,15 +1,15 @@
-import Combine
 import Foundation
 import SwiftData
 
 @MainActor
-final class BodyCompTrend: ObservableObject {
+@Observable
+final class BodyCompTrend {
     private let modelContext: ModelContext
 
-    @Published var entries: [BodyComposition] = []
-    @Published var weightTrend: TrendDirection = .stable
-    @Published var leanMassTrend: TrendDirection = .stable
-    @Published var fatMassTrend: TrendDirection = .stable
+    var entries: [BodyComposition] = []
+    var weightTrend: TrendDirection = .stable
+    var leanMassTrend: TrendDirection = .stable
+    var fatMassTrend: TrendDirection = .stable
 
     enum TrendDirection: String {
         case increasing = "Increasing"

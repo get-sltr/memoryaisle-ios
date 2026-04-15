@@ -34,21 +34,12 @@ final class HealthKitManager {
 
         guard !readTypes.isEmpty else { return }
 
-        var shareTypes: Set<HKSampleType> = []
-        if let energy = HKQuantityType.quantityType(
-            forIdentifier: .dietaryEnergyConsumed
-        ) {
-            shareTypes.insert(energy)
-        }
-        if let protein = HKQuantityType.quantityType(
-            forIdentifier: .dietaryProtein
-        ) {
-            shareTypes.insert(protein)
-        }
-
         do {
+            // Read-only: MemoryAisle never writes back to HealthKit. The
+            // user's own logs stay in SwiftData, and HealthKit is only
+            // used as a source of truth for weight / body composition.
             try await store.requestAuthorization(
-                toShare: shareTypes, read: readTypes
+                toShare: [], read: readTypes
             )
             isAuthorized = true
             await fetchLatestWeight()
@@ -119,54 +110,6 @@ final class HealthKitManager {
             self.latestLeanBodyMassLbs = sample?.quantity.doubleValue(
                 for: .pound()
             )
-        }
-    }
-
-    // MARK: - Writing Nutrition Data
-
-    func saveMealNutrition(
-        calories: Double,
-        proteinGrams: Double,
-        date: Date
-    ) async {
-        guard isAuthorized else { return }
-        var samples: [HKQuantitySample] = []
-
-        if let energyType = HKQuantityType.quantityType(
-            forIdentifier: .dietaryEnergyConsumed
-        ), calories > 0 {
-            let quantity = HKQuantity(unit: .kilocalorie(), doubleValue: calories)
-            let sample = HKQuantitySample(
-                type: energyType, quantity: quantity,
-                start: date, end: date
-            )
-            samples.append(sample)
-        }
-
-        if let proteinType = HKQuantityType.quantityType(
-            forIdentifier: .dietaryProtein
-        ), proteinGrams > 0 {
-            let quantity = HKQuantity(unit: .gram(), doubleValue: proteinGrams)
-            let sample = HKQuantitySample(
-                type: proteinType, quantity: quantity,
-                start: date, end: date
-            )
-            samples.append(sample)
-        }
-
-        guard !samples.isEmpty else { return }
-
-        do {
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                for sample in samples {
-                    group.addTask {
-                        try await self.store.save(sample)
-                    }
-                }
-                try await group.waitForAll()
-            }
-        } catch {
-            // HealthKit write failed silently -- user may have denied write access
         }
     }
 

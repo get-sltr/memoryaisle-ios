@@ -284,17 +284,17 @@ struct HomeView: View {
     }
 
     private var startingWeightText: String {
-        guard let w = profile?.weightLbs else { return "—" }
+        guard let w = profile?.weightLbs else { return "--" }
         return "\(Int(w))"
     }
 
     private var goalWeightText: String {
-        guard let w = profile?.goalWeightLbs else { return "—" }
+        guard let w = profile?.goalWeightLbs else { return "--" }
         return "\(Int(w))"
     }
 
     private var timelineValueText: String {
-        guard let start = profile?.weightLbs, let goal = profile?.goalWeightLbs else { return "—" }
+        guard let start = profile?.weightLbs, let goal = profile?.goalWeightLbs else { return "--" }
         let delta = abs(start - goal)
         guard delta > 0 else { return "0" }
         // 0.5 lb per week healthy rate → weeks = delta / 0.5 = delta * 2
@@ -380,7 +380,7 @@ struct HomeView: View {
     }
 
     private var caloriesValue: String {
-        guard let cal = profile?.calorieTarget else { return "—" }
+        guard let cal = profile?.calorieTarget else { return "--" }
         return "\(cal)"
     }
 
@@ -394,7 +394,7 @@ struct HomeView: View {
     }
 
     private var proteinValue: String {
-        guard let p = profile?.proteinTargetGrams else { return "—" }
+        guard let p = profile?.proteinTargetGrams else { return "--" }
         return "\(p)g"
     }
 
@@ -405,7 +405,7 @@ struct HomeView: View {
     }
 
     private var carbsValue: String {
-        guard let cal = profile?.calorieTarget, let p = profile?.proteinTargetGrams else { return "—" }
+        guard let cal = profile?.calorieTarget, let p = profile?.proteinTargetGrams else { return "--" }
         // Allocate 35% of calories to carbs
         let carbsCal = Double(cal) * 0.35
         let grams = Int(carbsCal / 4)
@@ -414,7 +414,7 @@ struct HomeView: View {
     }
 
     private var waterValue: String {
-        guard let w = profile?.waterTargetLiters else { return "—" }
+        guard let w = profile?.waterTargetLiters else { return "--" }
         return String(format: "%.1fL", w)
     }
 

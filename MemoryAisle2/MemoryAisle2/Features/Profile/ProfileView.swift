@@ -7,6 +7,7 @@ struct ProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
+    @Environment(SubscriptionManager.self) private var subscriptionManager
     @Query private var profiles: [UserProfile]
     @State private var showLegal: LegalPage?
     @State private var showDeleteConfirm = false
@@ -428,9 +429,14 @@ struct ProfileView: View {
 
             settingsRow("Sign Out", icon: "rectangle.portrait.and.arrow.right") {
                 HapticManager.warning()
-                CognitoAuthManager().signOut()
-                appState.authStatus = .signedOut
-                dismiss()
+                Task {
+                    await CognitoAuthManager.signOutEverywhere(
+                        modelContext: modelContext,
+                        subscription: subscriptionManager
+                    )
+                    appState.authStatus = .signedOut
+                    dismiss()
+                }
             }
         }
         .padding(16)
@@ -568,12 +574,6 @@ struct ProfileView: View {
             let sync = CloudSyncManager()
             _ = await sync.deleteAllCloudData(userId: userId)
 
-            try? modelContext.delete(model: UserProfile.self)
-            try? modelContext.delete(model: NutritionLog.self)
-            try? modelContext.delete(model: SymptomLog.self)
-            try? modelContext.delete(model: PantryItem.self)
-            try? modelContext.delete(model: GIToleranceRecord.self)
-
             let fileManager = FileManager.default
             if let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
                 try? fileManager.removeItem(at: documentsPath.appendingPathComponent("ProgressPhotos"))
@@ -583,7 +583,14 @@ struct ProfileView: View {
                 UserDefaults.standard.removePersistentDomain(forName: bundleId)
             }
 
-            CognitoAuthManager().signOut()
+            // Centralized purge: wipes every user-owned SwiftData type,
+            // the reviewer Pro override, keychain session, and resets
+            // the subscription tier in one place.
+            await CognitoAuthManager.signOutEverywhere(
+                modelContext: modelContext,
+                subscription: subscriptionManager
+            )
+
             appState.hasCompletedOnboarding = false
             appState.authStatus = .signedOut
             HapticManager.heavy()

@@ -29,22 +29,42 @@ enum AppReviewerSeedService {
 
     /// Call after a successful sign-in. If the email matches the
     /// reviewer account, marks the device and seeds demo data once.
+    ///
+    /// Will **never** overwrite existing user data: if a `UserProfile`
+    /// already exists when the reviewer email signs in (e.g. a real
+    /// user used this device first), seeding is skipped entirely. The
+    /// reviewer flag is still set so Pro is granted for this session,
+    /// but the pre-existing data is left intact.
     static func handleSignIn(email: String?, modelContext: ModelContext) {
         guard let email, email.lowercased() == reviewerEmail.lowercased() else { return }
 
         UserDefaults.standard.set(true, forKey: reviewerFlagKey)
 
         if !UserDefaults.standard.bool(forKey: seedFlagKey) {
-            seedDemoData(into: modelContext)
+            let existingProfile = (try? modelContext.fetch(FetchDescriptor<UserProfile>()))?.first
+            if existingProfile == nil {
+                seedDemoData(into: modelContext)
+            }
+            // Mark seed-done either way so we don't keep retrying on
+            // every sign-in of a reviewer landing on a device that
+            // already has real data.
             UserDefaults.standard.set(true, forKey: seedFlagKey)
         }
+    }
+
+    /// Clears the reviewer Pro override. Call on sign-out so the next
+    /// user on the same device is not granted Pro. `SubscriptionManager`
+    /// re-evaluates tier from StoreKit entitlements plus this flag on
+    /// every refresh, so clearing here is sufficient to drop tier.
+    static func clearReviewerFlag() {
+        UserDefaults.standard.removeObject(forKey: reviewerFlagKey)
+        UserDefaults.standard.removeObject(forKey: seedFlagKey)
     }
 
     /// Test/debug helper to clear the reviewer flag and re-trigger
     /// seeding on next sign-in. Not called from production paths.
     static func resetForTesting() {
-        UserDefaults.standard.removeObject(forKey: reviewerFlagKey)
-        UserDefaults.standard.removeObject(forKey: seedFlagKey)
+        clearReviewerFlag()
     }
 
     // MARK: - Seeding
@@ -58,9 +78,8 @@ enum AppReviewerSeedService {
     }
 
     private static func seedProfile(into context: ModelContext) {
-        let existing = try? context.fetch(FetchDescriptor<UserProfile>())
-        let profile = existing?.first ?? UserProfile()
-
+        // Caller has already verified there is no existing UserProfile.
+        let profile = UserProfile()
         profile.name = "Alex"
         profile.age = 38
         profile.sex = .female
@@ -78,10 +97,7 @@ enum AppReviewerSeedService {
         profile.fiberTargetGrams = 28
         profile.trainingLevel = .lifts
         profile.hasCompletedOnboarding = true
-
-        if existing?.first == nil {
-            context.insert(profile)
-        }
+        context.insert(profile)
     }
 
     private static func seedNutritionLogs(into context: ModelContext) {
