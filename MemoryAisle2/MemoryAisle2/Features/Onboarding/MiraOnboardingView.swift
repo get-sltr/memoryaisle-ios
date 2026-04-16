@@ -10,6 +10,9 @@ struct MiraOnboardingView: View {
     @State private var showChoices = false
     @State private var miraText = ""
     @State private var voice = VoiceManager()
+    @State private var healthKit = HealthKitManager()
+    @State private var isConnectingHealthKit = false
+    @State private var medicationStartDate = Date()
     @State var startingPhotoItem: PhotosPickerItem?
     @State var startingCameraData: Data?
     @State var showStartingSourceChoice = false
@@ -129,8 +132,35 @@ struct MiraOnboardingView: View {
                 ForEach(BiologicalSex.allCases, id: \.self) { sex in
                     choiceButton(sex.rawValue) {
                         profile.sex = sex
-                        advanceTo(.heightWeight)
+                        advanceTo(.appleHealth)
                     }
+                }
+
+            case .appleHealth:
+                if isConnectingHealthKit {
+                    ProgressView()
+                        .tint(Color.violet)
+                        .padding(.vertical, 14)
+                } else {
+                    choiceButton("Connect Apple Health") {
+                        Task {
+                            isConnectingHealthKit = true
+                            await healthKit.requestAuthorization()
+                            isConnectingHealthKit = false
+                            if let weight = healthKit.latestWeight {
+                                profile.weightLbs = weight
+                            }
+                            HapticManager.success()
+                            advanceTo(.heightWeight)
+                        }
+                    }
+                    choiceButton("Not now") { advanceTo(.heightWeight) }
+
+                    Text("Read-only access. MemoryAisle reads weight, lean mass, and body fat percentage from Apple Health. We never write data back.")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 6)
                 }
 
             case .heightWeight:
@@ -169,12 +199,36 @@ struct MiraOnboardingView: View {
                         ForEach(Medication.allCases, id: \.self) { med in
                             choiceButton(med.rawValue) {
                                 profile.medication = med
-                                advanceTo(.ready)
+                                advanceTo(.medStartDate)
                             }
                         }
                     }
                 }
                 .frame(maxHeight: 300)
+
+            case .medStartDate:
+                VStack(spacing: 14) {
+                    DatePicker(
+                        "",
+                        selection: $medicationStartDate,
+                        in: ...Date(),
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.wheel)
+                    .labelsHidden()
+                    .colorScheme(.dark)
+                    .frame(maxHeight: 160)
+
+                    choiceButton("Continue") {
+                        UserDefaults.standard.set(medicationStartDate, forKey: "medicationStartDate")
+                        advanceTo(.ready)
+                    }
+
+                    choiceButton("I don't remember") {
+                        UserDefaults.standard.set(Date(), forKey: "medicationStartDate")
+                        advanceTo(.ready)
+                    }
+                }
 
             case .ready:
                 choiceButton("Take me home") { onComplete() }
@@ -256,10 +310,12 @@ struct MiraOnboardingView: View {
         case .dietary: "Any dietary restrictions? Select what applies, or just hit continue."
         case .age: "How old are you?"
         case .sex: "What is your biological sex? This helps me calculate your protein targets."
+        case .appleHealth: "In order to track your progress accurately and read your weight and body composition, would you like to connect to Apple Health?"
         case .heightWeight: "What's your current weight and where do you want to be?"
         case .startingPhoto: "Want to set a starting photo? It is optional, and you can always change your mind later."
         case .medication: "Are you on any medication that affects your appetite?"
         case .whichMed: "Which medication?"
+        case .medStartDate: "When did you start taking your medication? This helps me understand where you are in your journey."
         case .ready: buildReadySummary()
         }
 
@@ -283,14 +339,16 @@ struct MiraOnboardingView: View {
 
 enum MiraQuestion: Int, CaseIterable {
     case intro = 0
-    case goals = 1        // What matters to you? (worries)
-    case training = 2     // Do you exercise?
-    case dietary = 3      // Restrictions?
-    case age = 4          // How old?
-    case sex = 5          // Biological sex
-    case heightWeight = 6 // Weight + goal
-    case startingPhoto = 7 // Optional starting photo (NEW)
-    case medication = 8   // On any appetite medication?
-    case whichMed = 9     // Which one?
-    case ready = 10       // Personalized summary
+    case goals = 1
+    case training = 2
+    case dietary = 3
+    case age = 4
+    case sex = 5
+    case appleHealth = 6
+    case heightWeight = 7
+    case startingPhoto = 8
+    case medication = 9
+    case whichMed = 10
+    case medStartDate = 11
+    case ready = 12
 }

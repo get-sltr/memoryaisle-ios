@@ -15,6 +15,8 @@ struct ProfileView: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var avatarData: Data?
     @State private var avatarImage: Image?
+    @State private var showMedStartPicker = false
+    @State private var medStartDate: Date = UserDefaults.standard.object(forKey: "medicationStartDate") as? Date ?? Date()
 
     private var profile: UserProfile? { profiles.first }
 
@@ -256,6 +258,42 @@ struct ProfileView: View {
                     }
                     if let day = profile?.injectionDay {
                         infoRow("Injection Day", value: dayName(day))
+                    }
+
+                    Button {
+                        withAnimation { showMedStartPicker.toggle() }
+                    } label: {
+                        HStack {
+                            Text("Started")
+                                .font(.system(size: 13))
+                                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                            Spacer()
+                            Text(medStartDate, style: .date)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(Theme.Text.primary)
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                                .rotationEffect(.degrees(showMedStartPicker ? 180 : 0))
+                        }
+                        .padding(.vertical, 2)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Medication start date")
+
+                    if showMedStartPicker {
+                        DatePicker(
+                            "",
+                            selection: $medStartDate,
+                            in: ...Date(),
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(.compact)
+                        .labelsHidden()
+                        .onChange(of: medStartDate) { _, newDate in
+                            UserDefaults.standard.set(newDate, forKey: "medicationStartDate")
+                        }
+                        .transition(.opacity)
                     }
                 }
             }

@@ -7,6 +7,7 @@ struct JourneyProfileView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
+    @Query(sort: \MealPlan.date, order: .reverse) private var mealPlans: [MealPlan]
     @State private var showPhotoCheckIn = false
     @State private var showLogMeal = false
     @State private var showScanBarcode = false
@@ -15,6 +16,29 @@ struct JourneyProfileView: View {
 
     private var profile: UserProfile? { profiles.first }
     private var isOnMedication: Bool { profile?.medication != nil }
+
+    private var activeMealPlan: MealPlan? {
+        mealPlans.first(where: { $0.isActive })
+    }
+
+    private var todaysCalories: Double {
+        let today = Calendar.current.startOfDay(for: .now)
+        return logs.filter { $0.date >= today }.reduce(0) { $0 + $1.caloriesConsumed }
+    }
+
+    private var computedCarbGrams: Int {
+        let proteinCals = Double(profile?.proteinTargetGrams ?? 120) * 4
+        let totalCals = Double(profile?.calorieTarget ?? 1800)
+        let remaining = max(0, totalCals - proteinCals)
+        return Int((remaining * 0.55) / 4)
+    }
+
+    private var computedFatGrams: Int {
+        let proteinCals = Double(profile?.proteinTargetGrams ?? 120) * 4
+        let totalCals = Double(profile?.calorieTarget ?? 1800)
+        let remaining = max(0, totalCals - proteinCals)
+        return Int((remaining * 0.45) / 9)
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -190,13 +214,16 @@ struct JourneyProfileView: View {
             .padding(.bottom, 8)
 
             GeometryReader { geo in
+                let target = Double(profile?.calorieTarget ?? 1800)
+                let progress = target > 0 ? min(1.0, todaysCalories / target) : 0
+
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Theme.Surface.glass(for: scheme))
                     .frame(height: 8)
                     .overlay(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 4)
                             .fill(isOnMedication ? Color.violet : Theme.Semantic.info(for: scheme))
-                            .frame(width: geo.size.width * 0.75)
+                            .frame(width: geo.size.width * progress)
                     }
             }
             .frame(height: 8)
@@ -213,40 +240,54 @@ struct JourneyProfileView: View {
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
                     .tracking(0.8)
                 Spacer()
-                Text(isOnMedication ? "3 meals + 1 snack" : "5 meals/day")
-                    .font(Typography.label)
-                    .foregroundStyle(Color.violet)
+                if let plan = activeMealPlan, !plan.meals.isEmpty {
+                    Text("\(plan.meals.count) meals")
+                        .font(Typography.label)
+                        .foregroundStyle(Color.violet)
+                }
             }
             .padding(.bottom, 8)
 
-            let meals = isOnMedication
-                ? [("Breakfast", "8:00 AM", 350), ("Lunch", "12:30 PM", 450), ("Snack", "3:30 PM", 150), ("Dinner", "6:30 PM", 450)]
-                : [("Breakfast", "7:00 AM", 620), ("Snack", "10:00 AM", 400), ("Lunch", "12:30 PM", 700), ("Snack", "3:30 PM", 380), ("Dinner", "7:00 PM", 700)]
-
-            VStack(spacing: 5) {
-                ForEach(Array(meals.enumerated()), id: \.offset) { _, meal in
-                    let (name, time, cal) = meal
-                    HStack {
-                        Text(name)
-                            .font(Typography.bodySmallBold)
-                            .foregroundStyle(Theme.Text.primary)
-                        Text(time)
-                            .font(Typography.label)
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                        Spacer()
-                        Text("\(cal) cal")
-                            .font(Typography.bodySmallBold)
-                            .foregroundStyle(Color.violet)
+            if let plan = activeMealPlan, !plan.meals.isEmpty {
+                VStack(spacing: 5) {
+                    ForEach(plan.meals, id: \.id) { meal in
+                        HStack {
+                            Text(meal.mealType.rawValue)
+                                .font(Typography.bodySmallBold)
+                                .foregroundStyle(Theme.Text.primary)
+                            Spacer()
+                            Text("\(Int(meal.caloriesTotal)) cal")
+                                .font(Typography.bodySmallBold)
+                                .foregroundStyle(Color.violet)
+                        }
+                        .padding(.vertical, 7)
+                        .padding(.horizontal, 10)
+                        .background(Theme.Surface.glass(for: scheme))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+                        )
                     }
-                    .padding(.vertical, 7)
-                    .padding(.horizontal, 10)
-                    .background(Theme.Surface.glass(for: scheme))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
-                    )
                 }
+            } else {
+                Button {
+                    showMealPlan = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 14))
+                        Text("Generate your first meal plan")
+                            .font(Typography.bodySmall)
+                    }
+                    .foregroundStyle(Color.violet)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.violet.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Generate meal plan")
             }
 
             if isOnMedication {
@@ -425,8 +466,8 @@ struct JourneyProfileView: View {
                 .padding(.bottom, 8)
 
             macroRow("Protein", value: "\(profile?.proteinTargetGrams ?? 120)g", color: Theme.Semantic.info(for: scheme))
-            macroRow("Carbs", value: isOnMedication ? "120g" : "350g", color: Theme.Semantic.fiber(for: scheme))
-            macroRow("Fat", value: isOnMedication ? "47g" : "93g", color: Theme.Semantic.warning(for: scheme))
+            macroRow("Carbs", value: "\(computedCarbGrams)g", color: Theme.Semantic.fiber(for: scheme))
+            macroRow("Fat", value: "\(computedFatGrams)g", color: Theme.Semantic.warning(for: scheme))
             macroRow("Fiber", value: "\(profile?.fiberTargetGrams ?? 25)g", color: Theme.Semantic.success(for: scheme))
             macroRow("Water", value: String(format: "%.1fL", profile?.waterTargetLiters ?? 2.5), color: Theme.Semantic.water(for: scheme), isLast: true)
         }
@@ -517,7 +558,12 @@ struct JourneyProfileView: View {
     }
 
     private var calorieDetail: String {
-        isOnMedication ? "-500 deficit" : "+500 surplus"
+        guard let current = profile?.weightLbs, let goal = profile?.goalWeightLbs else {
+            return ""
+        }
+        if current > goal { return "Deficit" }
+        if goal > current { return "Surplus" }
+        return "Maintenance"
     }
 
     private var proteinDetail: String {
@@ -535,6 +581,16 @@ struct JourneyProfileView: View {
 
     private var medicationWeeks: Int? {
         guard isOnMedication else { return nil }
-        return max(1, 8) // Would compute from medication start date
+        let start: Date?
+        if let medStart = UserDefaults.standard.object(forKey: "medicationStartDate") as? Date {
+            start = medStart
+        } else if let journeyStart = UserDefaults.standard.object(forKey: "journeyStartDate") as? Date {
+            start = journeyStart
+        } else {
+            return nil
+        }
+        guard let start else { return nil }
+        let days = Calendar.current.dateComponents([.day], from: start, to: .now).day ?? 0
+        return max(1, (days / 7) + 1)
     }
 }
