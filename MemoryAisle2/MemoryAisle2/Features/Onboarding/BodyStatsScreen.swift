@@ -132,7 +132,13 @@ struct BodyStatsScreen: View {
                 .font(Typography.bodySmall)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .padding(.top, 8)
-                .padding(.bottom, 32)
+                .padding(.bottom, 20)
+
+            OnboardingHealthKitAutofillCard { weight in
+                withAnimation(Theme.Motion.spring) {
+                    if profile.weightLbs == nil { profile.weightLbs = weight }
+                }
+            }
 
             VStack(spacing: 16) {
                 HStack(spacing: 10) {

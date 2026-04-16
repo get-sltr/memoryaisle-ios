@@ -53,28 +53,29 @@ struct PaywallView: View {
                     .padding(.horizontal, 24)
 
                     // Price card
-                    VStack(spacing: 12) {
+                    VStack(spacing: 10) {
+                        Text("MemoryAisle Pro")
+                            .font(Typography.label)
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                            .tracking(1.2)
+
                         if let product = subscriptionManager.products.first {
                             Text(product.displayPrice)
                                 .font(Typography.monoLarge)
                                 .foregroundStyle(Theme.Text.primary)
-
-                            Text("per year")
-                                .font(Typography.bodySmall)
-                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-
-                            Text("That's less than $1/week")
-                                .font(Typography.bodySmall)
-                                .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.6))
                         } else {
                             Text("$49.99")
                                 .font(Typography.monoLarge)
                                 .foregroundStyle(Theme.Text.primary)
-
-                            Text("per year")
-                                .font(Typography.bodySmall)
-                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         }
+
+                        Text("per year \u{00b7} auto-renews annually")
+                            .font(Typography.bodySmall)
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
+
+                        Text("Less than $1/week")
+                            .font(Typography.bodySmall)
+                            .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.6))
                     }
                     .padding(.vertical, 20)
                     .frame(maxWidth: .infinity)
@@ -108,22 +109,22 @@ struct PaywallView: View {
                     }
 
                     // Legal
-                    VStack(spacing: 4) {
-                        Text("Payment charged to your Apple ID. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period.")
+                    VStack(spacing: 6) {
+                        Text("MemoryAisle Pro is a $49.99/year auto-renewable subscription. Payment is charged to your Apple ID at confirmation. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in Settings \u{203a} Apple ID \u{203a} Subscriptions.")
                             .font(Typography.label)
                             .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .multilineTextAlignment(.center)
 
                         HStack(spacing: 12) {
                             if let termsURL = URL(string: "https://memoryaisle.app/terms") {
-                                Link("Terms", destination: termsURL)
+                                Link("Terms of Use", destination: termsURL)
                             }
                             if let privacyURL = URL(string: "https://memoryaisle.app/privacy") {
-                                Link("Privacy", destination: privacyURL)
+                                Link("Privacy Policy", destination: privacyURL)
                             }
                         }
                         .font(Typography.label)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                        .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.5))
                     }
                     .padding(.horizontal, 32)
                     .padding(.top, 8)

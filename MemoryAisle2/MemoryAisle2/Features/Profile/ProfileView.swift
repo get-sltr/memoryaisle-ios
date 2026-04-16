@@ -25,6 +25,7 @@ struct ProfileView: View {
                     profileHeader
                     statsRing
                     weeklyCheckIn
+                    AppleHealthCard()
                     medicationCard
                     modeSelector
                     targetsCard

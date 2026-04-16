@@ -3,27 +3,42 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
+*** Never delete or purge user data without explicit approval. MemoryAisle is a longitudinal journey app. Data preservation across sign-out is the product, not a bug.***
 
 MemoryAisle is a native iOS app (Swift 6, SwiftUI, iOS 17+) for GLP-1 medication users focused on body-composition-first nutrition. The core problem: 39% of weight lost on GLP-1s is lean mass. The app adapts meals, portions, grocery lists, and guidance based on appetite suppression, symptoms, medication phase/modality, training schedule, and protein shortfall risk.
 
 The AI assistant "Mira" (Claude Sonnet via Amazon Bedrock) is the primary interface — she drives onboarding, meal planning, barcode verdicts, and recovery suggestions.
 
+Active Xcode project: `MemoryAisle2/MemoryAisle2.xcodeproj` (the original `MemoryAisle/` tree was deleted; only `MemoryAisle2` is live).
 Full product spec: `CLAUDE-MemoryAisle.md`
+Design system spec: `DESIGN-SYSTEMMemoryAisle.md`
+Legal/privacy spec: `LEGAL-MemoryAisle.md`
+Security spec: `SECURITY-MemoryAisle.md`
 Housekeeping rules: `RULES.md`
 
 ## Build & Test Commands
 
+All commands run from the repo root. Scheme is `MemoryAisle2` (singular target/scheme — there is no plain `MemoryAisle` scheme). SourceKit/Xcode indexer noise is chronic in this project, so `xcodebuild` output is the source of truth, not editor diagnostics.
+
 ```bash
 # Build (zero warnings required — treat warnings as errors)
-xcodebuild -scheme MemoryAisle -destination 'platform=iOS Simulator,name=iPhone 15 Pro' build
+xcodebuild -project MemoryAisle2/MemoryAisle2.xcodeproj \
+  -scheme MemoryAisle2 \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 
 # Run all tests
-xcodebuild -scheme MemoryAisle -destination 'platform=iOS Simulator,name=iPhone 15 Pro' test
+xcodebuild -project MemoryAisle2/MemoryAisle2.xcodeproj \
+  -scheme MemoryAisle2 \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
 
-# Run a single test file
-xcodebuild -scheme MemoryAisle -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
-  -only-testing:MemoryAisleTests/ProteinCalculatorTests test
+# Run a single test class (note the MemoryAisle2Tests target name)
+xcodebuild -project MemoryAisle2/MemoryAisle2.xcodeproj \
+  -scheme MemoryAisle2 \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -only-testing:MemoryAisle2Tests/ProteinCalculatorTests test
 ```
+
+Targets in the project: `MemoryAisle2` (app), `MemoryAisle2Tests` (unit), `MemoryAisle2UITests` (UI).
 
 ## Branch Rules
 
@@ -35,15 +50,28 @@ xcodebuild -scheme MemoryAisle -destination 'platform=iOS Simulator,name=iPhone 
 ## Architecture
 
 ### Layer Structure
+All Swift sources live under `MemoryAisle2/MemoryAisle2/`. Tests live under `MemoryAisle2/MemoryAisle2Tests/` and mirror the service folder names. Infrastructure lives at the repo root.
+
 ```
-Features/       SwiftUI views organized by feature (Onboarding, Home, Meals, Scan, Mira, Progress, Profile, Auth)
-Services/       Business logic (AI, Nutrition, Medication, BodyComp, Grocery, Health, Cloud, System)
-Models/         SwiftData models (UserProfile, MealPlan, Meal, FoodItem, NutritionLog, SymptomLog, etc.)
-DesignSystem/   Reusable UI components (Theme, GlassCard, VioletButton, Typography, MiraWaveform, etc.)
-Widgets/        WidgetKit extensions (protein, hydration, today's meal)
-Extensions/     Swift type extensions
-Tests/          Mirrors Services/ structure (NutritionTests, MedicationTests, BodyCompTests, IntegrationTests)
-Infrastructure/ AWS CDK stacks and Lambda functions (TypeScript)
+MemoryAisle2/MemoryAisle2/
+  App/            Entry point + tab shell (MemoryAisleApp.swift, MainTabView.swift, AppState.swift)
+  Features/       SwiftUI screens by feature: Auth, Onboarding, Home, Meals, Scan, Mira,
+                  Progress, Profile, Calendar, Recipes, Reflection, SafeSpace, Subscription
+  Services/       Business logic: AI, Nutrition, Medication, BodyComp, Grocery, Health,
+                  Cloud, Progress, Reflection, Subscription, System
+  Models/         SwiftData models (UserProfile, MealPlan, Meal, FoodItem, SymptomLog,
+                  GIToleranceRecord, MedicationProfile, BodyComposition, etc.)
+  DesignSystem/   Reusable UI: GlassCard, VioletButton, ThemeColors, MiraWaveform,
+                  HeroHeader, SectionCard, etc.
+  Widgets/        WidgetKit sources for the MemoryAisleWidgets extension
+                  (protein, hydration, today's meal) + AppGroupDataProvider bridge
+  Assets.xcassets, MemoryAisle2.entitlements, MemoryAisleProducts.storekit, PrivacyInfo.xcprivacy
+
+MemoryAisle2/MemoryAisle2Tests/    Unit tests grouped by service area (Reflection/, Nutrition/, Progress/, ...)
+MemoryAisle2/MemoryAisle2UITests/  UI tests
+MemoryAisle2/MemoryAisleWidgets/   Widget extension target sources
+Infrastructure/                    AWS CDK stacks + Lambda functions (TypeScript)
+website/, docs/                    Marketing site and product docs
 ```
 
 ### Key Services
