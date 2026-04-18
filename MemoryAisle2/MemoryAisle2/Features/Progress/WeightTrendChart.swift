@@ -68,7 +68,7 @@ struct WeightTrendChart: View {
                 )
                 .foregroundStyle(Color.violet)
                 .lineStyle(StrokeStyle(lineWidth: 2))
-                .interpolationMethod(.catmullRom)
+                .interpolationMethod(.linear)
 
                 AreaMark(
                     x: .value("Date", point.date),
@@ -81,7 +81,7 @@ struct WeightTrendChart: View {
                         endPoint: .bottom
                     )
                 )
-                .interpolationMethod(.catmullRom)
+                .interpolationMethod(.linear)
             }
         }
         .chartYScale(domain: minWeight...maxWeight)
