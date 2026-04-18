@@ -207,9 +207,14 @@ struct ProgressDashboardView: View {
                 }
                 .padding(.horizontal, 20)
 
-                // HealthKit connect if not authorized
+                // HealthKit connect if not authorized.
+                // Uses VioletButton (solid, bounded) rather than GlowButton —
+                // GlowButton's outer halo is reserved for "moment" CTAs
+                // (per its own doc comment) and on a sparse Progress screen
+                // its lime halo bled above and below the button, reading
+                // as a translucent overlay across the whole panel.
                 if !healthKit.isAuthorized {
-                    GlowButton("Connect HealthKit") {
+                    VioletButton("Connect HealthKit") {
                         Task { await healthKit.requestAuthorization() }
                     }
                     .padding(.horizontal, 40)
