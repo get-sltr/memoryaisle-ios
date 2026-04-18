@@ -6,7 +6,6 @@ struct MainTabView: View {
     @Environment(SubscriptionManager.self) private var subscriptionManager
     @Environment(\.colorScheme) private var scheme
     @State private var activeSheet: MainSheet?
-    @State private var showManageSubscriptions = false
 
     private var isPro: Bool { subscriptionManager.tier == .pro }
 
@@ -111,21 +110,18 @@ struct MainTabView: View {
                         openDestination(.reflection)
                     }
                     // One row, two modes. Free users upgrade via the paywall.
-                    // Pro users open Apple's native subscription management
-                    // sheet (renewal date, cancel, change plan) so they have
-                    // an in-app path to manage or restore their subscription.
-                    // Hiding this entirely for Pro users broke 3.1.2 and left
-                    // Pro users with zero way to reach Restore Purchases.
+                    // Pro users get a benefits page that lists what they have,
+                    // shows the auto-renew fine print, and embeds Apple's
+                    // native Manage Subscription sheet so they can cancel,
+                    // change plan, or restore from one place. Hiding the row
+                    // entirely for Pro users broke 3.1.2 and left them with
+                    // zero in-app path to manage or restore.
                     menuRow(
                         isPro ? "Manage Subscription" : "Subscribe",
                         icon: isPro ? "creditcard.fill" : "star.fill",
                         color: Color(hex: 0xFBBF24)
                     ) {
-                        if isPro {
-                            showManageSubscriptions = true
-                        } else {
-                            activeSheet = .destination(.subscribe)
-                        }
+                        activeSheet = .destination(isPro ? .proBenefits : .subscribe)
                     }
 
                     Divider()
@@ -153,7 +149,6 @@ struct MainTabView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
         }
     }
 
@@ -219,13 +214,14 @@ struct MainTabView: View {
         case .safeSpace: SafeSpaceView()
         case .reflection: ReflectionView()
         case .subscribe: PaywallView()
+        case .proBenefits: ProBenefitsView()
         case .settings: ProfileView()
         }
     }
 }
 
 enum MenuDestination: String, Identifiable, Hashable {
-    case profile, progress, groceryList, recipes, scan, calendar, pantry, safeSpace, reflection, subscribe, settings
+    case profile, progress, groceryList, recipes, scan, calendar, pantry, safeSpace, reflection, subscribe, proBenefits, settings
     var id: String { rawValue }
 }
 
