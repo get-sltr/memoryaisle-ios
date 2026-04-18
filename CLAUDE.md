@@ -11,10 +11,16 @@ The AI assistant "Mira" (Claude Sonnet via Amazon Bedrock) is the primary interf
 
 Active Xcode project: `MemoryAisle2/MemoryAisle2.xcodeproj` (the original `MemoryAisle/` tree was deleted; only `MemoryAisle2` is live).
 Full product spec: `CLAUDE-MemoryAisle.md`
-Design system spec: `DESIGN-SYSTEMMemoryAisle.md`
+Design system spec: `DESIGN-SYSTEMMemoryAisle.md` (canonical; an older `DESIGN-SYSTEM-MemoryAisle.md` exists at the root but is superseded)
 Legal/privacy spec: `LEGAL-MemoryAisle.md`
 Security spec: `SECURITY-MemoryAisle.md`
 Housekeeping rules: `RULES.md`
+
+### Common entry points (so future sessions don't have to hunt)
+- Theme + tokens: `MemoryAisle2/MemoryAisle2/DesignSystem/Theme.swift`
+- Mira prompt construction: `MemoryAisle2/MemoryAisle2/Services/AI/MiraEngine.swift`
+- App entry / tab shell: `MemoryAisle2/MemoryAisle2/App/MemoryAisleApp.swift`, `MainTabView.swift`, `AppState.swift`
+- Test plan: `MemoryAisle2/MemoryAisle2.xctestplan`
 
 ## Build & Test Commands
 
@@ -36,16 +42,22 @@ xcodebuild -project MemoryAisle2/MemoryAisle2.xcodeproj \
   -scheme MemoryAisle2 \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:MemoryAisle2Tests/ProteinCalculatorTests test
+
+# Run with the shared test plan (controls which test bundles execute)
+xcodebuild -project MemoryAisle2/MemoryAisle2.xcodeproj \
+  -scheme MemoryAisle2 \
+  -testPlan MemoryAisle2 \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
 ```
 
-Targets in the project: `MemoryAisle2` (app), `MemoryAisle2Tests` (unit), `MemoryAisle2UITests` (UI).
+Targets in the project: `MemoryAisle2` (app), `MemoryAisle2Tests` (unit), `MemoryAisle2UITests` (UI), `MemoryAisleWidgetsExtension` (widget extension; sources live in `MemoryAisle2/MemoryAisleWidgets/`).
 
 ## Branch Rules
 
-- **Never commit to `main`.** Work on `dev` or `feature/*` branches only.
-- `feature/*` branches merge to `dev` after build succeeds with zero warnings.
-- `dev` merges to `main` only after manual device testing.
-- Commit format: `[area] short description` (e.g., `[nutrition] implement protein calculator with lean mass input`)
+- **Default workflow:** prefer `dev` or `feature/*` for non-trivial work; merge to `main` after build succeeds with zero warnings and a manual device test.
+- **Current exception (App Store rejection cycle):** the owner is intentionally landing review-fix commits directly on `main` to ship faster. If you see recent commits on `main` tagged `[review]` or similar, that's expected — don't "correct" the workflow. When the rejection cycle ends, revert to the default workflow above.
+- Commit format: `[area] short description` (e.g., `[nutrition] implement protein calculator with lean mass input`).
+- **Always remember to deploy and push.** Local commits don't ship the app or update the remote — after committing, push (`git push`) and, when relevant, deploy (App Store Connect upload, CDK deploy, etc.). Don't end a session with unpushed commits sitting on `main`.
 
 ## Architecture
 
@@ -67,11 +79,14 @@ MemoryAisle2/MemoryAisle2/
                   (protein, hydration, today's meal) + AppGroupDataProvider bridge
   Assets.xcassets, MemoryAisle2.entitlements, MemoryAisleProducts.storekit, PrivacyInfo.xcprivacy
 
-MemoryAisle2/MemoryAisle2Tests/    Unit tests grouped by service area (Reflection/, Nutrition/, Progress/, ...)
-MemoryAisle2/MemoryAisle2UITests/  UI tests
-MemoryAisle2/MemoryAisleWidgets/   Widget extension target sources
-Infrastructure/                    AWS CDK stacks + Lambda functions (TypeScript)
-website/, docs/                    Marketing site and product docs
+MemoryAisle2/MemoryAisle2Tests/         Unit tests grouped by service area (Reflection/, Nutrition/, Progress/, ...)
+MemoryAisle2/MemoryAisle2UITests/       UI tests
+MemoryAisle2/MemoryAisleWidgets/        Widget extension sources (consumed by the
+                                        MemoryAisleWidgetsExtension target)
+Infrastructure/CDK/                     AWS CDK stacks (TypeScript) — bin/, lib/, cdk.json
+Infrastructure/lambda/                  Lambda function sources (miraGenerate, miraSpeak,
+                                        providerReport, syncData, ...)
+website/, docs/                         Marketing site and product docs
 ```
 
 ### Key Services
@@ -101,7 +116,7 @@ Cognito auth (Amplify Swift SDK v2) -> API Gateway -> Lambda (VPC) -> Aurora Ser
 - All UI must work in both dark and light mode using `Theme.swift` adaptive colors.
 - Accessibility labels on all interactive elements. Dynamic Type on all text.
 - No `TODO`/`FIXME` comments — fix it now or don't touch it.
-- No em dashes in any UI copy or generated text.
+- No em dashes in any UI copy, Mira prompts, or Mira-generated text. This applies to `MiraEngine` system prompts and any string that could end up rendered in the app.
 
 ### Data Safety
 - Medication data encrypted in SwiftData. Never logged to console.
@@ -121,6 +136,13 @@ Dark mode primary (`#0A0914` background), violet accent (`#A78BFA`). Frosted tra
 **Mira's avatar:** 5 vertical bars + 1 four-point star. No circle, no orb, no container, no face. States: speaking (animated heights), idle (40% height), thinking (pulsing).
 
 Semantic colors: Protein=violet, Water=sky blue, Fiber=amber, Calories=neutral gray, On-track=green, Behind=amber, Warning=red.
+
+## Session Workflow (per RULES.md §2)
+
+The user follows a checkpoint discipline that future Claude sessions must respect:
+- Each session begins with a `pre-claude-code checkpoint` commit capturing the working state. If you see one, do not amend or rewrite it — it's a known-good revert target.
+- One task per session. If you notice unrelated work that "should" be cleaned up, surface it but don't do it without approval.
+- If a build break appears mid-session, do NOT pile fixes on top — stop and offer to revert to the checkpoint.
 
 ## Things Claude Code Must NOT Do Without Approval
 
