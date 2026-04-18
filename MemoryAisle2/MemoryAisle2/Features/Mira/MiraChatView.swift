@@ -38,6 +38,7 @@ struct MiraChatView: View {
     @Environment(MiraUsageTracker.self) private var miraUsage
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
+    @Query private var pantry: [PantryItem]
 
     // Optional user-side opener auto-sent through the real Mira API on first
     // appear. Used by the Day 1 dashboard to launch a contextual chat (e.g.
@@ -78,6 +79,28 @@ struct MiraChatView: View {
 
     private var isOnMedication: Bool {
         profile?.medication != nil
+    }
+
+    /// Distinct names of meals the user has logged in the last 7 days,
+    /// most recent first, capped at 10. Logs without a foodName (water-
+    /// only entries, legacy macro-only rows) are skipped. Mira uses this
+    /// to avoid suggesting things the user just ate.
+    private func recentMealNames() -> [String] {
+        guard let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: .now) else {
+            return []
+        }
+        var seen = Set<String>()
+        var ordered: [String] = []
+        for log in logs where log.date >= cutoff {
+            guard let raw = log.foodName?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !raw.isEmpty else { continue }
+            let key = raw.lowercased()
+            if seen.insert(key).inserted {
+                ordered.append(raw)
+                if ordered.count >= 10 { break }
+            }
+        }
+        return ordered
     }
 
     private var quickActions: [(text: String, icon: String)] {
@@ -475,9 +498,17 @@ struct MiraChatView: View {
             )
         }
 
+        let recentMeals = recentMealNames()
+        let pantryItems = pantry.map(\.name).filter { !$0.isEmpty }
+
         Task {
             do {
-                let reply = try await conversation?.send(userText: text, context: context) ?? ""
+                let reply = try await conversation?.send(
+                    userText: text,
+                    context: context,
+                    recentMeals: recentMeals,
+                    pantryItems: pantryItems
+                ) ?? ""
                 await MainActor.run {
                     withAnimation(Theme.Motion.spring) {
                         isTyping = false
