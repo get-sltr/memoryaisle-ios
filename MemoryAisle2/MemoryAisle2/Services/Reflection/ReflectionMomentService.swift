@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// Orchestrates the source transformers, merges their output, sorts by
 /// date descending, and applies the active filter. Pure read — never
@@ -9,6 +10,8 @@ import Foundation
 /// One broken transformer never blanks the whole timeline.
 @MainActor
 final class ReflectionMomentService {
+
+    private static let logger = Logger(subsystem: "app.memoryaisle", category: "Reflection")
 
     private let transformers: [MomentTransformer]
 
@@ -36,7 +39,7 @@ final class ReflectionMomentService {
             do {
                 return try transformer.moments(from: records)
             } catch {
-                print("[Reflection] Transformer failed: \(error)")
+                Self.logger.error("Transformer failed: \(error.localizedDescription, privacy: .public)")
                 return []
             }
         }

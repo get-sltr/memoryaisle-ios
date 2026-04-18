@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UIKit
 
 struct MiraMessage: Identifiable {
     let id = UUID()
@@ -32,6 +33,7 @@ struct MiraChatView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @Environment(SubscriptionManager.self) private var subscriptionManager
     @Environment(MiraUsageTracker.self) private var miraUsage
     @Query private var profiles: [UserProfile]
@@ -267,6 +269,21 @@ struct MiraChatView: View {
                             : RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous)
                                 .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                     )
+                    .contextMenu {
+                        Button {
+                            UIPasteboard.general.string = message.text
+                            HapticManager.light()
+                        } label: {
+                            Label("Copy", systemImage: "doc.on.doc")
+                        }
+                        if !message.isUser {
+                            Button {
+                                reportMiraResponse(message.text)
+                            } label: {
+                                Label("Report response", systemImage: "exclamationmark.bubble")
+                            }
+                        }
+                    }
 
                 if shouldShowSaveButton(for: message) {
                     saveRecipeButton(for: message.text)
@@ -333,34 +350,42 @@ struct MiraChatView: View {
     // MARK: - Input Bar (text-only, no mic)
 
     private var inputBar: some View {
-        HStack(spacing: Theme.Spacing.sm) {
-            TextField("Ask Mira…", text: $inputText)
-                .font(Typography.bodyMedium)
-                .foregroundStyle(Theme.Text.primary)
-                .focused($isInputFocused)
-                .padding(.horizontal, Theme.Spacing.sm)
-                .padding(.vertical, Theme.Spacing.sm)
-                .background(Theme.Surface.glass(for: scheme))
-                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
-                        .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
-                )
-                .onSubmit { sendCurrentInput() }
-
-            Button {
-                sendCurrentInput()
-            } label: {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 32))
-                    .foregroundStyle(
-                        inputText.isEmpty
-                            ? Theme.Text.tertiary(for: scheme)
-                            : Theme.Accent.primary(for: scheme)
+        VStack(spacing: 8) {
+            HStack(spacing: Theme.Spacing.sm) {
+                TextField("Ask Mira…", text: $inputText)
+                    .font(Typography.bodyMedium)
+                    .foregroundStyle(Theme.Text.primary)
+                    .focused($isInputFocused)
+                    .padding(.horizontal, Theme.Spacing.sm)
+                    .padding(.vertical, Theme.Spacing.sm)
+                    .background(Theme.Surface.glass(for: scheme))
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                            .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
                     )
+                    .onSubmit { sendCurrentInput() }
+
+                Button {
+                    sendCurrentInput()
+                } label: {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 32))
+                        .foregroundStyle(
+                            inputText.isEmpty
+                                ? Theme.Text.tertiary(for: scheme)
+                                : Theme.Accent.primary(for: scheme)
+                        )
+                }
+                .disabled(inputText.isEmpty)
+                .accessibilityLabel("Send message")
             }
-            .disabled(inputText.isEmpty)
-            .accessibilityLabel("Send message")
+
+            Text("Mira shares general nutrition information, not medical advice. Talk to your healthcare provider before changing your medication or treatment.")
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                .multilineTextAlignment(.center)
+                .accessibilityLabel("Disclaimer: Mira shares general nutrition information, not medical advice. Talk to your healthcare provider before changing medication or treatment.")
         }
         .padding(.horizontal, Theme.Spacing.md)
         .padding(.vertical, Theme.Spacing.sm)
@@ -468,6 +493,22 @@ struct MiraChatView: View {
                     }
                 }
             }
+        }
+    }
+
+    /// Opens the user's mail composer with a prefilled report addressed to
+    /// support so a problematic Mira reply can be flagged. Apple expects
+    /// AI-generated content in health apps to have a user-side reporting path.
+    private func reportMiraResponse(_ text: String) {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = "support@memoryaisle.app"
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: "Mira response report"),
+            URLQueryItem(name: "body", value: "Reporting a Mira response below. Add any details after the divider.\n\n---\n\(text)\n---\n\n")
+        ]
+        if let url = components.url {
+            openURL(url)
         }
     }
 
