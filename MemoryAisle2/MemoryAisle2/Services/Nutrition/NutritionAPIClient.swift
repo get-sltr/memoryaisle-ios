@@ -56,19 +56,36 @@ struct NutritionAPIClient: Sendable {
         }
 
         let nutrients = product.nutriments
+        let grams = product.servingQuantity
 
         return NutritionData(
             name: product.productName ?? "Unknown Product",
             brand: product.brands ?? "Unknown Brand",
             servingSize: product.servingSize ?? "1 serving",
-            calories: Int(nutrients.energyKcal100g ?? 0),
-            protein: nutrients.proteins100g ?? 0,
-            fat: nutrients.fat100g ?? 0,
-            carbs: nutrients.carbohydrates100g ?? 0,
-            fiber: nutrients.fiber100g ?? 0,
-            sodium: Int((nutrients.sodium100g ?? 0) * 1000),
-            sugar: nutrients.sugars100g ?? 0
+            calories: Int(perServing(nutrients.energyKcalServing, nutrients.energyKcal100g, grams) ?? 0),
+            protein: perServing(nutrients.proteinsServing, nutrients.proteins100g, grams) ?? 0,
+            fat: perServing(nutrients.fatServing, nutrients.fat100g, grams) ?? 0,
+            carbs: perServing(nutrients.carbohydratesServing, nutrients.carbohydrates100g, grams) ?? 0,
+            fiber: perServing(nutrients.fiberServing, nutrients.fiber100g, grams) ?? 0,
+            sodium: Int((perServing(nutrients.sodiumServing, nutrients.sodium100g, grams) ?? 0) * 1000),
+            sugar: perServing(nutrients.sugarsServing, nutrients.sugars100g, grams) ?? 0
         )
+    }
+
+    /// Picks the per-serving value when Open Food Facts provides one,
+    /// otherwise scales the per-100g value by the product's serving size
+    /// in grams. Falls back to the per-100g value as a last resort so a
+    /// missing serving size doesn't render every macro as zero.
+    private func perServing(
+        _ perServing: Double?,
+        _ per100g: Double?,
+        _ servingGrams: Double?
+    ) -> Double? {
+        if let v = perServing { return v }
+        if let per100 = per100g, let grams = servingGrams, grams > 0 {
+            return per100 * grams / 100.0
+        }
+        return per100g
     }
 
     // MARK: - Text Search
@@ -81,7 +98,7 @@ struct NutritionAPIClient: Sendable {
             URLQueryItem(name: "search_terms", value: query),
             URLQueryItem(name: "page", value: "\(page)"),
             URLQueryItem(name: "page_size", value: "20"),
-            URLQueryItem(name: "fields", value: "code,product_name,brands,nutriments"),
+            URLQueryItem(name: "fields", value: "code,product_name,brands,serving_quantity,nutriments"),
             URLQueryItem(name: "json", value: "1")
         ]
 
@@ -93,13 +110,14 @@ struct NutritionAPIClient: Sendable {
         return (result.products ?? []).compactMap { product in
             guard let name = product.productName, !name.isEmpty else { return nil }
             let nutrients = product.nutriments
+            let grams = product.servingQuantity
 
             return FoodSearchResult(
                 foodId: product.code ?? UUID().uuidString,
                 name: name,
                 brand: product.brands ?? "",
-                calories: Int(nutrients.energyKcal100g ?? 0),
-                protein: nutrients.proteins100g ?? 0
+                calories: Int(perServing(nutrients.energyKcalServing, nutrients.energyKcal100g, grams) ?? 0),
+                protein: perServing(nutrients.proteinsServing, nutrients.proteins100g, grams) ?? 0
             )
         }
     }
@@ -121,6 +139,7 @@ private struct OFFProduct: Codable, Sendable {
     let productName: String?
     let brands: String?
     let servingSize: String?
+    let servingQuantity: Double?
     let nutriments: OFFNutriments
 
     enum CodingKeys: String, CodingKey {
@@ -128,26 +147,41 @@ private struct OFFProduct: Codable, Sendable {
         case productName = "product_name"
         case brands
         case servingSize = "serving_size"
+        case servingQuantity = "serving_quantity"
         case nutriments
     }
 }
 
 private struct OFFNutriments: Codable, Sendable {
     let energyKcal100g: Double?
+    let energyKcalServing: Double?
     let proteins100g: Double?
+    let proteinsServing: Double?
     let fat100g: Double?
+    let fatServing: Double?
     let carbohydrates100g: Double?
+    let carbohydratesServing: Double?
     let fiber100g: Double?
+    let fiberServing: Double?
     let sodium100g: Double?
+    let sodiumServing: Double?
     let sugars100g: Double?
+    let sugarsServing: Double?
 
     enum CodingKeys: String, CodingKey {
         case energyKcal100g = "energy-kcal_100g"
+        case energyKcalServing = "energy-kcal_serving"
         case proteins100g = "proteins_100g"
+        case proteinsServing = "proteins_serving"
         case fat100g = "fat_100g"
+        case fatServing = "fat_serving"
         case carbohydrates100g = "carbohydrates_100g"
+        case carbohydratesServing = "carbohydrates_serving"
         case fiber100g = "fiber_100g"
+        case fiberServing = "fiber_serving"
         case sodium100g = "sodium_100g"
+        case sodiumServing = "sodium_serving"
         case sugars100g = "sugars_100g"
+        case sugarsServing = "sugars_serving"
     }
 }
