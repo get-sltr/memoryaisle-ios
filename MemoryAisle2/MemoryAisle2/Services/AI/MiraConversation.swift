@@ -30,10 +30,15 @@ final class MiraConversation {
         userText: String,
         context: MiraAPIClient.MiraContext?
     ) async throws -> String {
-        // Append the user message to history
+        // Prefix the user's text with a short time-of-day hint so Mira picks
+        // the right meal type (breakfast vs. dinner vs. late-night snack)
+        // when the user asks an open-ended "what should I eat" question.
+        // The user only sees their original text in the chat UI; this
+        // augmented copy lives only in the API conversation history.
+        let augmentedText = "[\(Self.currentTimeHint())]\n\n\(userText)"
         history.append([
             "role": "user",
-            "content": userText
+            "content": augmentedText
         ])
 
         var iterations = 0
@@ -92,5 +97,28 @@ final class MiraConversation {
     /// Reset the conversation history (used when starting a fresh chat).
     func reset() {
         history.removeAll()
+    }
+
+    /// Short, human-readable summary of the user's local time and the meal
+    /// slot it implies. Mira uses this to avoid suggesting breakfast in the
+    /// evening or dinner in the morning when the user asks an open-ended
+    /// "what should I eat" question.
+    private static func currentTimeHint() -> String {
+        let now = Date()
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.dateStyle = .none
+        let timeString = formatter.string(from: now)
+
+        let hour = Calendar.current.component(.hour, from: now)
+        let mealSlot: String
+        switch hour {
+        case 5..<10:  mealSlot = "morning, breakfast time"
+        case 10..<14: mealSlot = "midday, lunch time"
+        case 14..<17: mealSlot = "afternoon, snack time"
+        case 17..<21: mealSlot = "evening, dinner time"
+        default:      mealSlot = "late night, only a light snack is appropriate"
+        }
+        return "Current local time: \(timeString) (\(mealSlot))"
     }
 }
