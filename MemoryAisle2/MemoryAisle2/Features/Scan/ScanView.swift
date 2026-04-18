@@ -13,6 +13,7 @@ struct ScanView: View {
     @State private var selectedMode: ScanMode = .barcode
     @State private var isScanning = false
     @State private var scannedProduct: ScannedProduct?
+    @State private var pendingManualEntry: PendingManualEntry?
     @State private var showPaywall = false
     @State private var showLimitAlert = false
 
@@ -41,6 +42,14 @@ struct ScanView: View {
         .sheet(isPresented: $showFoodSearch) { FoodSearchView() }
         .sheet(item: $scannedProduct) { product in
             ScanResultView(product: product)
+        }
+        .sheet(item: $pendingManualEntry) { entry in
+            ManualNutritionEntrySheet(
+                prefilledName: entry.name,
+                prefilledBrand: entry.brand
+            ) { nutrition in
+                scannedProduct = BarcodeInterpreter.interpret(nutrition: nutrition)
+            }
         }
         .sheet(isPresented: $showPaywall) { PaywallView() }
         .alert("Daily scan limit reached", isPresented: $showLimitAlert) {
@@ -238,20 +247,18 @@ struct ScanView: View {
 
         Task {
             do {
-                if let nutrition = try await nutritionClient.lookupBarcode(barcode) {
-                    let product = BarcodeInterpreter.interpret(nutrition: nutrition)
-                    scannedProduct = product
-                } else {
-                    scannedProduct = ScannedProduct(
-                        barcode: barcode,
-                        name: "Unknown Product",
-                        brand: "Barcode: \(barcode)",
-                        servingSize: "",
-                        protein: 0, calories: 0, fat: 0, carbs: 0, fiber: 0, sodium: 0,
-                        verdict: .okay,
-                        nauseaRisk: false,
-                        reason: "This product wasn't found in our database. Try searching by name instead."
-                    )
+                let result = try await nutritionClient.lookupBarcode(barcode)
+                switch result {
+                case .complete(let nutrition):
+                    scannedProduct = BarcodeInterpreter.interpret(nutrition: nutrition)
+                case .incomplete(let name, let brand):
+                    // Open Food Facts knew the product but lacked serving
+                    // info. Drop into manual entry with name and brand
+                    // pre-filled so the user only types the label values.
+                    pendingManualEntry = PendingManualEntry(name: name, brand: brand)
+                case .notFound:
+                    // No record at all. Open manual entry empty-handed.
+                    pendingManualEntry = PendingManualEntry(name: "", brand: "")
                 }
             } catch {
                 scannedProduct = ScannedProduct(
@@ -267,6 +274,14 @@ struct ScanView: View {
             }
         }
     }
+}
+
+/// Trigger payload for the ManualNutritionEntrySheet. When non-nil it
+/// presents the sheet; the strings pre-fill the product name and brand.
+struct PendingManualEntry: Identifiable {
+    let id = UUID()
+    let name: String
+    let brand: String
 }
 
 // MARK: - Scanner Corner Brackets
