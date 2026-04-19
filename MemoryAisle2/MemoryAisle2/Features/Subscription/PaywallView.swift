@@ -208,7 +208,9 @@ struct PaywallView: View {
         }
 
         do {
-            let success = try await subscriptionManager.purchase()
+            let success = try await subscriptionManager.purchase(
+                appAccountToken: CognitoAuthManager.currentUserUUID()
+            )
             if success {
                 HapticManager.success()
                 dismiss()

@@ -1,0 +1,11 @@
+{
+  "name": "memoryaisle-app-store-notifications",
+  "version": "1.0.0",
+  "description": "App Store Server Notifications v2 handler for MemoryAisle.",
+  "type": "module",
+  "main": "index.mjs",
+  "private": true,
+  "dependencies": {
+    "@apple/app-store-server-library": "^1.5.0"
+  }
+}

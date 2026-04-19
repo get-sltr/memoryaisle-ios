@@ -26,6 +26,7 @@ export class ApiStack extends cdk.Stack {
   public readonly miraSpeakFunction: lambda.Function;
   public readonly syncFunction: lambda.Function;
   public readonly reportFunction: lambda.Function;
+  public readonly appStoreNotificationsFunction: lambda.Function;
 
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
@@ -117,6 +118,35 @@ export class ApiStack extends cdk.Stack {
     props.table.grantReadData(this.reportFunction);
     props.kmsKey.grantDecrypt(this.reportFunction);
     reportBucket.grantWrite(this.reportFunction);
+
+    // --- appStoreNotifications Lambda (ASSN v2) ---
+    // APPLE_APP_APPLE_ID is the numeric App Store app id (App Store Connect
+    // → App Information → Apple ID). Leaving it empty relaxes the
+    // per-app check in the signature verifier; set it once the app is
+    // live to tighten trust.
+    const appStoreAppleId =
+      this.node.tryGetContext("appleAppAppleId") || "";
+
+    this.appStoreNotificationsFunction = new lambda.Function(
+      this,
+      "AppStoreNotifications",
+      {
+        runtime: lambda.Runtime.NODEJS_22_X,
+        handler: "index.handler",
+        code: lambda.Code.fromAsset(
+          path.join(lambdaDir, "appStoreNotifications")
+        ),
+        timeout: cdk.Duration.seconds(15),
+        memorySize: 256,
+        environment: {
+          TABLE_NAME: props.tableName,
+          APPLE_BUNDLE_ID: "com.sltrdigital.memoryaisle",
+          APPLE_APP_APPLE_ID: appStoreAppleId,
+        },
+      }
+    );
+
+    props.table.grantReadWriteData(this.appStoreNotificationsFunction);
 
     // --- WAF ---
     const webAcl = new wafv2.CfnWebACL(this, "ApiWaf", {

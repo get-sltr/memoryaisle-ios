@@ -70,10 +70,19 @@ final class SubscriptionManager {
 
     // MARK: - Purchase
 
-    func purchase() async throws -> Bool {
+    func purchase(appAccountToken: UUID? = nil) async throws -> Bool {
         guard let product = products.first else { return false }
 
-        let result = try await product.purchase()
+        // Tag the transaction with the signed-in user's Cognito UUID so
+        // App Store Server Notifications can be correlated back to this
+        // account. Callers pass nil when no session exists, in which
+        // case StoreKit treats it as an anonymous purchase.
+        var options: Set<Product.PurchaseOption> = []
+        if let appAccountToken {
+            options.insert(.appAccountToken(appAccountToken))
+        }
+
+        let result = try await product.purchase(options: options)
 
         switch result {
         case .success(let verification):

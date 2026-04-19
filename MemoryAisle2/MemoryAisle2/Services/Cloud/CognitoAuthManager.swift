@@ -283,6 +283,52 @@ final class CognitoAuthManager {
         }
         return error.localizedDescription
     }
+
+    // MARK: - Static Helpers
+
+    /// Returns the signed-in user's Cognito `sub` as a UUID by reading
+    /// the stored access token from the keychain and decoding its JWT
+    /// payload. Used by the purchase flow so StoreKit can tag each
+    /// transaction with `appAccountToken`, which lets the server-side
+    /// App Store Server Notifications handler correlate events back to
+    /// this user. Returns nil when there is no saved session, the token
+    /// is malformed, or `sub` is absent.
+    nonisolated static func currentUserUUID() -> UUID? {
+        guard let token = readStoredAccessToken(),
+              let sub = decodeJWTSub(token) else { return nil }
+        return UUID(uuidString: sub)
+    }
+
+    private nonisolated static func readStoredAccessToken() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "com.sltrdigital.memoryaisle",
+            kSecAttrAccount as String: "ma_token",
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private nonisolated static func decodeJWTSub(_ token: String) -> String? {
+        let parts = token.split(separator: ".")
+        guard parts.count >= 2 else { return nil }
+
+        var payload = String(parts[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        while payload.count % 4 != 0 { payload.append("=") }
+
+        guard let data = Data(base64Encoded: payload),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let sub = json["sub"] as? String else { return nil }
+        return sub
+    }
 }
 
 enum AuthError: LocalizedError {
