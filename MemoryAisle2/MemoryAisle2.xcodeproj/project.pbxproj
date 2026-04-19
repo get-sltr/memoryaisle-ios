@@ -410,6 +410,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "MemoryAisle needs camera access to scan food barcodes and analyze meals.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "MemoryAisle uses Face ID to protect your Safe Space journal and sensitive health data.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "MemoryAisle reads your weight and body composition to personalize protein targets and track progress.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "MemoryAisle does not currently save data to Apple Health. This entry is required by iOS for any app that uses the HealthKit framework.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MemoryAisle uses the microphone for voice conversations with Mira.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "MemoryAisle uses your photo library for profile photos, progress check-ins, and meal logging.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MemoryAisle uses speech recognition to transcribe your voice on-device for Mira conversations. Audio is never sent to any server.";
@@ -459,6 +460,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "MemoryAisle needs camera access to scan food barcodes and analyze meals.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "MemoryAisle uses Face ID to protect your Safe Space journal and sensitive health data.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "MemoryAisle reads your weight and body composition to personalize protein targets and track progress.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "MemoryAisle does not currently save data to Apple Health. This entry is required by iOS for any app that uses the HealthKit framework.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MemoryAisle uses the microphone for voice conversations with Mira.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "MemoryAisle uses your photo library for profile photos, progress check-ins, and meal logging.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MemoryAisle uses speech recognition to transcribe your voice on-device for Mira conversations. Audio is never sent to any server.";
