@@ -130,7 +130,7 @@ final class MiraToolExecutor {
         let calories = todays.reduce(0) { $0 + $1.caloriesConsumed }
         let water = todays.reduce(0) { $0 + $1.waterLiters }
         let fiber = todays.reduce(0) { $0 + $1.fiberGrams }
-        return "Today so far — protein: \(Int(protein))g, calories: \(Int(calories)), water: \(String(format: "%.1f", water))L, fiber: \(Int(fiber))g."
+        return "So far today, protein: \(Int(protein))g, calories: \(Int(calories)), water: \(String(format: "%.1f", water))L, fiber: \(Int(fiber))g."
     }
 
     // MARK: - getUserTargets

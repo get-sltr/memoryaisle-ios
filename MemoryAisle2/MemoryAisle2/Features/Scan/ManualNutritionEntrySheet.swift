@@ -44,7 +44,7 @@ struct ManualNutritionEntrySheet: View {
         NavigationStack {
             Form {
                 Section {
-                    Text("Enter what's on the package label. The bag is the source of truth — these values become the entry exactly as you type them.")
+                    Text("Enter what's on the package label. The bag is the source of truth, and these values become the entry exactly as you type them.")
                         .font(.system(size: 13))
                         .foregroundStyle(.secondary)
                 }

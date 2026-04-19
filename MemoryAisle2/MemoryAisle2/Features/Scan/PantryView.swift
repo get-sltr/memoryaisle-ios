@@ -25,7 +25,7 @@ struct PantryView: View {
     private var heroSubtitle: String {
         let count = items.count
         let cats = grouped.count
-        if count == 0 { return "Empty — let's stock it up" }
+        if count == 0 { return "Empty. Let's stock it up" }
         let itemWord = count == 1 ? "item" : "items"
         let catWord = cats == 1 ? "category" : "categories"
         return "\(count) \(itemWord) · \(cats) \(catWord)"
