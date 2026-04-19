@@ -119,7 +119,7 @@ The safest data is data that never leaves the device. MemoryAisle processes the 
 
 ---
 
-### 4. Zero-Knowledge Medication Processing
+### 4. Anonymized Medication Processing
 
 This is the most sensitive design decision. When a user tells Mira "I'm on Ozempic 0.5mg, I injected yesterday," here is what happens:
 
