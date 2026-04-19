@@ -50,5 +50,7 @@ Infrastructure/lambda/*/*.zip
 *.jpeg
 *.webp
 *.png
-!MemoryAisle/Resources/Assets.xcassets/**/*.png
-!MemoryAisle/Resources/Assets.xcassets/**/*.jpg
+!MemoryAisle2/MemoryAisle2/Assets.xcassets/**/*.png
+!MemoryAisle2/MemoryAisle2/Assets.xcassets/**/*.jpg
+!MemoryAisle2/MemoryAisleWidgets/**/*.png
+!MemoryAisle2/MemoryAisleWidgets/**/*.jpg
