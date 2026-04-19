@@ -140,7 +140,7 @@ export class ApiStack extends cdk.Stack {
         memorySize: 256,
         environment: {
           TABLE_NAME: props.tableName,
-          APPLE_BUNDLE_ID: "com.sltrdigital.memoryaisle",
+          APPLE_BUNDLE_ID: "com.sltrdigital.MemoryAisle2",
           APPLE_APP_APPLE_ID: appStoreAppleId,
         },
       }

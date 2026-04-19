@@ -16,7 +16,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const db = new DynamoDBClient({ region: "us-east-1" });
 const TABLE = process.env.TABLE_NAME || "memoryaisle-user-data";
 const BUNDLE_ID =
-  process.env.APPLE_BUNDLE_ID || "com.sltrdigital.memoryaisle";
+  process.env.APPLE_BUNDLE_ID || "com.sltrdigital.MemoryAisle2";
 const APP_APPLE_ID = process.env.APPLE_APP_APPLE_ID
   ? BigInt(process.env.APPLE_APP_APPLE_ID)
   : undefined;
