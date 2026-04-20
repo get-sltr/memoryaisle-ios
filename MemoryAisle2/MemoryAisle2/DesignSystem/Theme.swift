@@ -131,21 +131,21 @@ enum Theme {
 
         static func secondary(for scheme: ColorScheme) -> Color {
             scheme == .dark
-                ? Color.white.opacity(0.5)
-                : Color(hex: 0x9CA3AF)
+                ? Color.white.opacity(0.75)
+                : Color(hex: 0x6B7280)
         }
 
         static func tertiary(for scheme: ColorScheme) -> Color {
             scheme == .dark
-                ? Color.white.opacity(0.25)
-                : Color(hex: 0xD1D5DB)
+                ? Color.white.opacity(0.6)
+                : Color(hex: 0x9CA3AF)
         }
 
         // Ported from Flair pass — dimmest text (disabled, placeholders, meta)
         static func hint(for scheme: ColorScheme) -> Color {
             scheme == .dark
-                ? Color.white.opacity(0.12)
-                : Color(hex: 0xE5E7EB)
+                ? Color.white.opacity(0.45)
+                : Color(hex: 0xD1D5DB)
         }
     }
 
@@ -157,12 +157,12 @@ enum Theme {
         }
 
         static func label(for scheme: ColorScheme) -> Color {
-            scheme == .dark ? Color.violet.opacity(0.5) : .violetMid
+            scheme == .dark ? Color.violet.opacity(0.85) : .violetMid
         }
 
         // Ported from Flair pass — wordmark / section label ghost color
         static func ghost(for scheme: ColorScheme) -> Color {
-            scheme == .dark ? Color.violet.opacity(0.5) : .violetMid
+            scheme == .dark ? Color.violet.opacity(0.85) : .violetMid
         }
 
         // Ported from Flair pass — subtle background for small accent surfaces
@@ -187,7 +187,7 @@ enum Theme {
         }
 
         static func calories(for scheme: ColorScheme) -> Color {
-            scheme == .dark ? Color.white.opacity(0.5) : Color(hex: 0x6B7280)
+            scheme == .dark ? Color.white.opacity(0.75) : Color(hex: 0x6B7280)
         }
 
         static func onTrack(for scheme: ColorScheme) -> Color {
