@@ -207,19 +207,6 @@ struct ProgressDashboardView: View {
                 }
                 .padding(.horizontal, 20)
 
-                // HealthKit connect if not authorized.
-                // Uses VioletButton (solid, bounded) rather than GlowButton —
-                // GlowButton's outer halo is reserved for "moment" CTAs
-                // (per its own doc comment) and on a sparse Progress screen
-                // its lime halo bled above and below the button, reading
-                // as a translucent overlay across the whole panel.
-                if !healthKit.isAuthorized {
-                    VioletButton("Connect HealthKit") {
-                        Task { await healthKit.requestAuthorization() }
-                    }
-                    .padding(.horizontal, 40)
-                }
-
                 Spacer(minLength: 80)
             }
             .readableContentWidth()
@@ -227,6 +214,10 @@ struct ProgressDashboardView: View {
         .section(.progress)
         .themeBackground()
         .navigationBarHidden(true)
+        .task {
+            await healthKit.fetchLatestWeight()
+            await healthKit.fetchWeightHistory()
+        }
         .sheet(isPresented: $showGITolerance) { GIToleranceView() }
         .sheet(isPresented: $showProviderReport) {
             ProviderReportView().biometricProtected()
