@@ -216,7 +216,6 @@ struct MiraOnboardingView: View {
                     )
                     .datePickerStyle(.wheel)
                     .labelsHidden()
-                    .colorScheme(.dark)
                     .frame(maxHeight: 160)
 
                     choiceButton("Continue") {
