@@ -47,6 +47,7 @@ struct MiraOnboardingView: View {
             Spacer()
                 .frame(height: 40)
         }
+        .readableContentWidth()
         .section(.home)
         .themeBackground()
         .onAppear { startConversation() }
@@ -142,7 +143,7 @@ struct MiraOnboardingView: View {
                         .tint(Color.violet)
                         .padding(.vertical, 14)
                 } else {
-                    choiceButton("Connect Apple Health") {
+                    choiceButton("Continue") {
                         Task {
                             isConnectingHealthKit = true
                             await healthKit.requestAuthorization()
@@ -154,11 +155,10 @@ struct MiraOnboardingView: View {
                             advanceTo(.heightWeight)
                         }
                     }
-                    choiceButton("Not now") { advanceTo(.heightWeight) }
 
                     Text("Read-only access. MemoryAisle reads weight, lean mass, and body fat percentage from Apple Health. We never write data back.")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                        .font(Typography.bodySmall)
+                        .foregroundStyle(Theme.Text.secondary(for: scheme))
                         .multilineTextAlignment(.center)
                         .padding(.top, 6)
                 }
