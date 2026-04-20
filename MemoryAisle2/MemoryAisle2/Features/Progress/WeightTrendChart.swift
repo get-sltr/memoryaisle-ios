@@ -72,7 +72,8 @@ struct WeightTrendChart: View {
 
                 AreaMark(
                     x: .value("Date", point.date),
-                    y: .value("Weight", point.value)
+                    yStart: .value("Min", minWeight),
+                    yEnd: .value("Weight", point.value)
                 )
                 .foregroundStyle(
                     LinearGradient(
