@@ -136,6 +136,7 @@ struct MainTabView: View {
 
                 Spacer()
             }
+            .readableContentWidth()
             .themeBackground()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
