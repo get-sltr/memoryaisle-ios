@@ -106,7 +106,7 @@ struct AuthFlowView: View {
                 }
                 .signInWithAppleButtonStyle(scheme == .dark ? .white : .black)
                 .frame(height: 50)
-                .frame(maxWidth: 420)
+                .frame(maxWidth: 375)
                 .frame(maxWidth: .infinity)
 
                 // Divider
