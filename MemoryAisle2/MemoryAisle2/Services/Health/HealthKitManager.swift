@@ -1,5 +1,6 @@
 import HealthKit
 import SwiftUI
+import UIKit
 
 @Observable
 final class HealthKitManager {
@@ -14,6 +15,17 @@ final class HealthKitManager {
 
     var isAvailable: Bool {
         HKHealthStore.isHealthDataAvailable()
+    }
+
+    // Opens Settings → MemoryAisle so a user who previously denied
+    // HealthKit can re-enable it. Apple 5.1.1(iv) explicitly allows this
+    // post-denial path.
+    @MainActor
+    func openSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else {
+            return
+        }
+        UIApplication.shared.open(url)
     }
 
     // MARK: - Authorization

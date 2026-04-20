@@ -16,6 +16,7 @@ struct OnboardingHealthKitAutofillCard: View {
     @Environment(\.colorScheme) private var scheme
     @State private var healthKit = HealthKitManager()
     @State private var state: AutofillState = .idle
+    @State private var showSettingsPrompt = false
 
     private enum AutofillState {
         case idle, loading, connected, denied
@@ -23,7 +24,11 @@ struct OnboardingHealthKitAutofillCard: View {
 
     var body: some View {
         Button {
-            Task { await connect() }
+            if state == .denied {
+                showSettingsPrompt = true
+            } else {
+                Task { await connect() }
+            }
         } label: {
             HStack(spacing: 12) {
                 iconCap
@@ -48,12 +53,17 @@ struct OnboardingHealthKitAutofillCard: View {
             )
         }
         .buttonStyle(.plain)
-        .disabled(state != .idle)
-        .opacity(state == .denied ? 0.6 : 1.0)
+        .disabled(state == .loading || state == .connected)
         .animation(Theme.Motion.spring, value: state)
         .padding(.horizontal, 28)
         .padding(.bottom, 20)
         .accessibilityLabel(accessibilityLabel)
+        .alert("Apple Health access needed", isPresented: $showSettingsPrompt) {
+            Button("Open Settings") { healthKit.openSettings() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Enable Apple Health for MemoryAisle in Settings to sync weight, lean mass, and body fat.")
+        }
     }
 
     // MARK: - Subviews
@@ -88,7 +98,7 @@ struct OnboardingHealthKitAutofillCard: View {
     private var trailing: some View {
         switch state {
         case .idle:
-            Text("Connect")
+            Text("Continue")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Color.violet)
                 .padding(.horizontal, 12)
@@ -103,9 +113,9 @@ struct OnboardingHealthKitAutofillCard: View {
                 .font(.system(size: 18))
                 .foregroundStyle(Color.violet)
         case .denied:
-            Text("Not now")
-                .font(.system(size: 11))
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+            Image(systemName: "gearshape.fill")
+                .font(.system(size: 16))
+                .foregroundStyle(Color.violet)
         }
     }
 
@@ -124,7 +134,7 @@ struct OnboardingHealthKitAutofillCard: View {
         case .idle: "Let Mira pull your latest weight"
         case .loading: "Connecting..."
         case .connected: "Your weight landed below"
-        case .denied: "You can connect later from Profile"
+        case .denied: "Tap to enable in Settings"
         }
     }
 
@@ -133,7 +143,7 @@ struct OnboardingHealthKitAutofillCard: View {
         case .idle: "Autofill weight from Apple Health"
         case .loading: "Connecting to Apple Health"
         case .connected: "Weight autofilled from Apple Health"
-        case .denied: "Apple Health not connected"
+        case .denied: "Open Settings to enable Apple Health"
         }
     }
 
@@ -142,9 +152,8 @@ struct OnboardingHealthKitAutofillCard: View {
     /// Requests read-only HealthKit authorization. On success, hands the
     /// most recent weight sample to `onWeightPulled` inside a spring
     /// animation so the parent field visibly accepts the value. On deny,
-    /// parks the card in a dimmed "Not now" state so the user can still
-    /// see HealthKit exists but can't re-trigger the permission sheet
-    /// from here.
+    /// the card enters a re-tappable `.denied` state whose tap opens the
+    /// Settings deep link (per App Store guideline 5.1.1(iv)).
     private func connect() async {
         withAnimation(Theme.Motion.spring) {
             state = .loading

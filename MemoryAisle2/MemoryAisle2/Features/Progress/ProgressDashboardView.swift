@@ -222,6 +222,7 @@ struct ProgressDashboardView: View {
 
                 Spacer(minLength: 80)
             }
+            .readableContentWidth()
         }
         .section(.progress)
         .themeBackground()
@@ -397,7 +398,7 @@ struct ProgressDashboardView: View {
                 .font(.system(size: 18, weight: .regular, design: .serif))
                 .foregroundStyle(Theme.Text.primary)
                 .multilineTextAlignment(.center)
-            Text("Log a meal from the dashboard or do a weekly check-in to start tracking your week. Connect HealthKit below to pull weight history from Apple Health.")
+            Text("Log a meal from the dashboard or do a weekly check-in to start tracking your week.")
                 .font(.system(size: 13))
                 .foregroundStyle(Theme.Text.secondary(for: scheme))
                 .multilineTextAlignment(.center)

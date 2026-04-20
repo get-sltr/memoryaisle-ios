@@ -5,6 +5,7 @@ struct AppleHealthCard: View {
     @State private var healthKit = HealthKitManager()
     @State private var isConnecting = false
     @State private var pulseScale: CGFloat = 1.0
+    @State private var showSettingsPrompt = false
 
     private var isConnected: Bool {
         healthKit.latestWeight != nil || !healthKit.weightHistory.isEmpty
@@ -68,6 +69,12 @@ struct AppleHealthCard: View {
         .buttonStyle(.plain)
         .accessibilityLabel(isConnected ? "Apple Health connected" : "Connect Apple Health")
         .task { await silentRefresh() }
+        .alert("Apple Health access needed", isPresented: $showSettingsPrompt) {
+            Button("Open Settings") { healthKit.openSettings() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Enable Apple Health for MemoryAisle in Settings to sync weight, lean mass, and body fat.")
+        }
     }
 
     // MARK: - Subviews
@@ -145,6 +152,8 @@ struct AppleHealthCard: View {
 
         if isConnected {
             HapticManager.success()
+        } else {
+            showSettingsPrompt = true
         }
     }
 }
