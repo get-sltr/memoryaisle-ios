@@ -52,9 +52,22 @@ xcodebuild -project MemoryAisle2/MemoryAisle2.xcodeproj \
 
 Targets in the project: `MemoryAisle2` (app), `MemoryAisle2Tests` (unit), `MemoryAisle2UITests` (UI), `MemoryAisleWidgetsExtension` (widget extension; sources live in `MemoryAisle2/MemoryAisleWidgets/`).
 
+### Infrastructure (CDK + Lambda)
+
+Run from `Infrastructure/CDK/`:
+
+```bash
+npm run build    # tsc
+npm run synth    # cdk synth
+npm run diff     # cdk diff
+npm run deploy   # cdk deploy --all
+```
+
+Lambdas live at `Infrastructure/lambda/<name>/` and ship as zips — `node_modules/` and `*.zip` under each function are gitignored, so they are built and uploaded out-of-band (not committed).
+
 ## Branch Rules
 
-- **Default workflow:** prefer `dev` or `feature/*` for non-trivial work; merge to `main` after build succeeds with zero warnings and a manual device test.
+- **Default workflow:** prefer `dev` or `feature/*` for non-trivial work; merge to `main` after build succeeds with zero warnings and a manual device test. Simulator is not sufficient — real audio, camera, and HealthKit bugs only surface on device.
 - **Current exception (App Store rejection cycle):** the owner is intentionally landing review-fix commits directly on `main` to ship faster. If you see recent commits on `main` tagged `[review]` or similar, that's expected — don't "correct" the workflow. When the rejection cycle ends, revert to the default workflow above.
 - Commit format: `[area] short description` (e.g., `[nutrition] implement protein calculator with lean mass input`).
 - **Always remember to deploy and push.** Local commits don't ship the app or update the remote — after committing, push (`git push`) and, when relevant, deploy (App Store Connect upload, CDK deploy, etc.). Don't end a session with unpushed commits sitting on `main`.
@@ -85,7 +98,7 @@ MemoryAisle2/MemoryAisleWidgets/        Widget extension sources (consumed by th
                                         MemoryAisleWidgetsExtension target)
 Infrastructure/CDK/                     AWS CDK stacks (TypeScript) — bin/, lib/, cdk.json
 Infrastructure/lambda/                  Lambda function sources (miraGenerate, miraSpeak,
-                                        providerReport, syncData, ...)
+                                        providerReport, syncData, appStoreNotifications)
 website/, docs/                         Marketing site and product docs
 ```
 
@@ -117,10 +130,11 @@ Cognito auth (Amplify Swift SDK v2) -> API Gateway -> Lambda (VPC) -> Aurora Ser
 - Accessibility labels on all interactive elements. Dynamic Type on all text.
 - No `TODO`/`FIXME` comments — fix it now or don't touch it.
 - No em dashes in any UI copy, Mira prompts, or Mira-generated text. This applies to `MiraEngine` system prompts and any string that could end up rendered in the app.
+- No `print(...)` — use `os.Logger` for debug output. Any `print` is a regression.
 
 ### Data Safety
 - Medication data encrypted in SwiftData. Never logged to console.
-- API keys in Keychain only, never in source code or Info.plist.
+- API keys in Keychain only at runtime. Never in source code or Info.plist. For build-time config, use `.xcconfig` files (gitignored — `*.xcconfig` is in `.gitignore`).
 - HealthKit data stays in HealthKit — read-only, never cached without consent.
 - Mira never diagnoses, never recommends medication changes, always defers to prescriber.
 
