@@ -50,6 +50,7 @@ struct AuthFlowView: View {
                     verifyView
                 }
             }
+            .readableContentWidth()
         }
         .section(.home)
         .themeBackground()
@@ -96,15 +97,16 @@ struct AuthFlowView: View {
             Spacer()
 
             VStack(spacing: 14) {
-                // Apple Sign In
+                // Apple Sign In — HIG standard button, style adapts to colorScheme
+                // so both modes render a solid background behind the logo.
                 SignInWithAppleButton(.signIn) { request in
                     request.requestedScopes = [.email, .fullName]
                 } onCompletion: { result in
                     handleAppleSignIn(result)
                 }
-                .signInWithAppleButtonStyle(.white)
-                .frame(maxWidth: 375, minHeight: 50, maxHeight: 50)
-                .clipShape(Capsule())
+                .signInWithAppleButtonStyle(scheme == .dark ? .white : .black)
+                .frame(height: 50)
+                .frame(maxWidth: 420)
                 .frame(maxWidth: .infinity)
 
                 // Divider
