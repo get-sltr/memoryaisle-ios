@@ -69,74 +69,75 @@ struct MainTabView: View {
 
     private var menuSheet: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Logo
-                OnboardingLogo(size: 80)
-                    .padding(.top, 24)
-                    .padding(.bottom, 8)
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Logo
+                    OnboardingLogo(size: 80)
+                        .padding(.top, 24)
+                        .padding(.bottom, 8)
 
-                Text("MemoryAisle")
-                    .font(.system(size: 20, weight: .light, design: .serif))
-                    .foregroundStyle(Theme.Text.primary)
+                    Text("MemoryAisle")
+                        .font(.system(size: 20, weight: .light, design: .serif))
+                        .foregroundStyle(Theme.Text.primary)
+                        .padding(.bottom, 24)
+
+                    // Menu items
+                    VStack(spacing: 4) {
+                        menuRow("My Journey", icon: "person.fill", color: Color.violet) {
+                            openDestination(.profile)
+                        }
+                        menuRow("Progress", icon: "chart.line.uptrend.xyaxis", color: Color(hex: 0x34D399), proLocked: !isPro) {
+                            openDestination(.progress)
+                        }
+                        menuRow("Grocery List", icon: "cart.fill", color: Color(hex: 0x4ADE80)) {
+                            openDestination(.groceryList)
+                        }
+                        menuRow("Recipes", icon: "book.fill", color: Color(hex: 0xFBBF24)) {
+                            openDestination(.recipes)
+                        }
+                        menuRow("Scan", icon: "barcode.viewfinder", color: Color(hex: 0x60A5FA)) {
+                            openDestination(.scan)
+                        }
+                        menuRow("Smart Calendar", icon: "calendar", color: Color(hex: 0x38BDF8)) {
+                            openDestination(.calendar)
+                        }
+                        menuRow("Pantry", icon: "refrigerator.fill", color: Color(hex: 0x4ADE80)) {
+                            openDestination(.pantry)
+                        }
+                        menuRow("My Safe Space", icon: "lock.shield.fill", color: Color(hex: 0x6B6B88)) {
+                            openDestination(.safeSpace)
+                        }
+                        menuRow("Reflection", icon: "square.and.pencil", color: Color.violet, proLocked: !isPro) {
+                            openDestination(.reflection)
+                        }
+                        // One row, two modes. Free users upgrade via the paywall.
+                        // Pro users get a benefits page that lists what they have,
+                        // shows the auto-renew fine print, and embeds Apple's
+                        // native Manage Subscription sheet so they can cancel,
+                        // change plan, or restore from one place. Hiding the row
+                        // entirely for Pro users broke 3.1.2 and left them with
+                        // zero in-app path to manage or restore.
+                        menuRow(
+                            isPro ? "Manage Subscription" : "Subscribe",
+                            icon: isPro ? "creditcard.fill" : "star.fill",
+                            color: Color(hex: 0xFBBF24)
+                        ) {
+                            activeSheet = .destination(isPro ? .proBenefits : .subscribe)
+                        }
+
+                        Divider()
+                            .background(Theme.Border.glass(for: scheme))
+                            .padding(.vertical, 8)
+
+                        menuRow("Settings", icon: "gearshape.fill", color: Theme.Text.tertiary(for: scheme)) {
+                            openDestination(.settings)
+                        }
+                    }
+                    .padding(.horizontal, 20)
                     .padding(.bottom, 24)
-
-                // Menu items
-                VStack(spacing: 4) {
-                    menuRow("My Journey", icon: "person.fill", color: Color.violet) {
-                        openDestination(.profile)
-                    }
-                    menuRow("Progress", icon: "chart.line.uptrend.xyaxis", color: Color(hex: 0x34D399), proLocked: !isPro) {
-                        openDestination(.progress)
-                    }
-                    menuRow("Grocery List", icon: "cart.fill", color: Color(hex: 0x4ADE80)) {
-                        openDestination(.groceryList)
-                    }
-                    menuRow("Recipes", icon: "book.fill", color: Color(hex: 0xFBBF24)) {
-                        openDestination(.recipes)
-                    }
-                    menuRow("Scan", icon: "barcode.viewfinder", color: Color(hex: 0x60A5FA)) {
-                        openDestination(.scan)
-                    }
-                    menuRow("Smart Calendar", icon: "calendar", color: Color(hex: 0x38BDF8)) {
-                        openDestination(.calendar)
-                    }
-                    menuRow("Pantry", icon: "refrigerator.fill", color: Color(hex: 0x4ADE80)) {
-                        openDestination(.pantry)
-                    }
-                    menuRow("My Safe Space", icon: "lock.shield.fill", color: Color(hex: 0x6B6B88)) {
-                        openDestination(.safeSpace)
-                    }
-                    menuRow("Reflection", icon: "square.and.pencil", color: Color.violet, proLocked: !isPro) {
-                        openDestination(.reflection)
-                    }
-                    // One row, two modes. Free users upgrade via the paywall.
-                    // Pro users get a benefits page that lists what they have,
-                    // shows the auto-renew fine print, and embeds Apple's
-                    // native Manage Subscription sheet so they can cancel,
-                    // change plan, or restore from one place. Hiding the row
-                    // entirely for Pro users broke 3.1.2 and left them with
-                    // zero in-app path to manage or restore.
-                    menuRow(
-                        isPro ? "Manage Subscription" : "Subscribe",
-                        icon: isPro ? "creditcard.fill" : "star.fill",
-                        color: Color(hex: 0xFBBF24)
-                    ) {
-                        activeSheet = .destination(isPro ? .proBenefits : .subscribe)
-                    }
-
-                    Divider()
-                        .background(Theme.Border.glass(for: scheme))
-                        .padding(.vertical, 8)
-
-                    menuRow("Settings", icon: "gearshape.fill", color: Theme.Text.tertiary(for: scheme)) {
-                        openDestination(.settings)
-                    }
                 }
-                .padding(.horizontal, 20)
-
-                Spacer()
+                .readableContentWidth()
             }
-            .readableContentWidth()
             .themeBackground()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
