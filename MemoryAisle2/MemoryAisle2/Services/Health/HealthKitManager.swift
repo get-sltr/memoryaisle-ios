@@ -28,6 +28,16 @@ final class HealthKitManager {
         UIApplication.shared.open(url)
     }
 
+    // On iPad (where MemoryAisle runs in iPhone-compatibility mode) the
+    // app's Settings page does not expose a Health toggle. Apple surfaces
+    // those permissions inside the Health app instead (Profile then Apps
+    // and Services). Route users there as an alternative to openSettings.
+    @MainActor
+    func openAppleHealth() {
+        guard let url = URL(string: "x-apple-health://") else { return }
+        UIApplication.shared.open(url)
+    }
+
     // MARK: - Authorization
 
     func requestAuthorization() async {

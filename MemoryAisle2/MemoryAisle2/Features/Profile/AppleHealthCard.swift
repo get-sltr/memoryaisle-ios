@@ -70,10 +70,11 @@ struct AppleHealthCard: View {
         .accessibilityLabel(isConnected ? "Apple Health connected" : "Connect Apple Health")
         .task { await silentRefresh() }
         .alert("Apple Health access needed", isPresented: $showSettingsPrompt) {
+            Button("Open Apple Health") { healthKit.openAppleHealth() }
             Button("Open Settings") { healthKit.openSettings() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Enable Apple Health for MemoryAisle in Settings to sync weight, lean mass, and body fat.")
+            Text("Enable MemoryAisle inside Apple Health (Profile, then Apps and Services) or from iOS Settings to sync weight, lean mass, and body fat.")
         }
     }
 
