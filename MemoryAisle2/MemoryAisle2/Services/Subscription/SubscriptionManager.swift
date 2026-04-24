@@ -15,6 +15,8 @@ final class SubscriptionManager {
     private(set) var isLoading = false
 
     static let proAnnualID = "com.sltrdigital.memoryaisle.pro.annual"
+    static let proMonthlyID = "com.sltrdigital.memoryaisle.pro.monthly"
+    static let proProductIDs: Set<String> = [proAnnualID, proMonthlyID]
 
     private var updateTask: Task<Void, Never>?
 
@@ -61,7 +63,7 @@ final class SubscriptionManager {
     func loadProducts() async {
         isLoading = true
         do {
-            products = try await Product.products(for: [Self.proAnnualID])
+            products = try await Product.products(for: Self.proProductIDs)
         } catch {
             products = []
         }
@@ -70,8 +72,8 @@ final class SubscriptionManager {
 
     // MARK: - Purchase
 
-    func purchase(appAccountToken: UUID? = nil) async throws -> Bool {
-        guard let product = products.first else { return false }
+    func purchase(productID: String, appAccountToken: UUID? = nil) async throws -> Bool {
+        guard let product = products.first(where: { $0.id == productID }) else { return false }
 
         // Tag the transaction with the signed-in user's Cognito UUID so
         // App Store Server Notifications can be correlated back to this
@@ -121,9 +123,37 @@ final class SubscriptionManager {
         }
 
         purchasedProductIDs = activePurchases
-        let hasPaidPro = activePurchases.contains(Self.proAnnualID)
-        let hasReviewerPro = AppReviewerSeedService.isMarkedAsReviewer
-        tier = (hasPaidPro || hasReviewerPro) ? .pro : .free
+        tier = Self.computeTier(
+            activePurchases: activePurchases,
+            isReviewer: AppReviewerSeedService.isMarkedAsReviewer
+        )
+    }
+
+    // Pure tier-computation so the entitlement math can be exercised in
+    // unit tests without standing up StoreKit. The rule: reviewer override
+    // wins, otherwise the user is Pro iff any of the known Pro product
+    // IDs are in their active purchase set.
+    static func computeTier(activePurchases: Set<String>, isReviewer: Bool) -> SubscriptionTier {
+        if isReviewer { return .pro }
+        return activePurchases.isDisjoint(with: proProductIDs) ? .free : .pro
+    }
+
+    // The StoreKit Product for the user's currently active subscription,
+    // or nil if they have none. Lets ProBenefitsView render the actual
+    // plan (price, period) rather than hardcoding annual.
+    var activeProduct: Product? {
+        products.first { purchasedProductIDs.contains($0.id) }
+    }
+
+    // Canonical auto-renewal disclosure copy required by Apple guideline
+    // 3.1.2. Both the pre-purchase paywall and the post-purchase benefits
+    // screen render this string; keeping it here guarantees they can't
+    // drift into saying different things about billing. Price is
+    // interpolated from the live Product so non-US locales see their
+    // actual charge, not a hardcoded USD value.
+    static func legalCopy(productID: String, displayPrice: String) -> String {
+        let period = productID == proMonthlyID ? "month" : "year"
+        return "MemoryAisle Pro is a \(displayPrice)/\(period) auto-renewable subscription. Payment will be charged to your Apple ID at confirmation of purchase. The subscription automatically renews at \(displayPrice) per \(period) unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. You can manage your subscription and turn off auto-renewal at any time in Settings \u{203a} Apple ID \u{203a} Subscriptions."
     }
 
     // MARK: - Transaction Listener
