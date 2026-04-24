@@ -358,23 +358,20 @@ struct AuthFlowView: View {
         case .success(let auth):
             if let credential = auth.credential as? ASAuthorizationAppleIDCredential {
                 let userId = credential.user
-                let email = credential.email ?? ""
+                let email = credential.email
                 let name = [
                     credential.fullName?.givenName,
                     credential.fullName?.familyName
                 ].compactMap { $0 }.joined(separator: " ")
 
-                // Store Apple user ID
-                UserDefaults.standard.set(userId, forKey: "ma_apple_user_id")
-                if !email.isEmpty {
-                    UserDefaults.standard.set(email, forKey: "ma_email")
-                }
-                if !name.isEmpty {
-                    UserDefaults.standard.set(name, forKey: "ma_name")
-                }
+                authManager.saveAppleSession(
+                    appleUserID: userId,
+                    email: email,
+                    name: name.isEmpty ? nil : name
+                )
 
                 HapticManager.success()
-                handlePostSignIn(email: email.isEmpty ? nil : email)
+                handlePostSignIn(email: email)
                 appState.authStatus = .signedIn
             }
         case .failure:

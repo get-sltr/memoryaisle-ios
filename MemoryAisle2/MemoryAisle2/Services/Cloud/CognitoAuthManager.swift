@@ -119,6 +119,27 @@ final class CognitoAuthManager {
         clearSession()
     }
 
+    /// Sign in with Apple entry point. Apple does not issue a renewable
+    /// access token the way Cognito does — subsequent sign-ins only
+    /// return the stable Apple user ID. The session therefore persists
+    /// via UserDefaults keyed on that ID, and the install marker is
+    /// set so `restoreSession` on the next cold launch will trust it.
+    /// Email is recorded only on Apple's first-ever SIWA response for a
+    /// given app/user pair, so callers should always persist what they
+    /// get; we won't see it again.
+    func saveAppleSession(appleUserID: String, email: String?, name: String?) {
+        UserDefaults.standard.set(appleUserID, forKey: "ma_apple_user_id")
+        if let email, !email.isEmpty {
+            UserDefaults.standard.set(email, forKey: "ma_email")
+            self.email = email
+        }
+        if let name, !name.isEmpty {
+            UserDefaults.standard.set(name, forKey: "ma_name")
+        }
+        UserDefaults.standard.set(true, forKey: Self.installMarkerKey)
+        isSignedIn = true
+    }
+
     /// Coordinated sign-out used by the Profile Sign Out button and
     /// the "Delete All Data" flow. Does **not** purge local SwiftData —
     /// MemoryAisle is a longitudinal journey app, so a user signing
@@ -162,6 +183,18 @@ final class CognitoAuthManager {
     func restoreSession() async {
         if !UserDefaults.standard.bool(forKey: Self.installMarkerKey) {
             clearSession()
+            return
+        }
+
+        // Sign in with Apple path: Apple never returns a renewable
+        // token for subsequent sign-ins, so the SIWA session is
+        // represented solely by the stable Apple user ID stored in
+        // UserDefaults. When that marker is present the user is
+        // considered signed in — this removes the pre-existing bug
+        // where SIWA users had to re-authenticate on every cold launch.
+        if UserDefaults.standard.string(forKey: "ma_apple_user_id") != nil {
+            email = UserDefaults.standard.string(forKey: "ma_email")
+            isSignedIn = true
             return
         }
 
@@ -258,6 +291,11 @@ final class CognitoAuthManager {
         deleteFromKeychain(key: "ma_token")
         UserDefaults.standard.removeObject(forKey: "ma_email")
         UserDefaults.standard.removeObject(forKey: "ma_token")
+        // Sign in with Apple markers — without these a signed-out SIWA
+        // user would still look signed-in to restoreSession on the
+        // next cold launch.
+        UserDefaults.standard.removeObject(forKey: "ma_apple_user_id")
+        UserDefaults.standard.removeObject(forKey: "ma_name")
     }
 
     private func saveToKeychain(key: String, value: String) {
