@@ -29,22 +29,6 @@ struct MemoryAisleApp: App {
                 .environment(subscriptionManager)
                 .environment(miraUsage)
                 .environment(barcodeUsage)
-                .modelContainer(for: [
-                    UserProfile.self,
-                    NutritionLog.self,
-                    SymptomLog.self,
-                    PantryItem.self,
-                    GIToleranceRecord.self,
-                    MealPlan.self,
-                    Meal.self,
-                    FoodItem.self,
-                    GroceryList.self,
-                    MedicationProfile.self,
-                    TrainingSession.self,
-                    BodyComposition.self,
-                    ProviderReport.self,
-                    SavedRecipe.self
-                ])
                 // Re-query StoreKit whenever the app becomes active so a
                 // subscription purchased on another device, a cancellation
                 // processed while backgrounded, or an Apple ID switch is
@@ -62,6 +46,18 @@ struct RootView: View {
     @Environment(AppState.self) private var appState
     @Query private var profiles: [UserProfile]
     @State private var hasSeenWelcome = UserDefaults.standard.bool(forKey: "ma_seen_welcome")
+    @State private var container: ModelContainer = Self.buildInitialContainer()
+
+    /// Resolves the right ModelContainer for whoever is currently signed
+    /// in (or the anonymous one if nobody is). Called at launch and again
+    /// whenever auth state changes, so the per-user store file is always
+    /// the one queries see.
+    private static func buildInitialContainer() -> ModelContainer {
+        let id = UserDataContainer.currentIdentifier()
+        if let c = try? UserDataContainer.make(for: id) { return c }
+        if let c = try? UserDataContainer.make(for: nil) { return c }
+        preconditionFailure("Failed to build any SwiftData container at launch")
+    }
 
     private var isOnboarded: Bool {
         appState.hasCompletedOnboarding || (profiles.first?.hasCompletedOnboarding == true)
@@ -90,6 +86,7 @@ struct RootView: View {
                 }
             }
         }
+        .modelContainer(container)
         .onAppear {
             if profiles.first?.hasCompletedOnboarding == true {
                 appState.hasCompletedOnboarding = true
@@ -105,6 +102,22 @@ struct RootView: View {
                     }
                 }
             }
+        }
+        .onChange(of: appState.authStatus) { _, _ in
+            rebuildContainerForCurrentUser()
+        }
+    }
+
+    /// Rebuilds the SwiftData container to match the currently signed-in
+    /// user (or anonymous if none). Triggered when auth state transitions
+    /// so a new sign-in, sign-out, or account switch never leaves the
+    /// previous user's data visible to the next user. Nothing is
+    /// deleted — each user's container file persists on disk; we just
+    /// swap which one the app is reading from.
+    private func rebuildContainerForCurrentUser() {
+        let id = UserDataContainer.currentIdentifier()
+        if let newContainer = try? UserDataContainer.make(for: id) {
+            container = newContainer
         }
     }
 
