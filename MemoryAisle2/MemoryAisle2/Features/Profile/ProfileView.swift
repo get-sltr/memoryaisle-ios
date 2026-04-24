@@ -25,6 +25,7 @@ struct ProfileView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
                     profileHeader
+                    accountCard
                     statsRing
                     weeklyCheckIn
                     AppleHealthCard()
@@ -137,6 +138,74 @@ struct ProfileView: View {
         .buttonStyle(.plain)
         .accessibilityLabel("Change profile photo")
         .photosPicker(isPresented: $showPhotoPicker, selection: $selectedPhoto, matching: .images)
+    }
+
+    // MARK: - Account
+
+    /// Shows the currently signed-in email and sign-in method so users
+    /// can confirm which account they are in without having to sign out
+    /// and back in. Critical for a health app where the account holds
+    /// medication and GI tolerance data.
+    private var accountCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("ACCOUNT")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                .tracking(1.2)
+
+            accountRow(
+                label: "Email",
+                value: accountEmail,
+                icon: "envelope.fill"
+            )
+            accountRow(
+                label: "Sign-in method",
+                value: signInMethodLabel,
+                icon: isSignedInWithApple ? "applelogo" : "key.fill"
+            )
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Theme.Surface.glass(for: scheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
+    }
+
+    private func accountRow(label: String, value: String, icon: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundStyle(Color.violet.opacity(0.5))
+                .frame(width: 16)
+            Text(label)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+            Spacer()
+            Text(value)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Theme.Text.primary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label): \(value)")
+    }
+
+    private var accountEmail: String {
+        CognitoAuthManager.currentEmail() ?? "Hidden by Apple"
+    }
+
+    private var isSignedInWithApple: Bool {
+        CognitoAuthManager.isSignedInWithApple()
+    }
+
+    private var signInMethodLabel: String {
+        isSignedInWithApple ? "Apple" : "Email"
     }
 
     // MARK: - Stats Ring

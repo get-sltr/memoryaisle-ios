@@ -335,6 +335,41 @@ final class CognitoAuthManager {
         return String(data: data, encoding: .utf8)
     }
 
+    /// Email for the currently signed-in account, or nil if no session
+    /// is active. Read from Keychain first (where email is stored after
+    /// migration) with a UserDefaults fallback for Sign in with Apple
+    /// users whose email landed there first. Settings uses this to show
+    /// the user which account they are signed in under.
+    nonisolated static func currentEmail() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "com.sltrdigital.memoryaisle",
+            kSecAttrAccount as String: "ma_email",
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status == errSecSuccess,
+           let data = result as? Data,
+           let email = String(data: data, encoding: .utf8),
+           !email.isEmpty {
+            return email
+        }
+        if let email = UserDefaults.standard.string(forKey: "ma_email"),
+           !email.isEmpty {
+            return email
+        }
+        return nil
+    }
+
+    /// True if the current session was established via Sign in with
+    /// Apple rather than Cognito email/password. Used by Settings to
+    /// display the correct sign-in method indicator.
+    nonisolated static func isSignedInWithApple() -> Bool {
+        UserDefaults.standard.string(forKey: "ma_apple_user_id") != nil
+    }
+
     private nonisolated static func decodeJWTSub(_ token: String) -> String? {
         let parts = token.split(separator: ".")
         guard parts.count >= 2 else { return nil }
