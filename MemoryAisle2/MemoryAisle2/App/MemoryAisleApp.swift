@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UIKit
 
 @main
 struct MemoryAisleApp: App {
@@ -43,6 +44,7 @@ struct MemoryAisleApp: App {
 
 struct RootView: View {
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(AppState.self) private var appState
     @Query private var profiles: [UserProfile]
     @State private var hasSeenWelcome = UserDefaults.standard.bool(forKey: "ma_seen_welcome")
@@ -106,6 +108,10 @@ struct RootView: View {
         .onChange(of: appState.authStatus) { _, _ in
             rebuildContainerForCurrentUser()
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .background else { return }
+            pushOnBackground()
+        }
     }
 
     /// Rebuilds the SwiftData container to match the currently signed-in
@@ -118,6 +124,27 @@ struct RootView: View {
         let id = UserDataContainer.currentIdentifier()
         if let newContainer = try? UserDataContainer.make(for: id) {
             container = newContainer
+        }
+    }
+
+    /// Best-effort push of local syncable state when the app moves to
+    /// the background. iOS only gives us a few seconds before suspension,
+    /// so `beginBackgroundTask` buys us up to ~30s to finish. If iOS
+    /// kills us mid-push the next sign-out or next backgrounding catches
+    /// up — logs aren't lost, just delayed. Respects the `CloudSyncable`
+    /// allowlist so Safe Space never leaves the device.
+    private func pushOnBackground() {
+        guard let email = CognitoAuthManager.currentEmail(), !email.isEmpty else { return }
+        let capturedContainer = container
+
+        Task { @MainActor in
+            let holder = BackgroundTaskHolder()
+            holder.id = UIApplication.shared.beginBackgroundTask(withName: "cloud-sync-push") {
+                holder.endIfNeeded()
+            }
+            let context = ModelContext(capturedContainer)
+            await CloudSyncManager().pushAll(userId: email, modelContext: context)
+            holder.endIfNeeded()
         }
     }
 
@@ -178,5 +205,21 @@ struct RootView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.background(for: scheme).ignoresSafeArea())
+    }
+}
+
+/// Wraps a `UIBackgroundTaskIdentifier` so the expiration handler and
+/// the completion path share one source of truth. Main-actor isolated
+/// because `UIApplication.endBackgroundTask` must be called from the
+/// main thread.
+@MainActor
+private final class BackgroundTaskHolder {
+    var id: UIBackgroundTaskIdentifier = .invalid
+
+    func endIfNeeded() {
+        guard id != .invalid else { return }
+        let toEnd = id
+        id = .invalid
+        UIApplication.shared.endBackgroundTask(toEnd)
     }
 }

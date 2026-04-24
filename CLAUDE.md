@@ -114,6 +114,20 @@ Users switch between: Everyday GLP-1, Sensitive Stomach, Muscle Preservation, Tr
 ### Backend
 Cognito auth (Amplify Swift SDK v2) -> API Gateway -> Lambda (VPC) -> Aurora Serverless v2 (PostgreSQL 16). Bedrock Claude for Mira. CDK (TypeScript) for IaC.
 
+### Cloud Sync (since 1.0.3)
+
+Longitudinal data pushes to the backend so a device switch or app reinstall restores the user's history.
+
+**Allowlist is compile-time.** `Services/Cloud/CloudSyncable.swift` declares a marker protocol that extends `PersistentModel`. Exactly these four models conform: `UserProfile`, `NutritionLog`, `SymptomLog`, `PantryItem`. Every fetch inside `CloudSyncManager.pushAll` flows through `fetchSyncable<T: CloudSyncable>`, so a non-conforming type cannot reach the network without a compile error. Adding a new syncable model means adding conformance *and* updating the `CloudSyncableTests` allowlist count in the same commit — both halves are required.
+
+**Safe Space is an explicit non-sync zone.** `SafeSpaceEntry` is a local-only `Codable` struct (not `@Model`), FaceID-gated on view, stored at `Documents/.safespace.json` with `.completeFileProtection`. It is *never* allowed to leave the device. The privacy invariant is defended by three independent gates: (1) it's not a `PersistentModel`, (2) it's not on the `CloudSyncable` allowlist, (3) its init is inferred `@MainActor` so a nonisolated async push path can't instantiate it. `CloudSyncableTests.testSafeSpaceEntryRemainsLocalOnlyStruct` pins the struct shape so converting it to a class triggers a deliberate review.
+
+**Hook points:**
+- **Sign-out (blocking push):** `CognitoAuthManager.signOutEverywhere` awaits `pushAll` *before* clearing the session and before `appState.authStatus` flips — the container rebuild in `RootView` would otherwise swap in the anonymous store mid-push. Blocking is deliberate: sign-out is an explicit user action and correctness outranks UX here.
+- **Backgrounding (best-effort push):** `RootView` observes `scenePhase == .background` and wraps `pushAll` in `UIApplication.beginBackgroundTask` to buy up to ~30s past suspension. If iOS kills us mid-push, the next sign-out or next backgrounding catches up — logs delayed, not lost.
+- **Sign-in (fire-and-forget pull):** `AuthFlowView.handlePostSignIn` kicks off `pullAll` in a Task. `pullAll` currently returns the server payload but does not yet restore into SwiftData — the local store is authoritative on this device. The restore-to-local path is deferred to a later version.
+- **Manual fallback:** the "Sync to Cloud" button in `ProfileView` stays wired to `pushAll` unchanged, for users who want to force a sync between the automatic ones.
+
 ## Hard Constraints
 
 ### Dependencies

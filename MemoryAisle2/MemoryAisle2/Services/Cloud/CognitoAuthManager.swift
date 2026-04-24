@@ -151,16 +151,28 @@ final class CognitoAuthManager {
     /// account actually changes.
     ///
     /// This function:
-    /// 1. Clears the App Reviewer Pro override (`clearReviewerFlag`)
+    /// 1. Pushes local syncable state to the cloud so logs written in
+    ///    this session survive a device switch or app reinstall. Runs
+    ///    **before** the session is cleared — otherwise `currentEmail()`
+    ///    returns nil and the container rebuild in `RootView` would
+    ///    leave `modelContext` pointing at the anonymous store. Push
+    ///    obeys the `CloudSyncable` allowlist so Safe Space never
+    ///    leaves the device.
+    /// 2. Clears the App Reviewer Pro override (`clearReviewerFlag`)
     ///    so the next user on this device is not granted Pro.
-    /// 2. Tears down keychain + in-memory auth state.
-    /// 3. Re-evaluates the subscription tier so any stale Pro state
+    /// 3. Tears down keychain + in-memory auth state.
+    /// 4. Re-evaluates the subscription tier so any stale Pro state
     ///    from the previous session is dropped (a real paid StoreKit
     ///    entitlement survives and is correctly restored).
     static func signOutEverywhere(
         modelContext: ModelContext,
         subscription: SubscriptionManager
     ) async {
+        if let email = currentEmail(), !email.isEmpty {
+            let sync = CloudSyncManager()
+            await sync.pushAll(userId: email, modelContext: modelContext)
+        }
+
         AppReviewerSeedService.clearReviewerFlag()
 
         CognitoAuthManager().signOut()

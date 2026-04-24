@@ -17,14 +17,17 @@ final class CloudSyncManager {
         syncError = nil
 
         do {
-            // Push profile
-            let profiles = try modelContext.fetch(FetchDescriptor<UserProfile>())
+            // Every fetch flows through `fetchSyncable`, whose generic
+            // parameter is constrained to `CloudSyncable`. Anything that
+            // isn't on the allowlist — including `SafeSpaceEntry` — can't
+            // reach the network path without a compile error.
+
+            let profiles = try fetchSyncable(UserProfile.self, from: modelContext)
             if let profile = profiles.first {
                 try await push(userId: userId, dataType: "profile", data: encodeProfile(profile))
             }
 
-            // Push nutrition logs
-            let logs = try modelContext.fetch(FetchDescriptor<NutritionLog>())
+            let logs = try fetchSyncable(NutritionLog.self, from: modelContext)
             let logsData = logs.map { log in
                 [
                     "date": ISO8601DateFormatter().string(from: log.date),
@@ -36,8 +39,7 @@ final class CloudSyncManager {
             }
             try await push(userId: userId, dataType: "nutritionLogs", data: logsData)
 
-            // Push symptom logs
-            let symptoms = try modelContext.fetch(FetchDescriptor<SymptomLog>())
+            let symptoms = try fetchSyncable(SymptomLog.self, from: modelContext)
             let symptomsData = symptoms.map { s in
                 [
                     "date": ISO8601DateFormatter().string(from: s.date),
@@ -51,8 +53,7 @@ final class CloudSyncManager {
             }
             try await push(userId: userId, dataType: "symptomLogs", data: symptomsData)
 
-            // Push pantry
-            let pantry = try modelContext.fetch(FetchDescriptor<PantryItem>())
+            let pantry = try fetchSyncable(PantryItem.self, from: modelContext)
             let pantryData = pantry.map { p in
                 [
                     "name": p.name,
@@ -69,6 +70,18 @@ final class CloudSyncManager {
         }
 
         isSyncing = false
+    }
+
+    /// Compile-time gated fetch. `T: CloudSyncable` is the privacy
+    /// invariant — any model reaching the cloud push path must first be
+    /// added to the `CloudSyncable` allowlist. `SafeSpaceEntry` is not a
+    /// `@Model` and is not on the allowlist, so calls like
+    /// `fetchSyncable(SafeSpaceEntry.self, ...)` will not compile.
+    private func fetchSyncable<T: CloudSyncable>(
+        _ type: T.Type,
+        from modelContext: ModelContext
+    ) throws -> [T] {
+        try modelContext.fetch(FetchDescriptor<T>())
     }
 
     // MARK: - Pull Data

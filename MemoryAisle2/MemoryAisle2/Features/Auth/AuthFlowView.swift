@@ -31,9 +31,24 @@ struct AuthFlowView: View {
     /// no shared-device multi-user scenario to defend against, and
     /// Reflection depends on the full longitudinal history surviving
     /// every sign-out / sign-in round trip.
+    ///
+    /// Also kicks off a fire-and-forget `pullAll` so the server-side
+    /// payload is fetched while the user lands on Home. The pull
+    /// currently does not write back into SwiftData — the local store
+    /// is already the source of truth on this device — so this call is
+    /// a warm-up for the restore-to-local path we'll land later. It
+    /// respects the `CloudSyncable` allowlist, so Safe Space is never
+    /// part of the payload either direction.
     private func handlePostSignIn(email: String?) {
         AppReviewerSeedService.handleSignIn(email: email, modelContext: modelContext)
         subscriptionManager.refreshOverrides()
+
+        if let email, !email.isEmpty {
+            Task {
+                let sync = CloudSyncManager()
+                _ = await sync.pullAll(userId: email)
+            }
+        }
     }
 
     var body: some View {
