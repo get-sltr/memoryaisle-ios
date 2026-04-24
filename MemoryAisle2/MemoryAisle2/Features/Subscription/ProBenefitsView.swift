@@ -11,6 +11,7 @@ import SwiftUI
 struct ProBenefitsView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(SubscriptionManager.self) private var subscriptionManager
     @State private var showManageSubscriptions = false
 
     var body: some View {
@@ -109,11 +110,11 @@ struct ProBenefitsView: View {
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .tracking(1.2)
 
-            Text("$49.99")
+            Text(activePriceText)
                 .font(Typography.monoLarge)
                 .foregroundStyle(Theme.Text.primary)
 
-            Text("per year \u{00b7} auto-renews annually")
+            Text(activePeriodText)
                 .font(Typography.bodySmall)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
         }
@@ -130,6 +131,21 @@ struct ProBenefitsView: View {
         .padding(.horizontal, 24)
     }
 
+    private var isActiveMonthly: Bool {
+        subscriptionManager.activeProduct?.id == SubscriptionManager.proMonthlyID
+    }
+
+    private var activePriceText: String {
+        subscriptionManager.activeProduct?.displayPrice
+            ?? (isActiveMonthly ? "$9.99" : "$49.99")
+    }
+
+    private var activePeriodText: String {
+        isActiveMonthly
+            ? "per month \u{00b7} auto-renews monthly"
+            : "per year \u{00b7} auto-renews annually"
+    }
+
     // MARK: - Manage button
 
     private var manageButton: some View {
@@ -142,9 +158,17 @@ struct ProBenefitsView: View {
 
     // MARK: - Legal footnote (auto-renewal disclosure)
 
+    private var legalCopy: String {
+        let activeID = subscriptionManager.activeProduct?.id
+            ?? (isActiveMonthly ? SubscriptionManager.proMonthlyID : SubscriptionManager.proAnnualID)
+        let price = subscriptionManager.activeProduct?.displayPrice
+            ?? (isActiveMonthly ? "$9.99" : "$49.99")
+        return SubscriptionManager.legalCopy(productID: activeID, displayPrice: price)
+    }
+
     private var legalFootnote: some View {
         VStack(spacing: 6) {
-            Text("MemoryAisle Pro is a $49.99/year auto-renewable subscription. Payment is charged to your Apple ID at confirmation. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in Settings \u{203a} Apple ID \u{203a} Subscriptions.")
+            Text(legalCopy)
                 .font(Typography.label)
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 .multilineTextAlignment(.center)

@@ -35,6 +35,27 @@
           "referenceName" : "Pro Yearly",
           "subscriptionGroupID" : "memoryaisle_pro",
           "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "pro_monthly",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Full adaptive meal planning, unlimited Mira, barcode scans, body comp tracking, and more.",
+              "displayName" : "MemoryAisle Pro",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.sltrdigital.memoryaisle.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Pro Monthly",
+          "subscriptionGroupID" : "memoryaisle_pro",
+          "type" : "RecurringSubscription"
         }
       ]
     }

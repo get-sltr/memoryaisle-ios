@@ -8,6 +8,7 @@ struct PaywallView: View {
     @State private var isPurchasing = false
     @State private var showError = false
     @State private var showPending = false
+    @State private var selectedProductID: String = SubscriptionManager.proAnnualID
 
     var body: some View {
         VStack(spacing: 0) {
@@ -53,50 +54,25 @@ struct PaywallView: View {
                     }
                     .padding(.horizontal, 24)
 
-                    // Price card
+                    // Plan selection (stacked cards)
                     VStack(spacing: 10) {
-                        Text("MemoryAisle Pro")
-                            .font(Typography.label)
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                            .tracking(1.2)
-
-                        if let product = subscriptionManager.products.first {
-                            Text(product.displayPrice)
-                                .font(Typography.monoLarge)
-                                .foregroundStyle(Theme.Text.primary)
-
-                            Text("per year \u{00b7} auto-renews annually")
-                                .font(Typography.bodySmall)
-                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-
-                            Text("Less than $1/week")
-                                .font(Typography.bodySmall)
-                                .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.6))
-                        } else {
-                            // Avoid showing a hardcoded fallback price
-                            // (App Store Guideline 3.1.2 requires that
-                            // any displayed price reflects the live App
-                            // Store Connect tier).
-                            ProgressView()
-                                .progressViewStyle(.circular)
-                                .tint(Theme.Accent.primary(for: scheme))
-                                .frame(height: 32)
-
-                            Text("Loading subscription details...")
-                                .font(Typography.bodySmall)
-                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                        }
+                        planCard(
+                            productID: SubscriptionManager.proAnnualID,
+                            title: "Annual",
+                            fallbackPrice: "$49.99",
+                            periodLine: "per year \u{00b7} ~$0.96/week",
+                            badge: "Best value",
+                            savings: "Save 58% vs monthly"
+                        )
+                        planCard(
+                            productID: SubscriptionManager.proMonthlyID,
+                            title: "Monthly",
+                            fallbackPrice: "$9.99",
+                            periodLine: "per month",
+                            badge: nil,
+                            savings: nil
+                        )
                     }
-                    .padding(.vertical, 20)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Theme.Accent.primary(for: scheme).opacity(0.06))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(Theme.Accent.primary(for: scheme).opacity(0.15), lineWidth: 0.5)
-                    )
                     .padding(.horizontal, 24)
 
                     // CTA
@@ -120,7 +96,7 @@ struct PaywallView: View {
 
                     // Legal
                     VStack(spacing: 6) {
-                        Text("MemoryAisle Pro is a $49.99/year auto-renewable subscription. Payment is charged to your Apple ID at confirmation. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in Settings \u{203a} Apple ID \u{203a} Subscriptions.")
+                        Text(legalCopy)
                             .font(Typography.label)
                             .foregroundStyle(Theme.Text.tertiary(for: scheme))
                             .multilineTextAlignment(.center)
@@ -203,12 +179,12 @@ struct PaywallView: View {
 
     // MARK: - Purchase
 
-    /// Attempts the purchase. If StoreKit hasn't loaded the product yet
-    /// (slow network, fast-tapping user, or a temporarily unavailable
-    /// App Store Connect entry), this retries `loadProducts()` first,
-    /// then falls through to the purchase. If the product is still
-    /// unavailable after the retry, surfaces the error alert so the
-    /// user gets feedback instead of a dead button.
+    /// Attempts the purchase of the currently selected plan. If StoreKit
+    /// hasn't loaded the product yet (slow network, fast-tapping user,
+    /// or a temporarily unavailable App Store Connect entry), this
+    /// retries `loadProducts()` first, then falls through. If the
+    /// selected product is still unavailable, surfaces the error alert
+    /// so the user gets feedback instead of a dead button.
     private func handlePurchase() async {
         isPurchasing = true
         defer { isPurchasing = false }
@@ -217,13 +193,14 @@ struct PaywallView: View {
             await subscriptionManager.loadProducts()
         }
 
-        guard !subscriptionManager.products.isEmpty else {
+        guard subscriptionManager.products.contains(where: { $0.id == selectedProductID }) else {
             showError = true
             return
         }
 
         do {
             let outcome = try await subscriptionManager.purchase(
+                productID: selectedProductID,
                 appAccountToken: CognitoAuthManager.currentUserUUID()
             )
             switch outcome {
@@ -240,5 +217,108 @@ struct PaywallView: View {
         } catch {
             showError = true
         }
+    }
+
+    // MARK: - Plan card
+
+    private func planCard(
+        productID: String,
+        title: String,
+        fallbackPrice: String,
+        periodLine: String,
+        badge: String?,
+        savings: String?
+    ) -> some View {
+        let isSelected = selectedProductID == productID
+        let product = subscriptionManager.products.first(where: { $0.id == productID })
+        let priceText = product?.displayPrice ?? fallbackPrice
+
+        return Button {
+            HapticManager.selection()
+            selectedProductID = productID
+        } label: {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 8) {
+                        Text(title.uppercased())
+                            .font(Typography.label)
+                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                            .tracking(1.2)
+
+                        if let badge {
+                            Text(badge.uppercased())
+                                .font(.system(size: 9, weight: .semibold))
+                                .tracking(0.8)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Capsule().fill(Theme.Accent.primary(for: scheme)))
+                        }
+                    }
+
+                    Text(priceText)
+                        .font(Typography.monoLarge)
+                        .foregroundStyle(Theme.Text.primary)
+
+                    Text(periodLine)
+                        .font(Typography.bodySmall)
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+
+                    if let savings {
+                        Text(savings)
+                            .font(Typography.bodySmall)
+                            .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.7))
+                    }
+                }
+
+                Spacer()
+
+                ZStack {
+                    Circle()
+                        .stroke(
+                            isSelected
+                                ? Theme.Accent.primary(for: scheme)
+                                : Theme.Border.glass(for: scheme),
+                            lineWidth: 1.5
+                        )
+                        .frame(width: 22, height: 22)
+
+                    if isSelected {
+                        Circle()
+                            .fill(Theme.Accent.primary(for: scheme))
+                            .frame(width: 12, height: 12)
+                    }
+                }
+                .padding(.top, 4)
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Theme.Accent.primary(for: scheme).opacity(isSelected ? 0.10 : 0.06))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(
+                        isSelected
+                            ? Theme.Accent.primary(for: scheme)
+                            : Theme.Accent.primary(for: scheme).opacity(0.15),
+                        lineWidth: isSelected ? 1.5 : 0.5
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(title) plan, \(priceText), \(periodLine)")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+    }
+
+    // MARK: - Legal copy
+
+    private var legalCopy: String {
+        let fallback = selectedProductID == SubscriptionManager.proMonthlyID ? "$9.99" : "$49.99"
+        let price = subscriptionManager.products
+            .first(where: { $0.id == selectedProductID })?
+            .displayPrice ?? fallback
+        return SubscriptionManager.legalCopy(productID: selectedProductID, displayPrice: price)
     }
 }
