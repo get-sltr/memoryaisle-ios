@@ -54,13 +54,19 @@ struct PaywallView: View {
                     }
                     .padding(.horizontal, 24)
 
-                    // Plan selection (stacked cards)
+                    // Plan selection (stacked cards). Per Apple 3.1.2, the
+                    // auto-renewable nature of each subscription option must
+                    // be clearly disclosed on the pricing itself, not only
+                    // in the legal footnote. "Auto-renews yearly/monthly"
+                    // lives directly under each price so the disclosure is
+                    // impossible to miss and the review screenshot captures
+                    // it on the same frame as the price.
                     VStack(spacing: 10) {
                         planCard(
                             productID: SubscriptionManager.proAnnualID,
                             title: "Annual",
                             fallbackPrice: "$49.99",
-                            periodLine: "per year \u{00b7} ~$0.96/week",
+                            periodLine: "Auto-renews yearly \u{00b7} ~$0.96/week",
                             badge: "Best value",
                             savings: "Save 58% vs monthly"
                         )
@@ -68,7 +74,7 @@ struct PaywallView: View {
                             productID: SubscriptionManager.proMonthlyID,
                             title: "Monthly",
                             fallbackPrice: "$9.99",
-                            periodLine: "per month",
+                            periodLine: "Auto-renews monthly",
                             badge: nil,
                             savings: nil
                         )
