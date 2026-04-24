@@ -16,7 +16,7 @@ struct ProfileView: View {
     @State private var avatarData: Data?
     @State private var avatarImage: Image?
     @State private var showMedStartPicker = false
-    @State private var medStartDate: Date = UserDefaults.standard.object(forKey: "medicationStartDate") as? Date ?? Date()
+    @State private var medStartDate: Date = UserScopedDefaults.object(forKey: "medicationStartDate") as? Date ?? Date()
 
     private var profile: UserProfile? { profiles.first }
 
@@ -104,7 +104,7 @@ struct ProfileView: View {
         }
         .padding(.top, 8)
         .onAppear {
-            if let data = UserDefaults.standard.data(forKey: "ma_avatar"),
+            if let data = UserScopedDefaults.data(forKey: "ma_avatar"),
                let uiImage = UIImage(data: data) {
                 avatarImage = Image(uiImage: uiImage)
             }
@@ -360,7 +360,7 @@ struct ProfileView: View {
                         .datePickerStyle(.compact)
                         .labelsHidden()
                         .onChange(of: medStartDate) { _, newDate in
-                            UserDefaults.standard.set(newDate, forKey: "medicationStartDate")
+                            UserScopedDefaults.set(newDate, forKey: "medicationStartDate")
                         }
                         .transition(.opacity)
                     }
@@ -665,7 +665,7 @@ struct ProfileView: View {
             await MainActor.run {
                 if let data, let uiImage = UIImage(data: data) {
                     avatarImage = Image(uiImage: uiImage)
-                    UserDefaults.standard.set(data, forKey: "ma_avatar")
+                    UserScopedDefaults.set(data, forKey: "ma_avatar")
                 }
             }
         }

@@ -219,12 +219,12 @@ struct MiraOnboardingView: View {
                     .frame(maxHeight: 160)
 
                     choiceButton("Continue") {
-                        UserDefaults.standard.set(medicationStartDate, forKey: "medicationStartDate")
+                        UserScopedDefaults.set(medicationStartDate, forKey: "medicationStartDate")
                         advanceTo(.ready)
                     }
 
                     choiceButton("I don't remember") {
-                        UserDefaults.standard.set(Date(), forKey: "medicationStartDate")
+                        UserScopedDefaults.set(Date(), forKey: "medicationStartDate")
                         advanceTo(.ready)
                     }
                 }

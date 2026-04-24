@@ -871,7 +871,7 @@ struct HomeView: View {
 
     private func daysSinceJourneyStart() -> Int? {
         let start: Date?
-        if let stored = UserDefaults.standard.object(forKey: "journeyStartDate") as? Date {
+        if let stored = UserScopedDefaults.object(forKey: "journeyStartDate") as? Date {
             start = stored
         } else if let earliest = bodyCompRecords.last?.date {
             start = earliest

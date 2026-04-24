@@ -49,7 +49,7 @@ struct OnboardingFlow: View {
 
         // Record the journey start date so Reflection can compute "days since"
         // and anchor anniversary milestones.
-        UserDefaults.standard.set(Date(), forKey: "journeyStartDate")
+        UserScopedDefaults.set(Date(), forKey: "journeyStartDate")
 
         // If the user provided a starting photo, create a Day 1 BodyComposition
         // record. This anchors Reflection's hero comparison and produces the

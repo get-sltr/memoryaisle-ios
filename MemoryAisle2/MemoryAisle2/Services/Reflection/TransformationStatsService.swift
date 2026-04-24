@@ -72,7 +72,7 @@ struct TransformationStatsService {
     }
 
     private func computeDays(records: [BodyComposition]) -> Int? {
-        if let stored = UserDefaults.standard.object(forKey: "journeyStartDate") as? Date {
+        if let stored = UserScopedDefaults.object(forKey: "journeyStartDate") as? Date {
             return daysBetween(stored, .now)
         }
         if let earliest = records.first?.date {
