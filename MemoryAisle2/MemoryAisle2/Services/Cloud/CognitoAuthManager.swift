@@ -149,7 +149,22 @@ final class CognitoAuthManager {
 
     // MARK: - Restore Session
 
+    /// UserDefaults marker used to detect a fresh install. Keychain
+    /// items persist across app deletes but UserDefaults does not, so
+    /// if this key is missing while Keychain holds credentials, the
+    /// app was just reinstalled on a device that previously had a
+    /// signed-in account. For a health app with medication data we
+    /// don't want those credentials silently restored — the new user
+    /// (or the same user on a device that may have changed hands) is
+    /// required to sign in again.
+    private static let installMarkerKey = "ma_install_initialized_v1"
+
     func restoreSession() async {
+        if !UserDefaults.standard.bool(forKey: Self.installMarkerKey) {
+            clearSession()
+            return
+        }
+
         var savedEmail = readFromKeychain(key: "ma_email")
         var savedToken = readFromKeychain(key: "ma_token")
 
@@ -231,6 +246,11 @@ final class CognitoAuthManager {
     private func saveSession(email: String?, token: String?) {
         if let email { saveToKeychain(key: "ma_email", value: email) }
         if let token { saveToKeychain(key: "ma_token", value: token) }
+        // Mark the install as initialized so a subsequent cold launch
+        // restoreSession() will trust the Keychain credentials. Without
+        // this, restoreSession treats the next launch as a fresh install
+        // and wipes the session.
+        UserDefaults.standard.set(true, forKey: Self.installMarkerKey)
     }
 
     private func clearSession() {
