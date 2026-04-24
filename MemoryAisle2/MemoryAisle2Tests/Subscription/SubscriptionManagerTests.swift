@@ -2,45 +2,32 @@ import XCTest
 @testable import MemoryAisle2
 
 /// SubscriptionManager tests. Covers the pure tier-computation rule
-/// (reviewer override wins; otherwise any Pro product ID in the active
-/// purchase set flips the user to Pro) and the canonical auto-renewal
-/// disclosure string required by App Store guideline 3.1.2. Wiring the
-/// live StoreKit APIs into a test harness is a separate ask; this suite
-/// guards the logic users actually experience as "am I Pro" and "does
-/// the paywall say the right thing about billing."
+/// (the user is Pro iff any Pro product ID is in their active purchase
+/// set) and the canonical auto-renewal disclosure string required by
+/// App Store guideline 3.1.2. Wiring the live StoreKit APIs into a test
+/// harness is a separate ask; this suite guards the logic users
+/// actually experience as "am I Pro" and "does the paywall say the
+/// right thing about billing."
 @MainActor
 final class SubscriptionManagerTests: XCTestCase {
 
     // MARK: - computeTier
 
-    func test_computeTier_emptyPurchases_notReviewer_isFree() {
-        let tier = SubscriptionManager.computeTier(
-            activePurchases: [],
-            isReviewer: false
-        )
+    func test_computeTier_emptyPurchases_isFree() {
+        let tier = SubscriptionManager.computeTier(activePurchases: [])
         XCTAssertEqual(tier, .free)
-    }
-
-    func test_computeTier_emptyPurchases_isReviewer_isPro() {
-        let tier = SubscriptionManager.computeTier(
-            activePurchases: [],
-            isReviewer: true
-        )
-        XCTAssertEqual(tier, .pro)
     }
 
     func test_computeTier_annualOnly_isPro() {
         let tier = SubscriptionManager.computeTier(
-            activePurchases: [SubscriptionManager.proAnnualID],
-            isReviewer: false
+            activePurchases: [SubscriptionManager.proAnnualID]
         )
         XCTAssertEqual(tier, .pro)
     }
 
     func test_computeTier_monthlyOnly_isPro() {
         let tier = SubscriptionManager.computeTier(
-            activePurchases: [SubscriptionManager.proMonthlyID],
-            isReviewer: false
+            activePurchases: [SubscriptionManager.proMonthlyID]
         )
         XCTAssertEqual(tier, .pro)
     }
@@ -50,28 +37,16 @@ final class SubscriptionManagerTests: XCTestCase {
             activePurchases: [
                 SubscriptionManager.proAnnualID,
                 SubscriptionManager.proMonthlyID
-            ],
-            isReviewer: false
+            ]
         )
         XCTAssertEqual(tier, .pro)
     }
 
     func test_computeTier_unknownProductID_isFree() {
         let tier = SubscriptionManager.computeTier(
-            activePurchases: ["com.other.app.subscription"],
-            isReviewer: false
+            activePurchases: ["com.other.app.subscription"]
         )
         XCTAssertEqual(tier, .free)
-    }
-
-    func test_computeTier_annualAndReviewer_isPro() {
-        // Reviewer flag plus a real purchase should still resolve to .pro;
-        // the flag is a shortcut, not a blocker for paying users.
-        let tier = SubscriptionManager.computeTier(
-            activePurchases: [SubscriptionManager.proAnnualID],
-            isReviewer: true
-        )
-        XCTAssertEqual(tier, .pro)
     }
 
     // MARK: - proProductIDs membership

@@ -20,6 +20,13 @@ struct MemoryAisleApp: App {
             appropriateFor: nil,
             create: true
         )
+
+        // The reviewer-bypass path was removed in 1.0.3 — its UserDefaults
+        // keys are dead state now. Wipe them on every launch so devices
+        // that hit the previous build can't carry a stale Pro override
+        // forward. Idempotent: removeObject on a missing key is a no-op.
+        UserDefaults.standard.removeObject(forKey: "ma_is_app_reviewer_v1")
+        UserDefaults.standard.removeObject(forKey: "ma_review_seed_done_v1")
     }
 
     var body: some Scene {

@@ -21,12 +21,6 @@ final class SubscriptionManager {
     private var updateTask: Task<Void, Never>?
 
     init() {
-        // Honour the App Reviewer override at construction time so any
-        // gating decision made before `updateSubscriptionStatus()` runs
-        // still treats the reviewer device as Pro.
-        if AppReviewerSeedService.isMarkedAsReviewer {
-            tier = .pro
-        }
         // StoreKit 2 requires a Task iterating Transaction.updates to be
         // active from app launch, otherwise async transaction outcomes
         // (Ask-to-Buy approvals, background renewals, refunds) are lost
@@ -37,15 +31,6 @@ final class SubscriptionManager {
         // hits a Pro gate. Without this, tier stays .free until the paywall
         // happens to appear and its .task runs updateSubscriptionStatus().
         Task { await updateSubscriptionStatus() }
-    }
-
-    /// Re-evaluates the local Pro flag from `AppReviewerSeedService` so a
-    /// just-signed-in reviewer flips to Pro tier immediately, without
-    /// waiting for the next StoreKit refresh.
-    func refreshOverrides() {
-        if AppReviewerSeedService.isMarkedAsReviewer {
-            tier = .pro
-        }
     }
 
     func startListening() {
@@ -123,19 +108,14 @@ final class SubscriptionManager {
         }
 
         purchasedProductIDs = activePurchases
-        tier = Self.computeTier(
-            activePurchases: activePurchases,
-            isReviewer: AppReviewerSeedService.isMarkedAsReviewer
-        )
+        tier = Self.computeTier(activePurchases: activePurchases)
     }
 
     // Pure tier-computation so the entitlement math can be exercised in
-    // unit tests without standing up StoreKit. The rule: reviewer override
-    // wins, otherwise the user is Pro iff any of the known Pro product
-    // IDs are in their active purchase set.
-    static func computeTier(activePurchases: Set<String>, isReviewer: Bool) -> SubscriptionTier {
-        if isReviewer { return .pro }
-        return activePurchases.isDisjoint(with: proProductIDs) ? .free : .pro
+    // unit tests without standing up StoreKit. The user is Pro iff any
+    // of the known Pro product IDs are in their active purchase set.
+    static func computeTier(activePurchases: Set<String>) -> SubscriptionTier {
+        activePurchases.isDisjoint(with: proProductIDs) ? .free : .pro
     }
 
     // The StoreKit Product for the user's currently active subscription,

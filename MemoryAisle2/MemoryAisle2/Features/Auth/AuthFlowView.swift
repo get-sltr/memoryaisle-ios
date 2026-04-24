@@ -21,10 +21,7 @@ struct AuthFlowView: View {
     @State private var showLegal: LegalPage?
 
     /// Hook called after every successful sign-in path (email, Apple,
-    /// session restore). Detects the App Reviewer email, persists the
-    /// override, seeds demo data on first run, and refreshes the shared
-    /// SubscriptionManager so the rest of the app sees Pro tier
-    /// immediately without waiting for the next StoreKit refresh.
+    /// session restore).
     ///
     /// Does **not** touch local SwiftData. MemoryAisle is a personal
     /// GLP-1 prescription tracker — one user per device — so there is
@@ -32,17 +29,14 @@ struct AuthFlowView: View {
     /// Reflection depends on the full longitudinal history surviving
     /// every sign-out / sign-in round trip.
     ///
-    /// Also kicks off a fire-and-forget `pullAll` so the server-side
-    /// payload is fetched while the user lands on Home. The pull
-    /// currently does not write back into SwiftData — the local store
-    /// is already the source of truth on this device — so this call is
-    /// a warm-up for the restore-to-local path we'll land later. It
-    /// respects the `CloudSyncable` allowlist, so Safe Space is never
-    /// part of the payload either direction.
+    /// Kicks off a fire-and-forget `pullAll` so the server-side payload
+    /// is fetched while the user lands on Home. The pull currently
+    /// does not write back into SwiftData — the local store is already
+    /// the source of truth on this device — so this call is a warm-up
+    /// for the restore-to-local path we'll land later. It respects the
+    /// `CloudSyncable` allowlist, so Safe Space is never part of the
+    /// payload either direction.
     private func handlePostSignIn(email: String?) {
-        AppReviewerSeedService.handleSignIn(email: email, modelContext: modelContext)
-        subscriptionManager.refreshOverrides()
-
         if let email, !email.isEmpty {
             Task {
                 let sync = CloudSyncManager()

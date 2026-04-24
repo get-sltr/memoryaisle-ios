@@ -158,10 +158,8 @@ final class CognitoAuthManager {
     ///    leave `modelContext` pointing at the anonymous store. Push
     ///    obeys the `CloudSyncable` allowlist so Safe Space never
     ///    leaves the device.
-    /// 2. Clears the App Reviewer Pro override (`clearReviewerFlag`)
-    ///    so the next user on this device is not granted Pro.
-    /// 3. Tears down keychain + in-memory auth state.
-    /// 4. Re-evaluates the subscription tier so any stale Pro state
+    /// 2. Tears down keychain + in-memory auth state.
+    /// 3. Re-evaluates the subscription tier so any stale Pro state
     ///    from the previous session is dropped (a real paid StoreKit
     ///    entitlement survives and is correctly restored).
     static func signOutEverywhere(
@@ -172,8 +170,6 @@ final class CognitoAuthManager {
             let sync = CloudSyncManager()
             await sync.pushAll(userId: email, modelContext: modelContext)
         }
-
-        AppReviewerSeedService.clearReviewerFlag()
 
         CognitoAuthManager().signOut()
 

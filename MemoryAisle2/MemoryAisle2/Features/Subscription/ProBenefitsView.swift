@@ -148,45 +148,12 @@ struct ProBenefitsView: View {
 
     // MARK: - Manage button
 
-    @ViewBuilder
     private var manageButton: some View {
-        if AppReviewerSeedService.isMarkedAsReviewer {
-            reviewerAccessNote
-        } else {
-            GlowButton("Manage Subscription") {
-                showManageSubscriptions = true
-            }
-            .accessibilityLabel("Manage subscription, opens Apple's subscription settings")
-            .padding(.horizontal, 32)
+        GlowButton("Manage Subscription") {
+            showManageSubscriptions = true
         }
-    }
-
-    private var reviewerAccessNote: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "checkmark.seal.fill")
-                .font(.system(size: 22))
-                .foregroundStyle(Theme.Accent.primary(for: scheme))
-
-            Text("Reviewer access")
-                .font(Typography.bodyMediumBold)
-                .foregroundStyle(Theme.Text.primary)
-
-            Text("This account has been granted complimentary Pro access for App Store Review. There is no active subscription to manage.")
-                .font(Typography.bodySmall)
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
-                .multilineTextAlignment(.center)
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Theme.Surface.glass(for: scheme))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
-        )
-        .padding(.horizontal, 24)
+        .accessibilityLabel("Manage subscription, opens Apple's subscription settings")
+        .padding(.horizontal, 32)
     }
 
     // MARK: - Legal footnote (auto-renewal disclosure)
