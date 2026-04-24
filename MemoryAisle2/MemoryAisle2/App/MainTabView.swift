@@ -1,9 +1,11 @@
 import StoreKit
+import SwiftData
 import SwiftUI
 
 struct MainTabView: View {
     @Environment(AppState.self) private var appState
     @Environment(SubscriptionManager.self) private var subscriptionManager
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var scheme
     @State private var activeSheet: MainSheet?
 
@@ -128,6 +130,18 @@ struct MainTabView: View {
 
                         menuRow("Settings", icon: "gearshape.fill", color: Theme.Text.tertiary(for: scheme)) {
                             openDestination(.settings)
+                        }
+
+                        menuRow("Sign Out", icon: "rectangle.portrait.and.arrow.right", color: Theme.Text.tertiary(for: scheme)) {
+                            HapticManager.warning()
+                            Task {
+                                await CognitoAuthManager.signOutEverywhere(
+                                    modelContext: modelContext,
+                                    subscription: subscriptionManager
+                                )
+                                appState.authStatus = .signedOut
+                                activeSheet = nil
+                            }
                         }
                     }
                     .padding(.horizontal, 20)
