@@ -83,9 +83,6 @@ struct MainTabView: View {
 
                     // Menu items
                     VStack(spacing: 4) {
-                        menuRow("My Journey", icon: "person.fill", color: Color.violet) {
-                            openDestination(.profile)
-                        }
                         menuRow("Progress", icon: "chart.line.uptrend.xyaxis", color: Color(hex: 0x34D399), proLocked: !isPro) {
                             openDestination(.progress)
                         }
@@ -206,7 +203,6 @@ struct MainTabView: View {
     @ViewBuilder
     private func destinationView(_ dest: MenuDestination) -> some View {
         switch dest {
-        case .profile: JourneyProfileView()
         case .progress: ProgressDashboardView()
         case .groceryList: GroceryListScreen()
         case .recipes: RecipesView()
@@ -223,7 +219,7 @@ struct MainTabView: View {
 }
 
 enum MenuDestination: String, Identifiable, Hashable {
-    case profile, progress, groceryList, recipes, scan, calendar, pantry, safeSpace, reflection, subscribe, proBenefits, settings
+    case progress, groceryList, recipes, scan, calendar, pantry, safeSpace, reflection, subscribe, proBenefits, settings
     var id: String { rawValue }
 }
 

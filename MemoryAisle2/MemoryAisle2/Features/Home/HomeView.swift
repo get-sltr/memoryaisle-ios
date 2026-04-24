@@ -10,13 +10,26 @@ struct HomeView: View {
     @Query private var profiles: [UserProfile]
     @Query(sort: \BodyComposition.date, order: .reverse) private var bodyCompRecords: [BodyComposition]
     @Query(sort: \NutritionLog.date, order: .reverse) private var nutritionLogs: [NutritionLog]
+    @Query(sort: \MealPlan.date, order: .reverse) private var mealPlans: [MealPlan]
 
     private var profile: UserProfile? { profiles.first }
+
+    private var isOnMedication: Bool { profile?.medication != nil }
+
+    private var activeMealPlan: MealPlan? {
+        mealPlans.first(where: { $0.isActive })
+    }
 
     private var todaysLoggedMeals: [NutritionLog] {
         nutritionLogs.filter {
             Calendar.current.isDateInToday($0.date) && $0.foodName != nil
         }
+    }
+
+    private var todaysCalories: Double {
+        nutritionLogs
+            .filter { Calendar.current.isDateInToday($0.date) }
+            .reduce(0) { $0 + $1.caloriesConsumed }
     }
 
     // Starting photo capture
@@ -42,11 +55,14 @@ struct HomeView: View {
             VStack(spacing: 14) {
                 topBar
                 welcomeHeader
+                InjectionCycleBar()
                 intoCard
                 progressRow
                 dailyTargetsCard
+                todaysCalorieProgress
+                todaysPlanCard
                 todaysMealsCard
-                moodCard
+                checkInCard
                 getStartedCard
                 footerNote
             }
@@ -555,6 +571,110 @@ struct HomeView: View {
         let f = DateFormatter()
         f.dateFormat = "h:mm a"
         return f.string(from: date)
+    }
+
+    // MARK: - Today's calorie progress
+
+    private var todaysCalorieProgress: some View {
+        let target = Double(profile?.calorieTarget ?? 1800)
+        let ratio = target > 0 ? min(todaysCalories / target, 1) : 0
+
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("TODAY'S CALORIES")
+                    .font(.system(size: 11, weight: .regular))
+                    .tracking(0.8)
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                Spacer()
+                Text("\(Int(todaysCalories)) / \(Int(target))")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(Color.violet)
+            }
+
+            GeometryReader { geo in
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(Theme.Surface.glass(for: scheme))
+                    .overlay(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill(Color.violet)
+                            .frame(width: geo.size.width * ratio)
+                    }
+            }
+            .frame(height: 8)
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Theme.Surface.glass(for: scheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Today's calories: \(Int(todaysCalories)) of \(Int(target))")
+    }
+
+    // MARK: - Today's meal plan
+
+    @ViewBuilder
+    private var todaysPlanCard: some View {
+        if let plan = activeMealPlan, !plan.meals.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("TODAY'S PLAN")
+                        .font(.system(size: 11, weight: .regular))
+                        .tracking(0.8)
+                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    Spacer()
+                    Text("\(plan.meals.count) meals")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.violet)
+                }
+
+                VStack(spacing: 5) {
+                    ForEach(plan.meals, id: \.id) { meal in
+                        HStack {
+                            Text(meal.mealType.rawValue)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(Theme.Text.primary)
+                            Spacer()
+                            Text("\(Int(meal.caloriesTotal)) cal")
+                                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                .foregroundStyle(Color.violet)
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .background(Theme.Surface.glass(for: scheme))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+                        )
+                    }
+                }
+            }
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Theme.Surface.glass(for: scheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+            )
+        }
+    }
+
+    // MARK: - Check-in (medication-aware)
+
+    @ViewBuilder
+    private var checkInCard: some View {
+        if isOnMedication {
+            SymptomQuickLog()
+        } else {
+            moodCard
+        }
     }
 
     // MARK: - Mood card

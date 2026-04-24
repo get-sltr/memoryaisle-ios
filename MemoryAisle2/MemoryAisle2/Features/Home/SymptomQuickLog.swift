@@ -4,10 +4,18 @@ import SwiftUI
 struct SymptomQuickLog: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.modelContext) private var modelContext
-    @State private var hasLoggedToday = false
+    @Query(sort: \SymptomLog.date, order: .reverse) private var symptomLogs: [SymptomLog]
     @State private var nauseaLevel: Int = 0
     @State private var appetiteLevel: Int = 3
     @State private var energyLevel: Int = 3
+
+    // Source of truth for today's-already-logged state is the SwiftData
+    // query, not local @State. Without this, the log UI reappears every
+    // time Home remounts (app relaunch, tab swap) even though the user
+    // already logged, which reads as broken.
+    private var hasLoggedToday: Bool {
+        symptomLogs.contains { Calendar.current.isDateInToday($0.date) }
+    }
 
     var body: some View {
         if hasLoggedToday {
@@ -109,8 +117,5 @@ struct SymptomQuickLog: View {
         )
         modelContext.insert(log)
         HapticManager.success()
-        withAnimation(Theme.Motion.spring) {
-            hasLoggedToday = true
-        }
     }
 }
