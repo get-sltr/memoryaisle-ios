@@ -1,4 +1,5 @@
 import Foundation
+import Security
 import SwiftData
 
 @Observable
@@ -99,6 +100,7 @@ final class CloudSyncManager {
             var request = URLRequest(url: url)
             request.httpMethod = "DELETE"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            attachAuthHeader(to: &request)
             request.httpBody = try JSONSerialization.data(withJSONObject: ["userId": userId])
             request.timeoutInterval = 15
 
@@ -126,6 +128,7 @@ final class CloudSyncManager {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        attachAuthHeader(to: &request)
         request.timeoutInterval = 15
 
         let body: [String: Any] = [
@@ -151,6 +154,7 @@ final class CloudSyncManager {
         guard let url = URL(string: urlString) else { throw SyncError.pullFailed }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
+        attachAuthHeader(to: &request)
         request.timeoutInterval = 15
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -159,6 +163,35 @@ final class CloudSyncManager {
         }
 
         return (try JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
+    }
+
+    /// Reads the Cognito access token from Keychain and attaches it as
+    /// a Bearer token. Without this, the sync API is open and a userId
+    /// in the request body alone is enough to read or delete any
+    /// account's data, since the Lambda accepts userId from body when
+    /// no JWT claim is present. This MUST be paired with a server-side
+    /// fix that removes the `|| body.userId` fallback in
+    /// Infrastructure/lambda/syncData/index.* and a CDK change that
+    /// attaches the Cognito authorizer to /sync routes.
+    private func attachAuthHeader(to request: inout URLRequest) {
+        guard let token = readAccessToken() else { return }
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    }
+
+    private func readAccessToken() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "com.sltrdigital.memoryaisle",
+            kSecAttrAccount as String: "ma_token",
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
     }
 
     private func encodeProfile(_ profile: UserProfile) -> [String: Any] {

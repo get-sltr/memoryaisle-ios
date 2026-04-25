@@ -329,6 +329,30 @@ final class CognitoAuthManager {
               let sub = json["sub"] as? String else { return nil }
         return sub
     }
+
+    /// Reads the `cognito:groups` claim from the stored access token.
+    /// Used by `AppReviewerSeedService` to gate the reviewer Pro override
+    /// behind Cognito group membership the email check alone can't
+    /// prevent squatting against. Returns an empty array when no token
+    /// is stored or the claim is absent.
+    nonisolated static func currentUserGroups() -> [String] {
+        guard let token = readStoredAccessToken(),
+              let groups = decodeJWTGroups(token) else { return [] }
+        return groups
+    }
+
+    private nonisolated static func decodeJWTGroups(_ token: String) -> [String]? {
+        let parts = token.split(separator: ".")
+        guard parts.count >= 2 else { return nil }
+        var payload = String(parts[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        while payload.count % 4 != 0 { payload.append("=") }
+        guard let data = Data(base64Encoded: payload),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let groups = json["cognito:groups"] as? [String] else { return nil }
+        return groups
+    }
 }
 
 enum AuthError: LocalizedError {

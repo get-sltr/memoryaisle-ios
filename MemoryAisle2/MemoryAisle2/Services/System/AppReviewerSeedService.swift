@@ -17,6 +17,19 @@ enum AppReviewerSeedService {
     /// Connect on the App Information page so reviewers can sign in.
     static let reviewerEmail = "appreview@memoryaisle.app"
 
+    /// Cognito group the reviewer account must be a member of for the
+    /// Pro override to apply. The email check alone is not enough,
+    /// because the email is published on App Store Connect and could
+    /// be squatted on by anyone signing up first. Group membership
+    /// requires Cognito admin access, so it's a real security boundary.
+    ///
+    /// **Manual setup:** in the Cognito console, create a Group named
+    /// `reviewers` in the user pool, then add the `appreview@memoryaisle.app`
+    /// user to it. The group claim flows into the access token as
+    /// `cognito:groups` automatically; no app-side or CDK config is
+    /// needed beyond that.
+    static let reviewerGroupName = "reviewers"
+
     private static let seedFlagKey = "ma_review_seed_done_v1"
     private static let reviewerFlagKey = "ma_is_app_reviewer_v1"
 
@@ -37,6 +50,14 @@ enum AppReviewerSeedService {
     /// but the pre-existing data is left intact.
     static func handleSignIn(email: String?, modelContext: ModelContext) {
         guard let email, email.lowercased() == reviewerEmail.lowercased() else { return }
+
+        // Require the signed-in user to also be a member of the Cognito
+        // `reviewers` group. Without this gate, anyone who signs up
+        // with the published reviewer email gets free Pro forever; the
+        // group adds a server-controlled boundary that only Cognito
+        // admins can flip.
+        let groups = CognitoAuthManager.currentUserGroups()
+        guard groups.contains(reviewerGroupName) else { return }
 
         UserDefaults.standard.set(true, forKey: reviewerFlagKey)
 
