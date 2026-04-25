@@ -70,8 +70,8 @@ final class SubscriptionManager {
 
     // MARK: - Purchase
 
-    func purchase(appAccountToken: UUID? = nil) async throws -> Bool {
-        guard let product = products.first else { return false }
+    func purchase(appAccountToken: UUID? = nil) async throws -> PurchaseOutcome {
+        guard let product = products.first else { return .productUnavailable }
 
         // Tag the transaction with the signed-in user's Cognito UUID so
         // App Store Server Notifications can be correlated back to this
@@ -89,16 +89,16 @@ final class SubscriptionManager {
             let transaction = try checkVerified(verification)
             await transaction.finish()
             await updateSubscriptionStatus()
-            return true
+            return .success
 
         case .userCancelled:
-            return false
+            return .cancelled
 
         case .pending:
-            return false
+            return .pending
 
         @unknown default:
-            return false
+            return .unknown
         }
     }
 
@@ -177,4 +177,16 @@ final class SubscriptionManager {
 
 enum StoreError: Error {
     case failedVerification
+}
+
+/// Outcome of a StoreKit purchase attempt. `.pending` is broken out so
+/// the UI can tell the user their purchase is awaiting external approval
+/// (Family Sharing Ask-to-Buy, EU SCA bank challenge) instead of
+/// silently treating it the same as a cancellation.
+enum PurchaseOutcome {
+    case success
+    case cancelled
+    case pending
+    case productUnavailable
+    case unknown
 }

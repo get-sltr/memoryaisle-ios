@@ -7,6 +7,7 @@ struct PaywallView: View {
     @Environment(SubscriptionManager.self) private var subscriptionManager
     @State private var isPurchasing = false
     @State private var showError = false
+    @State private var showPending = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -63,19 +64,28 @@ struct PaywallView: View {
                             Text(product.displayPrice)
                                 .font(Typography.monoLarge)
                                 .foregroundStyle(Theme.Text.primary)
+
+                            Text("per year \u{00b7} auto-renews annually")
+                                .font(Typography.bodySmall)
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+
+                            Text("Less than $1/week")
+                                .font(Typography.bodySmall)
+                                .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.6))
                         } else {
-                            Text("$49.99")
-                                .font(Typography.monoLarge)
-                                .foregroundStyle(Theme.Text.primary)
+                            // Avoid showing a hardcoded fallback price
+                            // (App Store Guideline 3.1.2 requires that
+                            // any displayed price reflects the live App
+                            // Store Connect tier).
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                                .tint(Theme.Accent.primary(for: scheme))
+                                .frame(height: 32)
+
+                            Text("Loading subscription details...")
+                                .font(Typography.bodySmall)
+                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
                         }
-
-                        Text("per year \u{00b7} auto-renews annually")
-                            .font(Typography.bodySmall)
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-
-                        Text("Less than $1/week")
-                            .font(Typography.bodySmall)
-                            .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.6))
                     }
                     .padding(.vertical, 20)
                     .frame(maxWidth: .infinity)
@@ -143,6 +153,11 @@ struct PaywallView: View {
         } message: {
             Text("Something went wrong. Please try again.")
         }
+        .alert("Purchase pending approval", isPresented: $showPending) {
+            Button("OK") { dismiss() }
+        } message: {
+            Text("Your purchase is awaiting approval. You'll get Pro access automatically once it's approved, usually within a few minutes for Family Sharing or after your bank confirms.")
+        }
     }
 
     // MARK: - Feature Row
@@ -208,16 +223,20 @@ struct PaywallView: View {
         }
 
         do {
-            let success = try await subscriptionManager.purchase(
+            let outcome = try await subscriptionManager.purchase(
                 appAccountToken: CognitoAuthManager.currentUserUUID()
             )
-            if success {
+            switch outcome {
+            case .success:
                 HapticManager.success()
                 dismiss()
+            case .pending:
+                showPending = true
+            case .cancelled:
+                break
+            case .productUnavailable, .unknown:
+                showError = true
             }
-            // success == false here means userCancelled or pending —
-            // both are silent on purpose so the user isn't yelled at
-            // for dismissing Apple's confirmation sheet.
         } catch {
             showError = true
         }
