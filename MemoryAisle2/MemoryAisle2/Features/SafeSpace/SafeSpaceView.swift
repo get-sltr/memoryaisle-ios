@@ -1,10 +1,14 @@
 import LocalAuthentication
 import SwiftUI
+import UIKit
 
 struct SafeSpaceView: View {
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @State private var isUnlocked = false
+    @State private var biometricsUnavailable = false
     @State private var entryText = ""
     @State private var entries: [SafeSpaceEntry] = []
     @State private var showingEntry = false
@@ -12,14 +16,30 @@ struct SafeSpaceView: View {
 
     var body: some View {
         Group {
-            if isUnlocked {
+            if biometricsUnavailable {
+                biometricsRequiredScreen
+            } else if isUnlocked {
                 journalView
+                    .privacySensitive()
             } else {
                 lockScreen
             }
         }
         .onAppear {
             authenticate()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .active:
+                if !isUnlocked && !biometricsUnavailable {
+                    authenticate()
+                }
+            case .inactive, .background:
+                isUnlocked = false
+                entries = []
+            @unknown default:
+                break
+            }
         }
     }
 
@@ -168,37 +188,14 @@ struct SafeSpaceView: View {
                 privacyFooter
 
                 HStack {
-                    // Mic and camera buttons (future)
-                    HStack(spacing: 12) {
-                        Circle()
-                            .fill(Theme.Surface.strong(for: scheme))
-                            .frame(width: 44, height: 44)
-                            .overlay(
-                                Image(systemName: "mic.fill")
-                                    .font(Typography.bodyMedium)
-                                    .foregroundStyle(Theme.Text.secondary(for: scheme))
-                            )
-
-                        Circle()
-                            .fill(Theme.Surface.strong(for: scheme))
-                            .frame(width: 44, height: 44)
-                            .overlay(
-                                Image(systemName: "camera.fill")
-                                    .font(Typography.bodyMedium)
-                                    .foregroundStyle(Theme.Text.secondary(for: scheme))
-                            )
-                    }
-
                     Spacer()
 
-                    // Date
                     Text(Date.now.formatted(.dateTime.month(.wide).day().year()))
                         .font(Typography.label)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
                     Spacer()
 
-                    // Save
                     if !entryText.isEmpty {
                         Button {
                             saveEntry()
@@ -297,10 +294,11 @@ struct SafeSpaceView: View {
         guard context.canEvaluatePolicy(
             .deviceOwnerAuthenticationWithBiometrics, error: &error
         ) else {
-            // No biometrics available - allow access
-            isUnlocked = true
+            biometricsUnavailable = true
+            isUnlocked = false
             return
         }
+        biometricsUnavailable = false
 
         context.evaluatePolicy(
             .deviceOwnerAuthenticationWithBiometrics,
@@ -310,6 +308,62 @@ struct SafeSpaceView: View {
                 isUnlocked = success
             }
         }
+    }
+
+    // MARK: - Biometrics Required Screen
+
+    private var biometricsRequiredScreen: some View {
+        VStack(spacing: Theme.Spacing.lg) {
+            Spacer()
+
+            Image(systemName: "faceid")
+                .font(.system(size: 56))
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+
+            Text("Face ID required")
+                .font(Typography.serifMedium)
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+
+            Text("Safe Space can only be unlocked with Face ID. Enable Face ID in Settings to access your entries.")
+                .font(Typography.bodySmall)
+                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, Theme.Spacing.lg)
+
+            Spacer()
+
+            Button {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    openURL(url)
+                }
+            } label: {
+                HStack(spacing: Theme.Spacing.sm) {
+                    Image(systemName: "gear")
+                        .font(Typography.bodyLarge)
+                    Text("Open Settings")
+                        .font(Typography.bodyMediumBold)
+                }
+                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .padding(.horizontal, 28)
+                .padding(.vertical, 14)
+                .background(Theme.Surface.strong(for: scheme))
+                .clipShape(Capsule())
+            }
+            .accessibilityLabel("Open Settings to enable Face ID")
+
+            Button { dismiss() } label: {
+                Text("Go back")
+                    .font(Typography.bodySmall)
+                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    .frame(minHeight: 44)
+            }
+            .accessibilityLabel("Close Safe Space")
+
+            Spacer()
+                .frame(height: 60)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .themeBackground()
     }
 
     // MARK: - Local Storage (on-device ONLY, no SwiftData, no sync)
@@ -324,6 +378,7 @@ struct SafeSpaceView: View {
     private func loadEntries() {
         guard let storageURL else { return }
         guard FileManager.default.fileExists(atPath: storageURL.path) else { return }
+        excludeFromBackup(storageURL)
         guard let data = try? Data(contentsOf: storageURL) else { return }
         entries = (try? JSONDecoder().decode([SafeSpaceEntry].self, from: data)) ?? []
     }
@@ -336,9 +391,19 @@ struct SafeSpaceView: View {
 
         if let storageURL, let data = try? JSONEncoder().encode(entries) {
             try? data.write(to: storageURL, options: [.atomic, .completeFileProtection])
+            excludeFromBackup(storageURL)
         }
 
         HapticManager.light()
+    }
+
+    /// Excludes the journal file from iCloud + iTunes backup so it stays
+    /// on this device only, matching the privacy footer's promise.
+    private func excludeFromBackup(_ url: URL) {
+        var mutableURL = url
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try? mutableURL.setResourceValues(values)
     }
 }
 
