@@ -67,8 +67,8 @@ Lambdas live at `Infrastructure/lambda/<name>/` and ship as zips — `node_modul
 
 ## Branch Rules
 
-- **Default workflow:** prefer `dev` or `feature/*` for non-trivial work; merge to `main` after build succeeds with zero warnings and a manual device test. Simulator is not sufficient — real audio, camera, and HealthKit bugs only surface on device.
-- **Current exception (App Store rejection cycle):** the owner is intentionally landing review-fix commits directly on `main` to ship faster. If you see recent commits on `main` tagged `[review]` or similar, that's expected — don't "correct" the workflow. When the rejection cycle ends, revert to the default workflow above.
+- `main` is **production** (App Store shipped 2026-04-23). Treat every commit on `main` as user-facing.
+- Prefer `dev` or `feature/*` for non-trivial work; merge to `main` only after build succeeds with zero warnings and a manual device test. Simulator is not sufficient — real audio, camera, and HealthKit bugs only surface on device.
 - Commit format: `[area] short description` (e.g., `[nutrition] implement protein calculator with lean mass input`).
 - **Always remember to deploy and push.** Local commits don't ship the app or update the remote — after committing, push (`git push`) and, when relevant, deploy (App Store Connect upload, CDK deploy, etc.). Don't end a session with unpushed commits sitting on `main`.
 
