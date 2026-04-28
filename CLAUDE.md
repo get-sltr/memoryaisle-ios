@@ -143,13 +143,46 @@ Cognito auth (Amplify Swift SDK v2) -> API Gateway -> Lambda (VPC) -> Aurora Ser
 - Test all calculation logic, state machines, data transformations, and edge cases.
 - Don't test SwiftUI views — test view models instead. Mock the API client for network calls.
 
-## Design System: Ultraviolet Liquid Glass
+## Design System: Editorial Day/Night
 
-Dark mode primary (`#0A0914` background), violet accent (`#A78BFA`). Frosted translucent glass panels with 0.5px borders. Every interactive card scales to 0.98 on press with increased opacity.
+Today and Meals use an editorial gradient layout (the "Editorial" namespace).
+The five-tab bottom bar (TODAY · MEALS · SCAN · MIRA · REFLECT) is the primary
+nav; the wordmark on the masthead taps open to a menu sheet that surfaces
+features outside the tab bar (Profile, Progress, Grocery, Recipes, Calendar,
+Pantry, Safe Space, Subscribe/Manage, Settings).
 
-**Mira's avatar:** 5 vertical bars + 1 four-point star. No circle, no orb, no container, no face. States: speaking (animated heights), idle (40% height), thinking (pulsing).
+**Day mode** — gray-to-gold linear gradient (`#6B6B72 → #D4A148`), white type.
+**Night mode** — dark-gray-to-gold gradient (`#1A1A1D → #C49142`) with a
+touch-reactive `FirefliesLayer` (Canvas, 14 particles, 30fps, honors Reduce
+Motion + Low Power Mode).
+**Mode selection** — `MAMode.auto` defaults to time of day (06:00–20:00 = day,
+otherwise night); the `☾`/`☀` toggle in the masthead's top-right corner lets
+users override manually.
 
-Semantic colors: Protein=violet, Water=sky blue, Fiber=amber, Calories=neutral gray, On-track=green, Behind=amber, Warning=red.
+Both modes pin `.preferredColorScheme(.light)`. Day and Night are *app modes*,
+not iOS Dark/Light — system Dark Mode does not change the editorial canvas.
+This is a deliberate override of the older "must work in both dark and light
+mode" rule for the editorial surfaces.
+
+**Tokens** — defined under `Theme.Editorial.*` (see `DesignSystem/Editorial/Theme+Editorial.swift`):
+gradients, on-surface white tints, hairline strokes, masthead/tab spacing,
+serif + monospaced typography helpers (system fonts only — no custom font
+files bundled).
+
+**Mira's avatar:** 5 vertical bars + 1 four-point sparkle (SF Symbol `sparkle`).
+No circle, no orb, no container, no face. States: speaking (animated heights),
+idle (static), thinking (slow wave). The editorial `MiraLine` reuses
+`MiraWaveform.compact` — do not reimplement the bars.
+
+**Semantic colors** (still in `Theme.Semantic.*` for charts, badges, and
+non-editorial surfaces): Protein=violet, Water=sky blue, Fiber=amber,
+Calories=neutral gray, On-track=green, Behind=amber, Warning=red.
+
+The legacy `Theme.*` (Surface, Border, Accent, Text) tokens still drive the
+non-editorial features (Onboarding, Scan, Mira chat, Progress, Profile,
+Reflection, Safe Space, etc.) — those screens haven't been re-skinned yet and
+appear under the editorial gradient as full-screen sheets when triggered from
+the tab bar or menu.
 
 ## Session Workflow (per RULES.md §2)
 

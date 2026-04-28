@@ -1,305 +1,355 @@
 import SwiftData
 import SwiftUI
 
+/// Editorial Meals tab. Masthead → cycle marker → hero → day rail →
+/// meal rows. Tap a row to expand its ingredients/instructions.
 struct MealsView: View {
-    @Environment(\.colorScheme) private var scheme
+    let mode: MAMode
+    let onTapWordmark: () -> Void
+
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var subscriptionManager
     @Query private var profiles: [UserProfile]
     @Query(sort: \MealPlan.date, order: .reverse) private var plans: [MealPlan]
-    @State private var isGenerating = false
-    @State private var errorMessage: String?
-    @State private var expandedMealId: String?
+    @Query(sort: \MedicationProfile.startDate, order: .reverse) private var medications: [MedicationProfile]
+    @Query private var jobs: [MealGenerationJob]
+
+    @State private var selectedDay: Weekday = Weekday.from(date: .now)
+    @State private var expandedMealId: String? = nil
+    @State private var localError: String? = nil
 
     private var profile: UserProfile? { profiles.first }
+    private var medication: MedicationProfile? { medications.first }
 
-    private var todayPlan: MealPlan? {
-        plans.first {
-            Calendar.current.isDateInToday($0.date) && $0.isActive
-        }
+    private var inFlightJob: MealGenerationJob? {
+        jobs.first { $0.isInFlight }
+    }
+
+    private var lastTerminalJob: MealGenerationJob? {
+        jobs
+            .filter { $0.isTerminal }
+            .sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
+            .first
+    }
+
+    private var selectedDate: Date {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: .now)
+        let todayWeekday = Weekday.from(date: today)
+        let diff = selectedDay.calendarWeekday - todayWeekday.calendarWeekday
+        return cal.date(byAdding: .day, value: diff, to: today) ?? today
+    }
+
+    private var planForSelectedDay: MealPlan? {
+        plans.first { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) && $0.isActive }
     }
 
     private var meals: [Meal] {
-        todayPlan?.meals ?? []
+        (planForSelectedDay?.meals ?? []).sorted { sortKey(for: $0) < sortKey(for: $1) }
     }
 
-    private var totalProtein: Int {
-        meals.reduce(0) { $0 + Int($1.proteinGrams) }
-    }
-
-    private var totalCal: Int {
-        meals.reduce(0) { $0 + Int($1.caloriesTotal) }
+    private var lastJobFailedSelectedDay: Bool {
+        guard let job = lastTerminalJob,
+              (job.status == .partial || job.status == .failed) else { return false }
+        let cal = Calendar.current
+        // The job's lastError isn't keyed by date in the model, but we can
+        // infer: if the job is partial and the selected date falls in [first,
+        // first+totalDays) and there's no plan for that date, the day failed.
+        guard let lastDay = cal.date(byAdding: .day, value: job.totalDays - 1, to: job.firstDate) else { return false }
+        let inRange = selectedDate >= job.firstDate && selectedDate <= lastDay
+        return inRange && planForSelectedDay == nil
     }
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 16) {
-                header
-                modeBadge
+        VStack(alignment: .leading, spacing: 0) {
+            Masthead(
+                wordmark: "MEALS",
+                trailing: "WEEK · \(currentWeekNumber)",
+                onTapWordmark: onTapWordmark
+            )
+            .padding(.bottom, 24)
 
-                if isGenerating {
-                    generatingState
-                } else if meals.isEmpty {
-                    emptyState
-                } else {
-                    ForEach(meals, id: \.id) { meal in
-                        mealCard(meal)
+            Text(sectionLabel)
+                .font(Theme.Editorial.Typography.capsBold(10))
+                .tracking(3.5)
+                .textCase(.uppercase)
+                .foregroundStyle(Theme.Editorial.onSurface)
+                .padding(.bottom, 14)
+
+            heroBlock
+                .padding(.bottom, 8)
+
+            Text(curatedLine)
+                .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                .tracking(2)
+                .textCase(.uppercase)
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                .padding(.bottom, 22)
+
+            DayRail(selection: $selectedDay)
+                .padding(.bottom, 18)
+
+            content
+
+            if let localError {
+                Text(localError)
+                    .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                    .tracking(1)
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                    .padding(.top, 8)
+            }
+
+            Spacer(minLength: 80)
+        }
+        .padding(.horizontal, Theme.Editorial.Spacing.pad)
+        .padding(.top, Theme.Editorial.Spacing.topInset)
+    }
+
+    // MARK: - Hero
+
+    private var heroBlock: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 0) {
+                Text(mealCountWord)
+                    .font(Theme.Editorial.Typography.displaySmall())
+                    .italic()
+                Text(" meals,")
+                    .font(Theme.Editorial.Typography.displaySmall())
+            }
+            Text(modeTagline)
+                .font(Theme.Editorial.Typography.displaySmall())
+        }
+        .kerning(-0.8)
+        .lineSpacing(-4)
+        .foregroundStyle(Theme.Editorial.onSurface)
+    }
+
+    private var mealCountWord: String {
+        let count = meals.count
+        if count > 0 { return EnglishNumber.word(from: count).capitalized }
+        return "Three"
+    }
+
+    private var modeTagline: String {
+        switch profile?.productMode ?? .everyday {
+        case .everyday:            return "balanced and clear."
+        case .sensitiveStomach:    return "gentle on the gut."
+        case .musclePreservation:  return "high in protein."
+        case .trainingPerformance: return "fueled for the lift."
+        case .maintenanceTaper:    return "steady through the taper."
+        }
+    }
+
+    // MARK: - Caps
+
+    private var sectionLabel: String {
+        let day = cycleDayNumber
+        let mark = "N° \(RomanNumeral.string(from: day))"
+        let isToday = Calendar.current.isDateInToday(selectedDate)
+        return isToday ? "\(mark) · TODAY" : "\(mark) · \(selectedDay.label)"
+    }
+
+    private var cycleDayNumber: Int {
+        let start = medication?.startDate ?? profile?.createdAt
+        guard let start else { return 1 }
+        let days = Calendar.current.dateComponents([.day], from: start, to: .now).day ?? 0
+        return max(1, days + 1)
+    }
+
+    private var currentWeekNumber: String {
+        let week = Calendar.current.component(.weekOfYear, from: .now)
+        return String(format: "%02d", week)
+    }
+
+    private var curatedLine: String {
+        "MIRA · CURATED FOR DAY \(EnglishNumber.word(from: cycleDayNumber).uppercased())"
+    }
+
+    // MARK: - Meal list
+
+    @ViewBuilder
+    private var content: some View {
+        if let job = inFlightJob {
+            weeklyInFlightState(job: job)
+        } else if meals.isEmpty {
+            emptyState
+        } else {
+            VStack(spacing: 0) {
+                ForEach(meals, id: \.id) { meal in
+                    MealRow(
+                        time: timeLabel(for: meal),
+                        name: meal.name,
+                        proteinGrams: Int(meal.proteinGrams),
+                        calories: Int(meal.caloriesTotal),
+                        prepMinutes: meal.prepTimeMinutes,
+                        onTap: {
+                            HapticManager.light()
+                            expandedMealId = expandedMealId == meal.id ? nil : meal.id
+                        }
+                    )
+
+                    if expandedMealId == meal.id {
+                        mealExpansion(meal)
+                            .padding(.bottom, 12)
                     }
                 }
-
-                if let error = errorMessage {
-                    Text(error)
-                        .font(Typography.bodySmall)
-                        .foregroundStyle(Theme.Semantic.warning(for: scheme))
-                        .padding(.horizontal, 20)
-                }
-
-                Spacer(minLength: 80)
             }
         }
-        .section(.home)
-        .themeBackground()
-        .navigationBarHidden(true)
     }
 
-    // MARK: - Header
-
-    private var header: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Today's Meals")
-                    .font(Typography.serifMedium)
-                    .foregroundStyle(Theme.Text.primary)
-                    .tracking(0.3)
-
-                if !meals.isEmpty {
-                    Text("\(totalProtein)g protein  ·  \(totalCal) cal")
-                        .font(Typography.monoSmall)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                }
-            }
-            Spacer()
-
-            Button {
-                generatePlan()
-            } label: {
-                Image(systemName: "arrow.clockwise")
-                    .font(Typography.bodyLarge)
-                    .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.6))
-            }
-            .accessibilityLabel("Regenerate meal plan")
-            .disabled(isGenerating)
+    private func sortKey(for meal: Meal) -> Int {
+        switch meal.mealType {
+        case .breakfast:   0
+        case .preWorkout:  1
+        case .lunch:       2
+        case .snack:       3
+        case .postWorkout: 4
+        case .dinner:      5
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 12)
     }
 
-    private var modeBadge: some View {
-        Group {
-            if let mode = profile?.productMode {
-                HStack {
-                    Text(mode.rawValue.uppercased())
-                        .font(Typography.label)
-                        .tracking(1)
-                        .foregroundStyle(Theme.Accent.primary(for: scheme).opacity(0.6))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Capsule().fill(Theme.Accent.primary(for: scheme).opacity(0.08)))
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
+    private func timeLabel(for meal: Meal) -> String {
+        let type = meal.mealType.rawValue.uppercased()
+        switch meal.mealType {
+        case .breakfast:   return "07 : 30 · \(type)"
+        case .lunch:       return "13 : 00 · \(type)"
+        case .dinner:      return "19 : 00 · \(type)"
+        case .snack:       return "15 : 00 · \(type)"
+        case .preWorkout:  return "06 : 00 · \(type)"
+        case .postWorkout: return "20 : 30 · \(type)"
+        }
+    }
+
+    private func mealExpansion(_ meal: Meal) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if !meal.ingredients.isEmpty {
+                Text("INGREDIENTS")
+                    .font(Theme.Editorial.Typography.capsBold(9))
+                    .tracking(2)
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                Text(meal.ingredients.joined(separator: ", "))
+                    .font(Theme.Editorial.Typography.body())
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if let instructions = meal.cookingInstructions, !instructions.isEmpty {
+                Text("INSTRUCTIONS")
+                    .font(Theme.Editorial.Typography.capsBold(9))
+                    .tracking(2)
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                    .padding(.top, 4)
+                Text(instructions)
+                    .font(Theme.Editorial.Typography.body())
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
+        .padding(.top, 4)
     }
 
     // MARK: - States
 
-    private var generatingState: some View {
-        VStack(spacing: 16) {
-            MiraWaveform(state: .thinking, size: .hero)
-                .frame(height: 40)
-            Text("Mira is building your meal plan...")
-                .font(Typography.bodyMedium)
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
+    private func weeklyInFlightState(job: MealGenerationJob) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center, spacing: 12) {
+                MiraWaveform(state: .thinking, size: .inline)
+                    .frame(height: 28)
+                Text("MIRA IS CURATING YOUR WEEK")
+                    .font(Theme.Editorial.Typography.capsBold(10))
+                    .tracking(2.2)
+                    .foregroundStyle(Theme.Editorial.onSurface)
+            }
+
+            Text("DAY \(EnglishNumber.word(from: job.daysCompleted).uppercased()) OF \(EnglishNumber.word(from: job.totalDays).uppercased()) READY")
+                .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                .tracking(1.6)
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 60)
+        .padding(.vertical, 24)
     }
 
     private var emptyState: some View {
-        VStack(spacing: 20) {
-            MiraWaveform(state: .idle, size: .hero)
-                .frame(height: 40)
-            Text("No meal plan for today yet")
-                .font(Typography.bodyLargeBold)
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
-            Text("Mira will generate a personalized plan based on your goals, medication phase, and dietary needs.")
-                .font(Typography.bodySmall)
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+        VStack(alignment: .leading, spacing: 14) {
+            Text(emptyStateLabel)
+                .font(Theme.Editorial.Typography.capsBold(10))
+                .tracking(2.2)
+                .foregroundStyle(Theme.Editorial.onSurface)
 
-            Button {
-                generatePlan()
-            } label: {
-                Text("Generate Today's Plan")
-                    .font(Typography.bodyMediumBold)
-                    .foregroundStyle(Theme.Text.primary)
-                    .padding(.horizontal, 28)
-                    .padding(.vertical, 12)
-                    .background(Theme.Accent.primary(for: scheme).opacity(0.3))
-                    .clipShape(Capsule())
-                    .overlay(Capsule().stroke(Theme.Accent.primary(for: scheme).opacity(0.4), lineWidth: 0.5))
+            if Calendar.current.isDateInToday(selectedDate) ||
+               (selectedDate >= Calendar.current.startOfDay(for: .now) && lastJobFailedSelectedDay) {
+                Button {
+                    regenerateWeek()
+                } label: {
+                    HStack(spacing: 10) {
+                        Text(regenButtonLabel)
+                            .font(Theme.Editorial.Typography.capsBold(11))
+                            .tracking(2.5)
+                            .foregroundStyle(Theme.Editorial.onSurface)
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Theme.Editorial.onSurface)
+                    }
+                    .padding(.vertical, 14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .overlay(alignment: .top) { HairlineDivider() }
+                    .overlay(alignment: .bottom) { HairlineDivider() }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(regenButtonLabel)
+            } else {
+                Text("MIRA CURATES UPCOMING DAYS")
+                    .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                    .tracking(1.6)
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
             }
-            .accessibilityLabel("Generate today's meal plan")
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        .padding(.vertical, 24)
     }
 
-    // MARK: - Meal Card
-
-    private func mealCard(_ meal: Meal) -> some View {
-        Button {
-            HapticManager.light()
-            withAnimation(Theme.Motion.spring) {
-                expandedMealId = expandedMealId == meal.id ? nil : meal.id
-            }
-        } label: {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text(meal.mealType.rawValue.uppercased())
-                        .font(Typography.caption)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                        .tracking(0.5)
-                    Spacer()
-                    if meal.isNauseaSafe {
-                        HStack(spacing: 4) {
-                            Image(systemName: "leaf.fill")
-                                .font(Typography.label)
-                            Text("Nausea-safe")
-                                .font(Typography.label)
-                        }
-                        .foregroundStyle(Theme.Semantic.onTrack(for: scheme).opacity(0.7))
-                    }
-                }
-
-                Text(meal.name)
-                    .font(Typography.bodyLargeBold)
-                    .foregroundStyle(Theme.Text.primary)
-
-                HStack(spacing: 16) {
-                    macroTag(Theme.Accent.primary(for: scheme), "\(Int(meal.proteinGrams))g protein")
-                    macroTag(Theme.Text.tertiary(for: scheme), "\(Int(meal.caloriesTotal)) cal")
-                    Spacer()
-                    Text("\(meal.prepTimeMinutes) min")
-                        .font(Typography.caption)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                }
-
-                if expandedMealId == meal.id {
-                    if !meal.ingredients.isEmpty {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("INGREDIENTS")
-                                .font(Typography.label)
-                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                                .tracking(1)
-                            ForEach(meal.ingredients, id: \.self) { ingredient in
-                                HStack(alignment: .top, spacing: 8) {
-                                    Circle()
-                                        .fill(Theme.Accent.primary(for: scheme).opacity(0.4))
-                                        .frame(width: 4, height: 4)
-                                        .padding(.top, 6)
-                                    Text(ingredient)
-                                        .font(Typography.bodySmall)
-                                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                                }
-                            }
-                        }
-                        .padding(.top, 8)
-                    }
-
-                    if let instructions = meal.cookingInstructions,
-                       !instructions.isEmpty {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("INSTRUCTIONS")
-                                .font(Typography.label)
-                                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                                .tracking(1)
-                            let steps = instructions.components(separatedBy: ";")
-                                .map { $0.trimmingCharacters(in: .whitespaces) }
-                                .filter { !$0.isEmpty }
-                            ForEach(Array(steps.enumerated()), id: \.offset) { _, step in
-                                Text(step)
-                                    .font(Typography.bodySmall)
-                                    .foregroundStyle(Theme.Text.secondary(for: scheme))
-                            }
-                        }
-                        .padding(.top, 8)
-                    }
-                } else {
-                    if !meal.ingredients.isEmpty {
-                        Text(meal.ingredients.joined(separator: ", "))
-                            .font(Typography.caption)
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                            .lineLimit(1)
-                    }
-                }
-            }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Theme.Surface.glass(for: scheme))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
-            )
-            .padding(.horizontal, 20)
+    private var emptyStateLabel: String {
+        if lastJobFailedSelectedDay {
+            return "MIRA COULDN'T REACH THIS DAY"
         }
-        .buttonStyle(.plain)
+        return "NO PLAN FOR THIS DAY YET"
     }
 
-    private func macroTag(_ color: Color, _ text: String) -> some View {
-        HStack(spacing: 4) {
-            Circle().fill(color).frame(width: 5, height: 5)
-            Text(text)
-                .font(Typography.monoSmall)
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
+    private var regenButtonLabel: String {
+        if lastJobFailedSelectedDay {
+            return "RETRY THIS WEEK"
         }
+        return "GENERATE THIS WEEK"
     }
 
     // MARK: - Generate
 
-    private func generatePlan() {
-        guard let profile = profile else { return }
-        isGenerating = true
-        errorMessage = nil
+    private func regenerateWeek() {
+        guard let profile else { return }
+        localError = nil
 
-        let cyclePhase: CyclePhase?
-        if let day = profile.injectionDay {
-            cyclePhase = InjectionCycleEngine.currentPhase(injectionDay: day)
-        } else {
-            cyclePhase = nil
-        }
+        let isPro = subscriptionManager.tier == .pro
+        let orchestrator = WeeklyMealPlanOrchestrator()
+        let outcome = orchestrator.startWeekly(
+            profile: profile,
+            giTriggers: fetchGITriggers(),
+            pantryItems: fetchPantryItems(),
+            startDate: .now,
+            days: 7,
+            trigger: .manual,
+            isPro: isPro,
+            context: modelContext
+        )
 
-        Task {
-            do {
-                let generator = MealGenerator()
-                let giTriggers = fetchGITriggers()
-                let pantry = fetchPantryItems()
-
-                _ = try await generator.generateDailyPlan(
-                    profile: profile,
-                    cyclePhase: cyclePhase,
-                    giTriggers: giTriggers,
-                    pantryItems: pantry,
-                    isTrainingDay: false,
-                    context: modelContext
-                )
-                isGenerating = false
-            } catch {
-                isGenerating = false
-                errorMessage = "Could not generate plan: \(error.localizedDescription)"
+        if case .rejected(let reason) = outcome {
+            switch reason {
+            case .featureFlagDisabled:
+                localError = "WEEKLY PLANS ARE PAUSED. PLEASE CHECK BACK SOON."
+            case .quotaExhausted:
+                localError = isPro
+                    ? "MIRA IS CATCHING UP, TRY AGAIN IN A MOMENT."
+                    : "FREE WEEKLY REGEN AVAILABLE ONCE PER DAY. UPGRADE FOR UNLIMITED."
+            case .alreadyInFlight:
+                localError = "MIRA IS ALREADY CURATING THIS WEEK."
             }
         }
     }

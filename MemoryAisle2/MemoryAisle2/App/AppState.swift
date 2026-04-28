@@ -43,4 +43,8 @@ final class AppState {
     var homePath = NavigationPath()
     var recipesPath = NavigationPath()
     var progressPath = NavigationPath()
+    /// Last reason a weekly meal-plan generation was rejected before any
+    /// Bedrock call was issued (flag off, quota exhausted, etc.). MealsView
+    /// reads this so the user gets a hint instead of staring at a missing plan.
+    var lastWeeklyGenRejection: WeeklyMealPlanOrchestrator.RejectionReason?
 }

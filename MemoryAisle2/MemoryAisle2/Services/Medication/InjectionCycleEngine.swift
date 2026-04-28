@@ -51,9 +51,14 @@ enum CyclePhase: String {
 struct InjectionCycleEngine {
 
     static func currentPhase(injectionDay: Int) -> CyclePhase {
-        let daysSinceInjection = daysSince(injectionDay: injectionDay)
+        phase(forDate: .now, injectionDay: injectionDay)
+    }
 
-        switch daysSinceInjection {
+    /// Phase for an arbitrary date. Used by the weekly meal plan generator so
+    /// each day in the 7-day window gets its accurate phase rather than today's.
+    static func phase(forDate date: Date, injectionDay: Int, calendar: Calendar = .current) -> CyclePhase {
+        let dayOffset = daysSince(injectionDay: injectionDay, on: date, calendar: calendar)
+        switch dayOffset {
         case 0: return .injectionDay
         case 1...2: return .peakSuppression
         case 3...4: return .steadyState
@@ -63,10 +68,12 @@ struct InjectionCycleEngine {
     }
 
     static func daysSince(injectionDay: Int) -> Int {
-        let calendar = Calendar.current
-        let todayWeekday = calendar.component(.weekday, from: .now)
-        let diff = (todayWeekday - injectionDay + 7) % 7
-        return diff
+        daysSince(injectionDay: injectionDay, on: .now)
+    }
+
+    static func daysSince(injectionDay: Int, on date: Date, calendar: Calendar = .current) -> Int {
+        let weekday = calendar.component(.weekday, from: date)
+        return (weekday - injectionDay + 7) % 7
     }
 
     static func daysUntilNext(injectionDay: Int) -> Int {

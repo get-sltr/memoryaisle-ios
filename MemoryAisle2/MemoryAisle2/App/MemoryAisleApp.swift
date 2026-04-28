@@ -43,7 +43,8 @@ struct MemoryAisleApp: App {
                     TrainingSession.self,
                     BodyComposition.self,
                     ProviderReport.self,
-                    SavedRecipe.self
+                    SavedRecipe.self,
+                    MealGenerationJob.self
                 ])
                 // Re-query StoreKit whenever the app becomes active so a
                 // subscription purchased on another device, a cancellation

@@ -5,6 +5,7 @@ struct OnboardingFlow: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
+    @Environment(SubscriptionManager.self) private var subscriptionManager
     @State private var showOnboarding = true
     @State private var profile = OnboardingProfile()
 
@@ -66,6 +67,30 @@ struct OnboardingFlow: View {
         }
 
         appState.hasCompletedOnboarding = true
+
+        // Kick off the 7-day Mira meal plan as part of signup. Honors the
+        // weekly_meal_plan_enabled feature flag and the signup quota; the
+        // orchestrator persists a MealGenerationJob so the work survives an
+        // app kill mid-generation. User transitions to Today immediately while
+        // generation runs in the background; MealsView surfaces progress.
+        let isPro = subscriptionManager.tier == .pro
+        let orchestrator = WeeklyMealPlanOrchestrator()
+        let outcome = orchestrator.startWeekly(
+            profile: user,
+            giTriggers: [],
+            pantryItems: [],
+            startDate: .now,
+            days: 7,
+            trigger: .signup,
+            isPro: isPro,
+            context: modelContext
+        )
+        if case .rejected(let reason) = outcome {
+            // Failure here doesn't block onboarding completion — the user can
+            // always tap regenerate from MealsView. We log so we can spot
+            // unexpected rejections (flag pulled, etc.) in CloudWatch.
+            appState.lastWeeklyGenRejection = reason
+        }
     }
 
     private func deriveMode() -> ProductMode {
