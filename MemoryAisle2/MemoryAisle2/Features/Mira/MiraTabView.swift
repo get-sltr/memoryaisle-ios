@@ -27,6 +27,10 @@ struct MiraTabView: View {
     @State private var messages: [MiraTurn] = []
     @State private var conversation: MiraConversation?
 
+    @State private var inputMode: MiraInputMode = .voice
+    @State private var typedText: String = ""
+    @FocusState private var typedFieldFocused: Bool
+
     private let logger = Logger(subsystem: "com.memoryaisle.MiraTab", category: "ChatLoop")
 
     private var profile: UserProfile? { profiles.first }
@@ -80,7 +84,7 @@ struct MiraTabView: View {
                 }
             }
 
-            heroBlock
+            inputArea
                 .padding(.bottom, 70)
         }
         .padding(.horizontal, Theme.Editorial.Spacing.pad)
@@ -156,7 +160,25 @@ struct MiraTabView: View {
         }
     }
 
-    // MARK: - Hero block
+    // MARK: - Input area (voice hero or text input)
+
+    @ViewBuilder
+    private var inputArea: some View {
+        if inputMode == .voice {
+            heroBlock
+                .transition(.opacity)
+        } else {
+            MiraTextInput(
+                text: $typedText,
+                focused: $typedFieldFocused,
+                onSend: { handleTextSend($0) },
+                onSwitchToVoice: { switchToVoice() }
+            )
+            .transition(.opacity)
+        }
+    }
+
+    // MARK: - Hero block (voice mode)
 
     private var heroBlock: some View {
         VStack(spacing: 18) {
@@ -168,20 +190,30 @@ struct MiraTabView: View {
                 .foregroundStyle(Theme.Editorial.onSurface.opacity(0.85))
                 .accessibilityLabel(voiceState.label.lowercased())
 
-            MiraBars(state: voiceState, amplitude: voice.audioLevel)
-                .frame(height: 64)
-                .padding(.horizontal, 24)
-                .contentShape(Rectangle())
-                .gesture(pushToTalkGesture)
-                .onTapGesture {
-                    if voiceState == .speaking {
-                        voice.stopSpeaking()
-                        voiceState = .idle
-                    } else if voiceState == .checkIn {
-                        voiceState = .listening
+            HStack(spacing: 16) {
+                keyboardSwitchButton
+
+                MiraBars(state: voiceState, amplitude: voice.audioLevel)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 64)
+                    .contentShape(Rectangle())
+                    .gesture(pushToTalkGesture)
+                    .onTapGesture {
+                        if voiceState == .speaking {
+                            voice.stopSpeaking()
+                            voiceState = .idle
+                        } else if voiceState == .checkIn {
+                            voiceState = .listening
+                        }
                     }
-                }
-                .accessibilityLabel(voiceState == .idle ? "Hold to talk to Mira" : "Mira voice surface")
+                    .accessibilityLabel(voiceState == .idle ? "Hold to talk to Mira" : "Mira voice surface")
+
+                Color.clear
+                    .frame(width: 44, height: 44)
+                    .opacity(voiceState == .idle ? 1 : 0)
+                    .accessibilityHidden(true)
+            }
+            .padding(.horizontal, 8)
 
             MiraSparkle(isActive: voiceState != .idle, isSpeaking: voiceState == .speaking)
 
@@ -195,6 +227,24 @@ struct MiraTabView: View {
                 Color.clear.frame(height: 12)
             }
         }
+    }
+
+    /// Keyboard glyph balanced opposite a clear 44x44 spacer so the bars
+    /// remain visually centered. Hidden during active voice states because
+    /// the user is mid-turn and shouldn't be invited to swap modes.
+    private var keyboardSwitchButton: some View {
+        Button(action: switchToTextInput) {
+            Image(systemName: "keyboard")
+                .font(.system(size: 18, weight: .regular))
+                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.55))
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .opacity(voiceState == .idle ? 1 : 0)
+        .animation(.easeInOut(duration: 0.2), value: voiceState)
+        .disabled(voiceState != .idle)
+        .accessibilityLabel("Switch to typing")
     }
 
     // MARK: - Push-to-talk gesture
@@ -245,10 +295,10 @@ struct MiraTabView: View {
         }
     }
 
-    private func runMiraTurn(userText: String) async {
+    private func runMiraTurn(userText: String, speakReply: Bool = true) async {
         ensureConversationReady()
         guard let conversation, let profile else {
-            voiceState = .idle
+            if speakReply { voiceState = .idle }
             return
         }
 
@@ -269,8 +319,10 @@ struct MiraTabView: View {
             )
             let trimmed = reply.trimmingCharacters(in: .whitespacesAndNewlines)
             messages.append(MiraTurn(author: .mira, timestamp: timestampNow(), body: trimmed))
-            voiceState = .speaking
-            voice.speak(trimmed)
+            if speakReply {
+                voiceState = .speaking
+                voice.speak(trimmed)
+            }
         } catch {
             logger.error("Mira turn failed: \(error.localizedDescription, privacy: .public)")
             messages.append(MiraTurn(
@@ -278,7 +330,42 @@ struct MiraTabView: View {
                 timestamp: timestampNow(),
                 body: "I'm having trouble reaching the network. Try once more in a moment."
             ))
-            voiceState = .idle
+            if speakReply { voiceState = .idle }
+        }
+    }
+
+    // MARK: - Text input mode
+
+    private func switchToTextInput() {
+        HapticManager.light()
+        withAnimation(.easeInOut(duration: 0.3)) {
+            inputMode = .text
+        }
+        // Slight delay so the swap animation lands before the keyboard
+        // springs in — async/await rather than asyncAfter per house rules.
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(280))
+            typedFieldFocused = true
+        }
+    }
+
+    private func switchToVoice() {
+        typedFieldFocused = false
+        withAnimation(.easeInOut(duration: 0.3)) {
+            inputMode = .voice
+        }
+    }
+
+    private func handleTextSend(_ text: String) {
+        let raw = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty else { return }
+        HapticManager.light()
+
+        messages.append(MiraTurn(author: .user, timestamp: timestampNow(), body: raw))
+        typedText = ""
+
+        Task { @MainActor in
+            await runMiraTurn(userText: raw, speakReply: false)
         }
     }
 
