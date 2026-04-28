@@ -31,6 +31,16 @@ final class MiraToolExecutor {
             return getTodayNutrition()
         case "getUserTargets":
             return getUserTargets()
+        case "lookupDrugFact":
+            return lookupDrugFact(input: input)
+        case "getRecentSymptoms":
+            return getRecentSymptoms()
+        case "getMedicationPhaseSummary":
+            return getMedicationPhaseSummary()
+        case "lookupMedicationProgram":
+            return lookupMedicationProgram(input: input)
+        case "lookupAppealTemplate":
+            return lookupAppealTemplate(input: input)
         default:
             return "Unknown tool: \(toolName)"
         }
@@ -159,7 +169,113 @@ final class MiraToolExecutor {
         return parts.joined(separator: ". ") + "."
     }
 
+    // MARK: - lookupDrugFact
+
+    /// Returns a curated, FDA-grounded statement for the user's medication
+    /// class and topic, or a deferral message when no curated entry exists.
+    /// Mira is instructed to NEVER fabricate — the deferral is the safe path.
+    private func lookupDrugFact(input: [String: Any]) -> String {
+        guard let topicRaw = input["topic"] as? String,
+              let topic = DrugFactTopic(rawValue: topicRaw) else {
+            return "I need a topic to look up. Try one of: \(DrugFactTopic.allCases.map(\.rawValue).joined(separator: ", "))."
+        }
+
+        let descriptor = FetchDescriptor<UserProfile>()
+        let profile = (try? context.fetch(descriptor))?.first
+        let drugClass = DrugClass.from(medication: profile?.medication)
+
+        if let fact = CuratedDrugFacts.lookup(drugClass: drugClass, topic: topic) {
+            return "\(fact.statement) (Source: \(fact.sourceURL.absoluteString); reviewed \(formatDate(fact.reviewedAt)).)"
+        }
+
+        return "I don't have a verified number for \(topic.rawValue) on this medication class. The FDA package insert is the safer source — your prescriber can also walk you through it."
+    }
+
+    // MARK: - getRecentSymptoms
+
+    /// Returns an anonymized 7-day symptom summary for side-effect triage.
+    /// Numbers stay coarse on purpose so Mira reasons in tendencies, not
+    /// false-precision vitals.
+    private func getRecentSymptoms() -> String {
+        let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .now
+        let descriptor = FetchDescriptor<SymptomLog>(sortBy: [SortDescriptor(\.date, order: .reverse)])
+        let logs = (try? context.fetch(descriptor)) ?? []
+        let recent = logs.filter { $0.date >= cutoff }
+
+        guard !recent.isEmpty else {
+            return "No symptoms logged in the past 7 days."
+        }
+
+        let avgNausea = Double(recent.reduce(0) { $0 + $1.nauseaLevel }) / Double(recent.count)
+        let avgAppetite = Double(recent.reduce(0) { $0 + $1.appetiteLevel }) / Double(recent.count)
+        let avgEnergy = Double(recent.reduce(0) { $0 + $1.energyLevel }) / Double(recent.count)
+
+        let nauseaBand = symptomBand(value: avgNausea, lowLabel: "minimal", midLabel: "mild", highLabel: "moderate to severe")
+        let appetiteBand = symptomBand(value: avgAppetite, lowLabel: "very low", midLabel: "low", highLabel: "near normal")
+        let energyBand = symptomBand(value: avgEnergy, lowLabel: "low", midLabel: "fair", highLabel: "good")
+
+        return "Past 7 days, \(recent.count) entries. Nausea: \(nauseaBand). Appetite: \(appetiteBand). Energy: \(energyBand)."
+    }
+
+    private func symptomBand(value: Double, lowLabel: String, midLabel: String, highLabel: String) -> String {
+        switch value {
+        case 0..<1.5: return lowLabel
+        case 1.5..<3: return midLabel
+        default:      return highLabel
+        }
+    }
+
+    // MARK: - getMedicationPhaseSummary
+
+    /// Cycle phase + days-since-injection + appetite hint so Mira can be
+    /// cycle-aware in conversation. Pulls from the active MedicationProfile
+    /// when present; otherwise returns a clean "no medication on file" so
+    /// the model doesn't invent context.
+    private func getMedicationPhaseSummary() -> String {
+        let descriptor = FetchDescriptor<UserProfile>()
+        guard let profile = (try? context.fetch(descriptor))?.first else {
+            return "No user profile yet."
+        }
+
+        guard let injectionDay = profile.injectionDay else {
+            return "User isn't on an injection schedule (oral or no medication on file)."
+        }
+
+        let daysSince = InjectionCycleEngine.daysSince(injectionDay: injectionDay)
+        let phase = InjectionCycleEngine.currentPhase(injectionDay: injectionDay)
+        let appetite = phase.appetiteDescription
+
+        return "Cycle phase: \(phase.rawValue) (day \(daysSince) of 7). Strategy: \(phase.proteinStrategy). Appetite expected: \(appetite)."
+    }
+
+    // MARK: - lookupMedicationProgram (assistance role, scaffold only)
+
+    /// Manufacturer programs / patient assistance lookup. Ships intentionally
+    /// empty — entries land after legal sign-off on the curated dataset.
+    /// Until then, returns a deferral that points the user at general
+    /// manufacturer support without inventing program names or savings.
+    private func lookupMedicationProgram(input: [String: Any]) -> String {
+        let drugHint = input["drugClass"] as? String ?? "this medication"
+        return "I don't have a curated assistance-program list for \(drugHint) yet. The manufacturer's support line on the box is the safest first call. We're working on adding verified program details."
+    }
+
+    // MARK: - lookupAppealTemplate (assistance role, scaffold only)
+
+    /// Insurance appeal-letter template lookup. Ships intentionally empty —
+    /// templates land after legal sign-off on language. Returns a deferral
+    /// that names what categories will eventually be available.
+    private func lookupAppealTemplate(input: [String: Any]) -> String {
+        let category = input["category"] as? String ?? "general"
+        return "I don't have a verified appeal template for the '\(category)' category yet. When it's ready, you'll find it here. For now, your prescriber's office often has appeal language on file."
+    }
+
     // MARK: - Helpers
+
+    private func formatDate(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: date)
+    }
 
     private func numberValue(_ any: Any?) -> Double? {
         if let d = any as? Double { return d }

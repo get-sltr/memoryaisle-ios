@@ -66,9 +66,27 @@ final class MedicationProfile {
     }
 }
 
-enum DrugClass: String, Codable {
+enum DrugClass: String, Codable, Sendable {
     case semaglutide
     case tirzepatide
     case orforglipron
     case unknown
+
+    /// Maps a `Medication` enum (which is brand-keyed) to its anonymized
+    /// drug class. Used by Mira tools that work in class terms — the system
+    /// prompt anonymizes brand names, so callers reach for the class.
+    static func from(medication: Medication?) -> DrugClass {
+        guard let medication else { return .unknown }
+        switch medication {
+        case .ozempic, .wegovy, .wegovyPill, .rybelsus,
+             .compoundedSemaglutide:
+            return .semaglutide
+        case .mounjaro, .zepbound, .compoundedTirzepatide:
+            return .tirzepatide
+        case .foundayo:
+            return .orforglipron
+        case .other:
+            return .unknown
+        }
+    }
 }

@@ -9,6 +9,11 @@ final class VoiceManager: NSObject, @unchecked Sendable {
     var transcribedText = ""
     var error: String?
     var autoListen = false
+    /// Smoothed RMS amplitude of the live microphone input, scaled 0...1.
+    /// Computed in the same audio tap that feeds speech recognition so the
+    /// editorial Mira bars can react without spinning up a second engine.
+    /// Always 0 when not listening.
+    var audioLevel: CGFloat = 0
 
     @ObservationIgnored nonisolated(unsafe) private let audioEngine = AVAudioEngine()
     @ObservationIgnored nonisolated(unsafe) private var recognitionTask: SFSpeechRecognitionTask?
@@ -124,9 +129,33 @@ final class VoiceManager: NSObject, @unchecked Sendable {
         request.shouldReportPartialResults = true
         recognitionRequest = request
 
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
             // Audio thread — append is thread-safe on the request object.
             request.append(buffer)
+
+            // Compute RMS so the editorial Mira bars can visualize the live
+            // mic level. Cheap (one pass over the buffer); shipping values
+            // back to main on every tap is fine at 1024-frame buffers.
+            guard let channelData = buffer.floatChannelData?[0] else { return }
+            let frameLength = Int(buffer.frameLength)
+            guard frameLength > 0 else { return }
+
+            var sum: Float = 0
+            for i in 0..<frameLength {
+                let sample = channelData[i]
+                sum += sample * sample
+            }
+            let rms = sqrt(sum / Float(frameLength))
+            // Empirical scale — typical speech RMS is ~0.05-0.12; multiplying
+            // by 12 lifts it into the 0.6-1.5 range, then we clamp.
+            let level = max(0, min(1, rms * 12))
+
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                // Low-pass smoothing — bars feel calmer than raw RMS, which
+                // would jitter on every tap.
+                self.audioLevel = self.audioLevel * 0.7 + CGFloat(level) * 0.3
+            }
         }
         hasInstalledTap = true
 
@@ -181,6 +210,7 @@ final class VoiceManager: NSObject, @unchecked Sendable {
         recognitionTask?.cancel()
         recognitionRequest = nil
         recognitionTask = nil
+        audioLevel = 0
     }
 
     // MARK: - Speak (Text to Speech)

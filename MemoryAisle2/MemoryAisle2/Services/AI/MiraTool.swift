@@ -74,6 +74,53 @@ enum MiraToolRegistry {
             name: "getUserTargets",
             description: "Fetch the user's daily targets and weight goal.",
             inputSchema: .init(type: "object", properties: [:], required: [])
+        ),
+        MiraTool(
+            name: "lookupDrugFact",
+            description: "Look up a curated, FDA-PI-grounded fact about the user's medication class. Use this whenever you would otherwise quote a specific drug number (side-effect prevalence, half-life, dosing schedule, contraindications, warnings, interactions, renal/hepatic adjustments). Returns 'no curated data' for topics that haven't been reviewed yet — say so honestly rather than invent.",
+            inputSchema: .init(
+                type: "object",
+                properties: [
+                    "topic": .init(
+                        type: "string",
+                        description: "One of: sideEffectPrevalence, halfLife, dosingSchedule, contraindications, warnings, interactions, adjustmentForRenalImpairment, adjustmentForHepaticImpairment, other.",
+                        items: nil
+                    )
+                ],
+                required: ["topic"]
+            )
+        ),
+        MiraTool(
+            name: "getRecentSymptoms",
+            description: "Fetch an anonymized 7-day summary of the user's logged symptoms (nausea, appetite, energy bands). Use this for side-effect triage to ground 'what to do today' advice in the user's actual recent state.",
+            inputSchema: .init(type: "object", properties: [:], required: [])
+        ),
+        MiraTool(
+            name: "getMedicationPhaseSummary",
+            description: "Fetch the user's current cycle phase, days-since-injection, and expected appetite description. Use this to be cycle-aware in conversation without restating profile.",
+            inputSchema: .init(type: "object", properties: [:], required: [])
+        ),
+        MiraTool(
+            name: "lookupMedicationProgram",
+            description: "Look up curated manufacturer assistance programs for a drug class (NovoCare, Lilly Cares, etc.). Currently returns a deferral until the curated dataset has legal sign-off — never invent program names or savings.",
+            inputSchema: .init(
+                type: "object",
+                properties: [
+                    "drugClass": .init(type: "string", description: "Anonymized drug class (semaglutide, tirzepatide, orforglipron, unknown).", items: nil)
+                ],
+                required: []
+            )
+        ),
+        MiraTool(
+            name: "lookupAppealTemplate",
+            description: "Look up a curated insurance-appeal letter template by category (e.g., 'medical_necessity', 'step_therapy_override'). Currently returns a deferral until the curated dataset has legal sign-off.",
+            inputSchema: .init(
+                type: "object",
+                properties: [
+                    "category": .init(type: "string", description: "Appeal category. Optional.", items: nil)
+                ],
+                required: []
+            )
         )
     ]
 }

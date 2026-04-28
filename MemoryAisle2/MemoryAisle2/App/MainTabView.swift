@@ -112,10 +112,12 @@ struct MainTabView: View {
             HomeView(mode: mode, onTapWordmark: openMenu)
         case .meals:
             MealsView(mode: mode, onTapWordmark: openMenu)
-        case .scan, .mira, .reflect:
-            // These tabs trigger sheets via handleTabTap and never land here,
-            // but if the state ever desyncs we fall back to Today's content
-            // so users aren't stuck on a blank gradient.
+        case .mira:
+            MiraTabView(mode: mode, onTapWordmark: openMenu)
+        case .scan, .reflect:
+            // SCAN and REFLECT trigger sheets via handleTabTap and never land
+            // here, but if the state ever desyncs we fall back to Today so
+            // users aren't stuck on a blank gradient.
             HomeView(mode: mode, onTapWordmark: openMenu)
         }
     }
@@ -124,13 +126,12 @@ struct MainTabView: View {
 
     private func handleTabTap(_ tab: MATab) {
         switch tab {
-        case .today, .meals:
-            // selection binding inside MATabBar already updated; nothing else
+        case .today, .meals, .mira:
+            // selection binding inside MATabBar already updated; these are
+            // editorial tab content, no sheet needed.
             break
         case .scan:
             activeSheet = .scan
-        case .mira:
-            activeSheet = .mira
         case .reflect:
             activeSheet = isPro ? .destination(.reflection) : .destination(.subscribe)
         }

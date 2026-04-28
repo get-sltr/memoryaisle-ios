@@ -61,6 +61,13 @@ struct MealsView: View {
     }
 
     var body: some View {
+        switch mode {
+        case .day:   dayLayout
+        case .night: nightLayout
+        }
+    }
+
+    private var dayLayout: some View {
         VStack(alignment: .leading, spacing: 0) {
             Masthead(
                 wordmark: "MEALS",
@@ -103,6 +110,113 @@ struct MealsView: View {
         }
         .padding(.horizontal, Theme.Editorial.Spacing.pad)
         .padding(.top, Theme.Editorial.Spacing.topInset)
+    }
+
+    private var nightLayout: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Masthead(
+                wordmark: "MEALS",
+                trailing: RomanNumeral.eveningString(from: Date()),
+                onTapWordmark: onTapWordmark
+            )
+            .padding(.bottom, 24)
+
+            Text(sectionLabel)
+                .font(Theme.Editorial.Typography.capsBold(10))
+                .tracking(3.5)
+                .textCase(.uppercase)
+                .foregroundStyle(Theme.Editorial.onSurface)
+                .padding(.bottom, 14)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(mealCountWord) meals,")
+                    .font(Theme.Editorial.Typography.displaySmall())
+                Text("well done.")
+                    .font(Theme.Editorial.Typography.displaySmall())
+                    .italic()
+            }
+            .kerning(-0.8)
+            .lineSpacing(-4)
+            .foregroundStyle(Theme.Editorial.onSurface)
+            .padding(.bottom, 8)
+
+            Text("A FULL PLATE · EVENING RECAP")
+                .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                .tracking(2)
+                .textCase(.uppercase)
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                .padding(.bottom, 22)
+
+            DailyTotalsRow(
+                proteinGrams: nightProteinTotal,
+                calories: nightCalorieTotal,
+                mealsCompleted: meals.count,
+                mealsTotal: meals.count == 0 ? 3 : meals.count
+            )
+            .padding(.bottom, 22)
+
+            VStack(spacing: 0) {
+                if meals.isEmpty {
+                    emptyState
+                } else {
+                    ForEach(meals, id: \.id) { meal in
+                        MealRowNight(
+                            time: timeLabel(for: meal),
+                            name: meal.name,
+                            proteinGrams: Int(meal.proteinGrams),
+                            calories: Int(meal.caloriesTotal),
+                            onTap: {
+                                HapticManager.light()
+                                expandedMealId = expandedMealId == meal.id ? nil : meal.id
+                            }
+                        )
+                        if expandedMealId == meal.id {
+                            mealExpansion(meal).padding(.bottom, 12)
+                        }
+                    }
+                }
+            }
+
+            Spacer(minLength: 0)
+
+            VStack(alignment: .leading, spacing: 14) {
+                HairlineDivider()
+                HStack(alignment: .center, spacing: 10) {
+                    MiraWaveform(state: .idle, size: .compact)
+                    Text(nightRecapMessage)
+                        .font(Theme.Editorial.Typography.miraBody())
+                        .foregroundStyle(Theme.Editorial.onSurface)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .padding(.top, 16)
+            .padding(.bottom, 80)
+        }
+        .padding(.horizontal, Theme.Editorial.Spacing.pad)
+        .padding(.top, Theme.Editorial.Spacing.topInset)
+    }
+
+    // MARK: - Night totals + recap
+
+    private var nightProteinTotal: Int {
+        Int(meals.reduce(0.0) { $0 + $1.proteinGrams }.rounded())
+    }
+
+    private var nightCalorieTotal: Int {
+        Int(meals.reduce(0.0) { $0 + $1.caloriesTotal }.rounded())
+    }
+
+    private var nightRecapMessage: String {
+        if meals.isEmpty {
+            return "Tomorrow's plan is ready when you are."
+        }
+        if let target = profile?.proteinTargetGrams,
+           Double(target) > 0,
+           Double(nightProteinTotal) >= Double(target) * 0.95 {
+            return "A complete day. Tomorrow's plan is ready when you are."
+        }
+        return "Closing well. Tomorrow we go again, kindly."
     }
 
     // MARK: - Hero

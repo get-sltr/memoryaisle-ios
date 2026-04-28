@@ -152,6 +152,71 @@ const TOOLS = [
       properties: {},
     },
   },
+  {
+    name: "lookupDrugFact",
+    description:
+      "Look up a curated, FDA-PI-grounded fact about the user's medication class. Call this whenever you would otherwise quote a specific drug number (side-effect prevalence, half-life, dosing schedule, contraindications, warnings, interactions, renal/hepatic adjustments). The store ships intentionally empty until medical/legal review; if no curated entry exists, the tool returns a deferral and you must say so honestly rather than fabricate a number.",
+    input_schema: {
+      type: "object",
+      properties: {
+        topic: {
+          type: "string",
+          description:
+            "One of: sideEffectPrevalence, halfLife, dosingSchedule, contraindications, warnings, interactions, adjustmentForRenalImpairment, adjustmentForHepaticImpairment, other.",
+        },
+      },
+      required: ["topic"],
+    },
+  },
+  {
+    name: "getRecentSymptoms",
+    description:
+      "Fetch an anonymized 7-day summary of the user's logged symptoms — nausea, appetite, energy bands. Use this for side-effect triage so 'what to do today' guidance is grounded in the user's actual recent state, not generalities.",
+    input_schema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "getMedicationPhaseSummary",
+    description:
+      "Fetch the user's current cycle phase, days-since-injection, and expected appetite description. Use this to be cycle-aware in conversation without restating the profile.",
+    input_schema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "lookupMedicationProgram",
+    description:
+      "Look up a curated manufacturer assistance program for the user's medication class (NovoCare, Lilly Cares, etc.). Currently returns a deferral until the curated dataset has legal sign-off. Never invent program names, savings amounts, or eligibility criteria.",
+    input_schema: {
+      type: "object",
+      properties: {
+        drugClass: {
+          type: "string",
+          description:
+            "Anonymized drug class hint: semaglutide, tirzepatide, orforglipron, unknown.",
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "lookupAppealTemplate",
+    description:
+      "Look up a curated insurance-appeal letter template by category (e.g., 'medical_necessity', 'step_therapy_override'). Currently returns a deferral until the curated dataset has legal sign-off.",
+    input_schema: {
+      type: "object",
+      properties: {
+        category: {
+          type: "string",
+          description: "Appeal category. Optional.",
+        },
+      },
+      required: [],
+    },
+  },
 ];
 
 export const handler = async (event) => {
