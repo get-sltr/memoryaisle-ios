@@ -103,7 +103,7 @@ website/, docs/                         Marketing site and product docs
 ```
 
 ### Key Services
-- **MiraEngine** (`Services/AI/`): Builds context-aware prompts from user profile, logs, symptoms, and medication phase, then sends to Bedrock Claude. This is the core decision engine.
+- **MiraEngine** (`Services/AI/`): Builds context-aware prompts from user profile, logs, symptoms, and medication phase, then sends to Bedrock Claude. The system prompt is structured around **six prioritized roles** (medication expert → side-effect triage → medication-assistance → nutrition → lean-mass preservation → long-term lifestyle), plus hard lines (never prescribe/administer/distribute/recommend-dose-changes/use-brand-names) and four jailbreak refusal patterns. All pinned by `MiraSystemPromptTests` (14 tests) — do not edit the prompt without updating those tests. Drug-specific facts must route through the `lookupDrugFact` tool against `CuratedDrugFacts` (which ships intentionally empty pending medical/legal sign-off — see `docs/mira-intelligence-review.md`); never generate drug numbers freeform. The tool registry is mirrored in `Infrastructure/lambda/miraGenerate/index.mjs`, so adding/removing tools requires both sides plus a `cdk deploy`.
 - **MedicationManager** (`Services/Medication/`): Tracks medication modality (injectable, oral+fasting, oral no-fasting), dose phases, and appetite/nausea predictions by cycle day.
 - **ProteinCalculator** (`Services/Nutrition/`): Computes targets from lean mass + goals. Wrong targets = wrong guidance = harm. Test thoroughly.
 - **GIToleranceEngine** (`Services/Nutrition/`): Tracks food-to-symptom correlations to avoid triggering foods.
@@ -121,7 +121,7 @@ Cognito auth (Amplify Swift SDK v2) -> API Gateway -> Lambda (VPC) -> Aurora Ser
 - **Not allowed:** Any other Swift package, CocoaPod, or Carthage dependency without explicit approval. If it can be done with Apple frameworks, do it that way.
 
 ### Code Rules
-- Max 300 lines per file. Max 50 lines per function. One type per file.
+- Max 600 lines per file. Max 50 lines per function. One type per file.
 - Swift 6 strict concurrency. All `Sendable` violations must be fixed, not suppressed.
 - `async/await` only — no completion handlers.
 - No force unwraps (`!`), `try!`, or `as!` outside of tests.
