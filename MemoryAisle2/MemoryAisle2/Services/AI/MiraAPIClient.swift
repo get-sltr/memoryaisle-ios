@@ -171,6 +171,87 @@ struct MiraAPIClient: Sendable {
         )
     }
 
+    // MARK: - Proactive meal recommendations (structured output)
+
+    /// Decoded shape of the Lambda's `mode: "recommend"` response. The
+    /// Lambda forces Claude to call a `presentMealRecommendations` tool
+    /// with this exact schema, so the field set here matches the tool's
+    /// input_schema in `Infrastructure/lambda/miraGenerate/index.mjs`.
+    private struct RecommendResponse: Decodable {
+        let recommendations: [RecommendedMeal]?
+        let error: String?
+    }
+
+    private struct RecommendedMeal: Decodable {
+        let name: String
+        let calories: Int
+        let proteinG: Int
+        let fatG: Int
+        let carbsG: Int
+        let reasoning: String
+        let ingredients: [String]
+        let isDoseDayFriendly: Bool
+    }
+
+    /// Asks Bedrock for 3 proactive meal recommendations tuned to the user's
+    /// current state. Returns exactly 3 meals on success (the server-side
+    /// tool schema enforces minItems=maxItems=3) or throws on transport,
+    /// parse, or server-reported failure.
+    func recommendMeals(
+        context: MiraContext?,
+        mealWindow: String,
+        recentMeals: [String],
+        pantryItems: [String]
+    ) async throws -> [MealRecommendation] {
+        guard let url = URL(string: endpoint) else {
+            throw MiraError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30
+
+        var body: [String: Any] = [
+            "mode": "recommend",
+            "mealWindow": mealWindow,
+        ]
+        if !recentMeals.isEmpty { body["recentMeals"] = recentMeals }
+        if !pantryItems.isEmpty { body["pantryItems"] = pantryItems }
+        if let context { body["context"] = encodeContextDict(context) }
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw MiraError.networkError
+        }
+        guard httpResponse.statusCode == 200 else {
+            throw MiraError.serverError(httpResponse.statusCode)
+        }
+
+        let decoded = try JSONDecoder().decode(RecommendResponse.self, from: data)
+        if let err = decoded.error {
+            throw MiraError.apiError(err)
+        }
+        guard let raw = decoded.recommendations, raw.count >= 1 else {
+            throw MiraError.apiError("No recommendations returned")
+        }
+        return raw.map { meal in
+            MealRecommendation(
+                name: meal.name,
+                calories: meal.calories,
+                proteinG: meal.proteinG,
+                fatG: meal.fatG,
+                carbsG: meal.carbsG,
+                reasoning: meal.reasoning,
+                ingredients: meal.ingredients,
+                isDoseDayFriendly: meal.isDoseDayFriendly
+            )
+        }
+    }
+
     /// Convert MiraContext to a JSON-serializable dictionary. We can't use
     /// JSONEncoder with [String: Any] mixing, so we hand-build the dict.
     private func encodeContextDict(_ ctx: MiraContext) -> [String: Any] {

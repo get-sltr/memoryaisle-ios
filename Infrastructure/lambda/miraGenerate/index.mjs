@@ -231,6 +231,92 @@ const TOOLS = [
   },
 ];
 
+// Tool used to force structured output from the meal-recommendation mode.
+// Claude is required to call this exactly once with three populated meal
+// recommendations; we parse the tool input as our payload and never actually
+// "execute" the tool server-side.
+const RECOMMEND_TOOL = {
+  name: "presentMealRecommendations",
+  description:
+    "Present three concrete meal recommendations to the user. ALWAYS call this tool exactly once with a recommendations array of length 3 — do not return free text. Never use em dashes anywhere in the strings you submit.",
+  input_schema: {
+    type: "object",
+    properties: {
+      recommendations: {
+        type: "array",
+        minItems: 3,
+        maxItems: 3,
+        items: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description:
+                "Short meal name as a complete sentence ending in a period. Example: 'Grilled chicken bowl with rice and avocado.'",
+            },
+            calories: { type: "integer" },
+            proteinG: { type: "integer" },
+            fatG: { type: "integer" },
+            carbsG: { type: "integer" },
+            reasoning: {
+              type: "string",
+              description:
+                "ONE short sentence (under 80 chars) that explains why this meal fits THIS user RIGHT NOW. Be specific to their state, not generic. No em dashes.",
+            },
+            ingredients: {
+              type: "array",
+              items: { type: "string" },
+              description:
+                "5 to 8 short ingredient names without quantities (e.g., 'Chicken breast', 'Jasmine rice', '½ avocado').",
+            },
+            isDoseDayFriendly: {
+              type: "boolean",
+              description:
+                "True ONLY if this meal is gentle (low-fat, easy to digest, smaller portion) AND the user appears to be in a dose-suppression phase from the context.",
+            },
+          },
+          required: [
+            "name",
+            "calories",
+            "proteinG",
+            "fatG",
+            "carbsG",
+            "reasoning",
+            "ingredients",
+            "isDoseDayFriendly",
+          ],
+        },
+      },
+    },
+    required: ["recommendations"],
+  },
+};
+
+const RECOMMEND_SYSTEM_PROMPT = `You are Mira's recommendation engine. Your job is to suggest exactly 3 meal options for the user RIGHT NOW, given their current state.
+
+Decide based on the user context (provided after this prompt):
+- Current meal window (breakfast, lunch, snack, dinner, late night)
+- Daily protein goal vs what's consumed today
+- Daily calorie goal vs what's consumed today
+- Cycle phase, medication class, days since dose (if applicable)
+- Symptom state (nausea, low appetite, fatigue, prefer gentler options)
+- Recent meals (avoid repeats, at least 2 of the 3 should differ in protein source AND cuisine from anything in the recent list)
+- Pantry items (prefer recipes that use what's on hand, but don't be limited by it)
+- Dietary restrictions (NEVER suggest restricted ingredients)
+- Product mode (everyday, sensitive stomach, muscle preservation, training performance, maintenance taper)
+
+The 3 meals must:
+- Fit the current meal window. No pancakes for dinner, no steak for breakfast.
+- Vary across cuisines AND protein sources. Don't return three chicken bowls. Mix it up: one Asian, one Mediterranean, one American comfort, etc.
+- Vary in effort: at least one should be quick (5 to 10 min), at least one can be more involved (20 to 30 min). Effort variety matters.
+- Help close the protein gap if the user is behind for the day.
+- For non-medication users, frame around training and protein goals. Never reference nausea or appetite suppression.
+- For medication users in a dose-suppression phase, set isDoseDayFriendly=true on at least one meal that is gentle (low-fat, easy on the stomach, smaller portion).
+
+For each meal, provide all required fields. Round macros to the nearest 5g for protein/fat/carbs and the nearest 25 for calories. Reasoning must be ONE sentence under 80 characters, specific to the user's state. Never use em dashes anywhere.
+
+Call presentMealRecommendations exactly once. Never return free text.`;
+
 export const handler = async (event) => {
   const body = JSON.parse(event.body || "{}");
   const {
@@ -240,7 +326,21 @@ export const handler = async (event) => {
     imageBase64,
     imageMediaType,
     useTools,
+    mode,
+    mealWindow,
+    recentMeals,
+    pantryItems,
   } = body;
+
+  // Recommendation mode: short-circuit to the structured-output path.
+  if (mode === "recommend") {
+    return await handleRecommend({
+      context,
+      mealWindow,
+      recentMeals,
+      pantryItems,
+    });
+  }
 
   // Backward-compatible request shape: accept either
   //   { message, context, imageBase64 }   — legacy single-message mode
@@ -342,6 +442,94 @@ export const handler = async (event) => {
     };
   }
 };
+
+async function handleRecommend({ context, mealWindow, recentMeals, pantryItems }) {
+  // Build the same anonymized user-context block the chat path uses, so
+  // medication class / cycle phase / protein progress all flow into the
+  // recommendation prompt without redefining the schema.
+  const userContext = context ? buildAnonymizedContext(context) : "";
+
+  // Synthesize the one-shot user turn that triggers the structured tool call.
+  const lines = [];
+  lines.push(
+    `Generate 3 meal recommendations for the user RIGHT NOW. Current meal window: ${
+      mealWindow || "unknown"
+    }.`
+  );
+  if (Array.isArray(recentMeals) && recentMeals.length) {
+    lines.push(
+      `Recent meals (avoid repeats): ${recentMeals.slice(0, 10).join(", ")}.`
+    );
+  }
+  if (Array.isArray(pantryItems) && pantryItems.length) {
+    lines.push(
+      `Pantry on hand (prefer when relevant): ${pantryItems
+        .slice(0, 20)
+        .join(", ")}.`
+    );
+  }
+  lines.push(
+    "Call presentMealRecommendations exactly once with the 3 recommendations."
+  );
+  const userMessage = lines.join("\n");
+
+  const requestBody = {
+    anthropic_version: "bedrock-2023-05-31",
+    max_tokens: 2500,
+    system: RECOMMEND_SYSTEM_PROMPT + userContext,
+    messages: [{ role: "user", content: userMessage }],
+    tools: [RECOMMEND_TOOL],
+    // tool_choice forces the model to call the named tool, guaranteeing
+    // structured output. Available on Anthropic Sonnet 4 via Bedrock.
+    tool_choice: { type: "tool", name: "presentMealRecommendations" },
+  };
+
+  try {
+    const command = new InvokeModelCommand({
+      modelId: "us.anthropic.claude-sonnet-4-20250514-v1:0",
+      contentType: "application/json",
+      accept: "application/json",
+      body: JSON.stringify(requestBody),
+    });
+
+    const response = await client.send(command);
+    const result = JSON.parse(new TextDecoder().decode(response.body));
+
+    const contentBlocks = Array.isArray(result.content) ? result.content : [];
+    const toolBlock = contentBlocks.find((b) => b.type === "tool_use");
+
+    if (!toolBlock || !toolBlock.input || !Array.isArray(toolBlock.input.recommendations)) {
+      console.error(
+        "Recommend mode: model did not return the expected tool_use payload",
+        JSON.stringify(result.stop_reason)
+      );
+      return {
+        statusCode: 502,
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          error: "Mira couldn't put together suggestions right now. Try again in a moment.",
+        }),
+      };
+    }
+
+    return {
+      statusCode: 200,
+      headers: corsHeaders(),
+      body: JSON.stringify({
+        recommendations: toolBlock.input.recommendations,
+      }),
+    };
+  } catch (error) {
+    console.error("Recommend mode Bedrock error:", error);
+    return {
+      statusCode: 500,
+      headers: corsHeaders(),
+      body: JSON.stringify({
+        error: "Mira is temporarily unavailable. Please try again.",
+      }),
+    };
+  }
+}
 
 function buildAnonymizedContext(ctx) {
   const lines = ["\n\nUser context (anonymized):"];
