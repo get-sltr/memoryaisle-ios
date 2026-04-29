@@ -24,41 +24,27 @@ struct TodayDashboardView: View {
     @Query(sort: \BodyComposition.date, order: .reverse) private var bodyCompRecords: [BodyComposition]
     @Query(sort: \NutritionLog.date, order: .reverse) private var nutritionLogs: [NutritionLog]
     @Query(sort: \MedicationProfile.startDate, order: .reverse) private var medications: [MedicationProfile]
+    @Query private var pantry: [PantryItem]
 
     @State private var openSections: Set<DashboardSection> = [.dailyTargets]
     @State private var recoIndex: Int = 0
     @State private var activeCard: DashboardCard?
     @State private var feeling: Feeling?
 
+    /// Bedrock-generated recommendations for the current meal window.
+    /// Cached in-memory by `cachedWindow` so the dashboard only hits the
+    /// Lambda once per window per app session — without this the carousel
+    /// would re-fetch on every Today tab activation, costing ~$0.013/fetch.
+    @State private var recommendations: [MealRecommendation] = []
+    @State private var recommendationsLoading: Bool = false
+    @State private var recommendationsError: String?
+    @State private var cachedWindow: MealWindow?
+
+    private let api = MiraAPIClient()
     private let logger = Logger(subsystem: "com.sltrdigital.MemoryAisle2", category: "Dashboard")
 
     private var profile: UserProfile? { profiles.first }
     private var medication: MedicationProfile? { medications.first }
-
-    /// Static recommendation list. Real Bedrock-generated recommendations
-    /// are tracked as a follow-up; the dashboard ships with a representative
-    /// trio so the carousel + cards UX can be validated end-to-end.
-    private let recommendations: [MealRecommendation] = [
-        MealRecommendation(
-            name: "Grilled chicken bowl with rice and avocado.",
-            calories: 520, proteinG: 38, fatG: 14, carbsG: 52,
-            reasoning: "Closes your protein gap for today.",
-            ingredients: ["Chicken breast", "Jasmine rice", "½ avocado", "Lime", "Cilantro", "Olive oil", "Salt"]
-        ),
-        MealRecommendation(
-            name: "Greek yogurt with berries and walnuts.",
-            calories: 310, proteinG: 22, fatG: 12, carbsG: 24,
-            reasoning: "Lighter option · still on target.",
-            ingredients: ["Greek yogurt", "Mixed berries", "Walnuts", "Honey", "Cinnamon"]
-        ),
-        MealRecommendation(
-            name: "Salmon, sweet potato, asparagus.",
-            calories: 610, proteinG: 42, fatG: 26, carbsG: 38,
-            reasoning: "Omega-3 boost · dose-day friendly.",
-            ingredients: ["Salmon fillet", "Sweet potato", "Asparagus", "Lemon", "Olive oil", "Salt", "Pepper"],
-            isDoseDayFriendly: true
-        )
-    ]
 
     private let miraFollowUps = [
         "Can I swap chicken for tofu?",
@@ -97,6 +83,9 @@ struct TodayDashboardView: View {
             .scrollIndicators(.hidden)
 
             cardOverlay
+        }
+        .task(id: MealWindow.current()) {
+            await loadRecommendations()
         }
     }
 
@@ -256,13 +245,65 @@ struct TodayDashboardView: View {
 
     // MARK: - Recommendation
 
+    @ViewBuilder
     private var recommendation: some View {
-        MiraRecommendationView(
-            recommendations: recommendations,
-            window: MealWindow.current(),
-            currentIndex: $recoIndex,
-            onAction: handleRecommendationAction
-        )
+        if recommendations.isEmpty {
+            recommendationPlaceholder
+        } else {
+            MiraRecommendationView(
+                recommendations: recommendations,
+                window: MealWindow.current(),
+                currentIndex: $recoIndex,
+                onAction: handleRecommendationAction
+            )
+        }
+    }
+
+    /// Loading / error stand-in shown above the card row before Bedrock
+    /// returns. Mirrors the visual frame of `MiraRecommendationView`
+    /// (eyebrow + bordered block) so layout doesn't jump when content
+    /// finally arrives.
+    private var recommendationPlaceholder: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("— \(MealWindow.current().eyebrowText)")
+                .font(Theme.Editorial.Typography.capsBold(8))
+                .tracking(2.2)
+                .foregroundStyle(Theme.Editorial.onSurface)
+
+            if let error = recommendationsError {
+                Text(error)
+                    .font(Theme.Editorial.Typography.miraBody())
+                    .foregroundStyle(Color(red: 1.0, green: 0.85, blue: 0.85))
+                Button {
+                    Task { await loadRecommendations(force: true) }
+                } label: {
+                    Text("TAP TO RETRY")
+                        .font(Theme.Editorial.Typography.capsBold(9))
+                        .tracking(1.8)
+                        .foregroundStyle(Theme.Editorial.onSurface)
+                        .overlay(alignment: .bottom) {
+                            Rectangle()
+                                .fill(Theme.Editorial.onSurface)
+                                .frame(height: 0.5)
+                                .offset(y: 3)
+                        }
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text("Mira is putting together your options...")
+                    .font(Theme.Editorial.Typography.miraBody())
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+            }
+        }
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: .top) {
+            Rectangle().fill(Theme.Editorial.hairline).frame(height: 0.5)
+        }
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(Theme.Editorial.hairline).frame(height: 0.5)
+        }
+        .padding(.top, 22)
     }
 
     private func handleRecommendationAction(_ card: DashboardCard) {
@@ -270,6 +311,99 @@ struct TodayDashboardView: View {
         withAnimation(.easeInOut(duration: 0.28)) {
             activeCard = card
         }
+    }
+
+    // MARK: - Bedrock recommendation fetch
+
+    /// Loads 3 fresh recommendations for the current meal window. No-op
+    /// if we already have cached results for the same window unless
+    /// `force` is true (manual retry button).
+    private func loadRecommendations(force: Bool = false) async {
+        let window = MealWindow.current()
+        if !force, !recommendations.isEmpty, cachedWindow == window {
+            return
+        }
+        recommendationsLoading = true
+        recommendationsError = nil
+        defer { recommendationsLoading = false }
+
+        let context = buildRecommendationContext()
+        let recent = recentMealNames()
+        let pantryNames = pantry.prefix(20).map(\.name).filter { !$0.isEmpty }
+
+        do {
+            let recs = try await api.recommendMeals(
+                context: context,
+                mealWindow: window.rawValue,
+                recentMeals: recent,
+                pantryItems: pantryNames
+            )
+            recommendations = recs
+            cachedWindow = window
+            recoIndex = 0
+        } catch {
+            logger.error("Recommendation fetch failed: \(error.localizedDescription, privacy: .public)")
+            recommendationsError = "Couldn't reach Mira. Try again in a moment."
+        }
+    }
+
+    /// Builds the anonymized MiraContext from the dashboard's SwiftData
+    /// queries. Mirrors the pattern in MiraChatView.sendMessage so the
+    /// recommendation Lambda gets the same shape of context the chat
+    /// surface produces.
+    private func buildRecommendationContext() -> MiraAPIClient.MiraContext {
+        guard let p = profile else {
+            return MiraAPIClient.MiraContext(
+                medicationClass: nil, doseTier: nil, daysSinceDose: nil,
+                phase: nil, symptomState: nil, mode: nil,
+                proteinTarget: nil, proteinToday: nil, waterToday: nil,
+                trainingLevel: nil, trainingToday: nil, calorieTarget: nil,
+                dietaryRestrictions: nil
+            )
+        }
+        let anon = MedicationAnonymizer.anonymize(
+            profile: p,
+            cyclePhase: nil,
+            symptomState: "unknown",
+            proteinConsumed: proteinConsumed,
+            waterConsumed: waterConsumed,
+            isTrainingDay: false
+        )
+        return MiraAPIClient.MiraContext(
+            medicationClass: anon.medicationClass,
+            doseTier: anon.doseTier,
+            daysSinceDose: anon.daysSinceDose,
+            phase: anon.phase,
+            symptomState: anon.symptomState,
+            mode: anon.productMode,
+            proteinTarget: anon.proteinTargetGrams,
+            proteinToday: anon.proteinConsumedGrams,
+            waterToday: anon.waterConsumedLiters,
+            trainingLevel: anon.trainingLevel,
+            trainingToday: anon.trainingToday,
+            calorieTarget: anon.calorieTarget,
+            dietaryRestrictions: anon.dietaryRestrictions
+        )
+    }
+
+    /// Distinct meal names from the last 7 days, capped at 10. Sent to the
+    /// Lambda so Mira's recommendations don't repeat what the user just ate.
+    private func recentMealNames() -> [String] {
+        guard let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: .now) else {
+            return []
+        }
+        var seen = Set<String>()
+        var ordered: [String] = []
+        for log in nutritionLogs where log.date >= cutoff {
+            guard let raw = log.foodName?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !raw.isEmpty else { continue }
+            let key = raw.lowercased()
+            if seen.insert(key).inserted {
+                ordered.append(raw)
+                if ordered.count >= 10 { break }
+            }
+        }
+        return ordered
     }
 
     // MARK: - Card overlay
