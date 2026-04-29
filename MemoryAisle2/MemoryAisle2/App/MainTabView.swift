@@ -109,7 +109,7 @@ struct MainTabView: View {
     private var tabContent: some View {
         switch selectedTab {
         case .today:
-            HomeView(mode: mode, onTapWordmark: openMenu)
+            TodayDashboardView(mode: mode, onTapWordmark: openMenu)
         case .meals:
             MealsView(mode: mode, onTapWordmark: openMenu)
         case .mira:
@@ -118,7 +118,7 @@ struct MainTabView: View {
             // SCAN and REFLECT trigger sheets via handleTabTap and never land
             // here, but if the state ever desyncs we fall back to Today so
             // users aren't stuck on a blank gradient.
-            HomeView(mode: mode, onTapWordmark: openMenu)
+            TodayDashboardView(mode: mode, onTapWordmark: openMenu)
         }
     }
 
