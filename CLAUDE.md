@@ -125,7 +125,7 @@ Cognito auth (Amplify Swift SDK v2) -> API Gateway -> Lambda (VPC) -> Aurora Ser
 - Swift 6 strict concurrency. All `Sendable` violations must be fixed, not suppressed.
 - `async/await` only — no completion handlers.
 - No force unwraps (`!`), `try!`, or `as!` outside of tests.
-- No hardcoded colors — use `Theme.swift`. No custom fonts — SF Pro system fonts only.
+- No hardcoded colors — use `Theme.swift`. Apple system fonts (SF Pro / SF Mono / New York) for everything except editorial display + body copy, which uses bundled **Libre Caslon Display** via `Theme.Editorial.Typography.displayHero/displayHeroItalic/displaySmall/body/mealName/miraBody`. The wordmark intentionally stays on the system serif (New York reads better than Caslon at 11pt). No other bundled fonts without explicit approval — surface the request rather than quietly adding a `.ttf`.
 - All UI must work in both dark and light mode using `Theme.swift` adaptive colors.
 - Accessibility labels on all interactive elements. Dynamic Type on all text.
 - No `TODO`/`FIXME` comments — fix it now or don't touch it.

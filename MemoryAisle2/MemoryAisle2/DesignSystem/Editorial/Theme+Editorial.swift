@@ -59,13 +59,36 @@ extension Theme {
             static let bottomBuffer: CGFloat = 100
         }
 
-        // MARK: Typography (system fonts only — serif + monospaced design)
+        // MARK: Typography
+        //
+        // Display + body serif: bundled Libre Caslon Display (OFL).
+        // Wordmark serif + everything monospaced: Apple system fonts.
+        // The wordmark stays on the system serif (New York) because Caslon
+        // reads thin and fragile at 11pt; New York is more legible at that
+        // size and the wordmark mark is small enough that the typographic
+        // character isn't doing the same work as the hero copy.
 
         enum Typography {
 
-            static func wordmark() -> Font {
-                .system(size: 11, weight: .medium, design: .serif)
+            /// PostScript name of the bundled Libre Caslon Display face.
+            /// Verified by reading the font file's name table — do not
+            /// change without re-checking via `UIFont.fontNames(forFamilyName:)`
+            /// at runtime, otherwise `Font.custom` will silently fall back
+            /// to the system sans-serif (NOT the system serif).
+            private static let caslonRegular = "LibreCaslonDisplay-Regular"
+
+            /// Libre Caslon Display at the given size. `Font.custom` returns
+            /// a font that falls back to the iOS default sans-serif if the
+            /// PostScript name isn't found — there's no built-in chain to
+            /// `system(design: .serif)`. The mitigation is the bundled .ttf
+            /// + the verified PostScript name above; if either drift, fix
+            /// the source rather than catching the fallback at render time.
+            private static func caslon(size: CGFloat) -> Font {
+                Font.custom(caslonRegular, size: size)
+                    .leading(.tight)
             }
+
+            // MARK: Caps (monospaced — SF Mono)
 
             static func caps(_ size: CGFloat = 9, weight: Font.Weight = .semibold) -> Font {
                 .system(size: size, weight: weight, design: .monospaced)
@@ -75,32 +98,47 @@ extension Theme {
                 .system(size: size, weight: .heavy, design: .monospaced)
             }
 
+            // MARK: Display (serif — Caslon)
+
             static func displayHero() -> Font {
-                .system(size: 46, weight: .medium, design: .serif)
+                caslon(size: 46)
             }
 
             static func displayHeroItalic() -> Font {
-                .system(size: 46, weight: .regular, design: .serif)
+                caslon(size: 46).italic()
             }
 
             static func displaySmall() -> Font {
-                .system(size: 38, weight: .medium, design: .serif)
+                caslon(size: 38)
             }
 
+            // MARK: Body (serif — Caslon; italic is synthesized — Libre Caslon
+            // Display ships only Regular. Acceptable at display sizes; if the
+            // synthesized slant reads mechanical at 12pt mira-body, we can
+            // bundle Libre Caslon Text Italic specifically as a follow-up.)
+
             static func body() -> Font {
-                .system(size: 14, weight: .medium, design: .serif)
+                caslon(size: 14)
             }
 
             static func mealName() -> Font {
-                .system(size: 19, weight: .medium, design: .serif)
-            }
-
-            static func dataValue() -> Font {
-                .system(size: 12, weight: .heavy, design: .monospaced)
+                caslon(size: 19)
             }
 
             static func miraBody() -> Font {
-                .system(size: 12, weight: .medium, design: .serif).italic()
+                caslon(size: 12).italic()
+            }
+
+            // MARK: Wordmark (system serif intentionally — see header comment)
+
+            static func wordmark() -> Font {
+                .system(size: 11, weight: .medium, design: .serif)
+            }
+
+            // MARK: Data values (monospaced — SF Mono)
+
+            static func dataValue() -> Font {
+                .system(size: 12, weight: .heavy, design: .monospaced)
             }
         }
     }
