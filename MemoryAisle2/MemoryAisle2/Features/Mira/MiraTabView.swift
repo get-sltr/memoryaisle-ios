@@ -24,6 +24,13 @@ struct MiraTabView: View {
 
     @State private var voice = VoiceManager()
     @State private var voiceState: MiraVoiceState = .idle
+
+    /// PRIVACY INVARIANT: Mira conversations are ephemeral by product design
+    /// (see LEGAL-MemoryAisle.md §2.5 and §2.7). Do NOT back this with
+    /// SwiftData. Do NOT introduce a "past conversations" archive, server
+    /// log, or any other form of persistence. The "we don't save it"
+    /// guarantee is a product positioning Kevin holds to and a real user
+    /// expectation set in the privacy policy.
     @State private var messages: [MiraTurn] = []
     @State private var conversation: MiraConversation?
 
