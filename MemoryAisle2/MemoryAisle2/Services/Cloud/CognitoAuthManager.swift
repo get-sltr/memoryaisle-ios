@@ -105,6 +105,60 @@ final class CognitoAuthManager {
         }
     }
 
+    // MARK: - Reset Password
+
+    /// Asks Cognito to mail a 6-digit reset code to `email` if an account
+    /// exists with that username. Cognito does NOT confirm whether the
+    /// account exists — that prevents account enumeration — so a `true`
+    /// return means "request accepted," not "account found." Returns
+    /// false and sets `error` on transport or service failure.
+    func resetPassword(email: String) async -> Bool {
+        isLoading = true
+        error = nil
+
+        let body: [String: Any] = [
+            "ClientId": clientId,
+            "Username": email
+        ]
+
+        do {
+            _ = try await cognitoRequest(action: "AWSCognitoIdentityProviderService.ForgotPassword", body: body)
+            isLoading = false
+            return true
+        } catch {
+            self.error = parseError(error)
+            isLoading = false
+            return false
+        }
+    }
+
+    /// Confirms the reset by submitting the mailed code along with the
+    /// new password. On success the account password is updated; the
+    /// caller should follow up with `signIn(email:password:)` to
+    /// establish a session. Returns false and sets `error` on code
+    /// mismatch, expired code, weak password, or transport failure.
+    func confirmResetPassword(email: String, code: String, newPassword: String) async -> Bool {
+        isLoading = true
+        error = nil
+
+        let body: [String: Any] = [
+            "ClientId": clientId,
+            "Username": email,
+            "ConfirmationCode": code,
+            "Password": newPassword
+        ]
+
+        do {
+            _ = try await cognitoRequest(action: "AWSCognitoIdentityProviderService.ConfirmForgotPassword", body: body)
+            isLoading = false
+            return true
+        } catch {
+            self.error = parseError(error)
+            isLoading = false
+            return false
+        }
+    }
+
     // MARK: - Sign Out
 
     /// Minimal sign-out: clears in-memory auth state and the keychain.

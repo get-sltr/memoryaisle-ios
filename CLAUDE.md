@@ -129,7 +129,7 @@ Cognito auth (Amplify Swift SDK v2) -> API Gateway -> Lambda (VPC) -> Aurora Ser
 - All UI must work in both dark and light mode using `Theme.swift` adaptive colors.
 - Accessibility labels on all interactive elements. Dynamic Type on all text.
 - No `TODO`/`FIXME` comments — fix it now or don't touch it.
-- No em dashes in any UI copy, Mira prompts, or Mira-generated text. This applies to `MiraEngine` system prompts and any string that could end up rendered in the app.
+- No em dashes in any UI copy, Mira prompts, or Mira-generated text. This applies to `MiraEngine` system prompts and any string that could end up rendered in the app. **Exception:** the editorial subtitle pattern (`— CAPS LINE`, e.g. `— WELCOME BACK`, `— A QUESTION TO BEGIN WITH`) intentionally uses a leading em dash as typographic ornamentation on editorial surfaces (auth, mastheads, day/night editorial canvas). This is the only sanctioned em-dash use; everywhere else still falls under the general ban.
 - No `print(...)` — use `os.Logger` for debug output. Any `print` is a regression.
 
 ### Data Safety
