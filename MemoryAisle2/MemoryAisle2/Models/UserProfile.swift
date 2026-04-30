@@ -34,6 +34,17 @@ final class UserProfile {
     var waterTargetLiters: Double
     var fiberTargetGrams: Int
 
+    /// Free-text intent the user typed (or spoke) on the editorial onboarding's
+    /// "in your own words" question. Optional, nil for users who completed
+    /// the legacy onboarding before this field existed. Read by Mira's
+    /// recommendation engine as an ongoing personalization signal.
+    var openGoal: String?
+
+    /// Free-text movement context (routine, injuries, what works for them)
+    /// captured on the editorial onboarding's Movement screen. Same nil
+    /// semantics as `openGoal`.
+    var movementNote: String?
+
     init(
         name: String = "",
         medication: Medication? = nil,
@@ -57,6 +68,8 @@ final class UserProfile {
         self.calorieTarget = calorieTarget
         self.waterTargetLiters = waterTargetLiters
         self.fiberTargetGrams = fiberTargetGrams
+        self.openGoal = nil
+        self.movementNote = nil
     }
 }
 
@@ -134,6 +147,23 @@ enum TrainingLevel: String, Codable, CaseIterable {
     case cardio = "Yes, cardio / general fitness"
     case sometimes = "Sometimes"
     case none = "Not currently"
+    /// Deliberate "I don't focus on exercise; manage me through nutrition only"
+    /// choice, distinct from the passive `.none`. Drives `ProductMode` selection
+    /// and the recommendation engine's framing (no training language).
+    case nutritionOnly = "Nutrition only"
+
+    /// Editorial-onboarding display labels (the existing rawValue strings
+    /// remain the source of truth for SwiftData persistence; this is the
+    /// per-screen UI copy from the new flow's Movement screen).
+    var displayName: String {
+        switch self {
+        case .lifts:         "I lift weights regularly"
+        case .cardio:        "I do cardio or general fitness"
+        case .sometimes:     "I move when I can, walks, daily life"
+        case .none:          "Not currently"
+        case .nutritionOnly: "Don't focus on exercise, nutrition only"
+        }
+    }
 }
 
 enum DietaryRestriction: String, Codable, CaseIterable {
