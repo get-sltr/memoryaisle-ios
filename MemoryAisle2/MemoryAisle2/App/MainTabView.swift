@@ -169,6 +169,7 @@ struct MainTabView: View {
         case .menu:
             MenuSheet(
                 isPro: isPro,
+                isOnGLP: profile?.medicationModality != nil,
                 onSelect: { dest in
                     activeSheet = .destination(gateDestination(dest))
                 },
@@ -198,16 +199,17 @@ struct MainTabView: View {
         switch dest {
         case .profile:     JourneyProfileView()
         case .progress:    ProgressDashboardView()
-        case .groceryList: GroceryListScreen()
+        case .groceryList: GroceryListScreen(mode: mode)
         case .recipes:     RecipesView()
-        case .calendar:    CalendarView()
-        case .pantry:      PantryView()
+        case .calendar:    CalendarView(mode: mode)
+        case .pantry:      PantryView(mode: mode)
         case .safeSpace:   SafeSpaceView()
         case .reflection:  ReflectionView()
         case .scan:        ScanView()
         case .mira:        MiraChatView()
-        case .subscribe:   PaywallView()
+        case .subscribe:   PaywallView(mode: mode)
         case .proBenefits: ProBenefitsView()
+        case .medications: MedicationView(mode: mode)
         case .settings:    ProfileView()
         }
     }

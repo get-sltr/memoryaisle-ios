@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct GroceryListScreen: View {
+    var mode: MAMode = .auto
     @Environment(\.colorScheme) private var scheme
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss

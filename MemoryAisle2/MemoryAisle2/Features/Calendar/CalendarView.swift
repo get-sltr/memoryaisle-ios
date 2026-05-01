@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct CalendarView: View {
+    var mode: MAMode = .auto
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]

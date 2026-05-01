@@ -2,6 +2,7 @@ import StoreKit
 import SwiftUI
 
 struct PaywallView: View {
+    var mode: MAMode = .auto
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Environment(SubscriptionManager.self) private var subscriptionManager

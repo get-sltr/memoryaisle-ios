@@ -7,6 +7,7 @@ import SwiftUI
 struct MenuSheet: View {
     @Environment(\.colorScheme) private var scheme
     let isPro: Bool
+    var isOnGLP: Bool = false
     let onSelect: (MenuDestination) -> Void
     let onClose: () -> Void
 
@@ -40,6 +41,13 @@ struct MenuSheet: View {
                     }
                     menuRow("Pantry", icon: "refrigerator.fill", color: Color(hex: 0x4ADE80)) {
                         onSelect(.pantry)
+                    }
+                    menuRow(
+                        isOnGLP ? "Medications" : "Allergies & Restrictions",
+                        icon: isOnGLP ? "pills.fill" : "leaf.fill",
+                        color: Color(hex: 0xC084FC)
+                    ) {
+                        onSelect(.medications)
                     }
                     menuRow("My Safe Space", icon: "lock.shield.fill", color: Color(hex: 0x6B6B88)) {
                         onSelect(.safeSpace)
@@ -129,6 +137,6 @@ struct MenuSheet: View {
 }
 
 enum MenuDestination: String, Identifiable, Hashable {
-    case profile, progress, groceryList, recipes, calendar, pantry, safeSpace, reflection, scan, mira, subscribe, proBenefits, settings
+    case profile, progress, groceryList, recipes, calendar, pantry, medications, safeSpace, reflection, scan, mira, subscribe, proBenefits, settings
     var id: String { rawValue }
 }

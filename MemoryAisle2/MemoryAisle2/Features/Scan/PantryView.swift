@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct PantryView: View {
+    var mode: MAMode = .auto
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
