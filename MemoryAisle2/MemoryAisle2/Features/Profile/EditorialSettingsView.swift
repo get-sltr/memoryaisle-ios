@@ -472,6 +472,7 @@ struct EditorialSettingsView: View {
             )
 
             appState.hasCompletedOnboarding = false
+            appState.cognitoUserId = nil
             appState.authStatus = .signedOut
             HapticManager.heavy()
             dismiss()

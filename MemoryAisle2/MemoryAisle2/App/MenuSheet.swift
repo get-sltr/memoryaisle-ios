@@ -150,6 +150,7 @@ struct MenuSheet: View {
                         modelContext: modelContext,
                         subscription: subscriptionManager
                     )
+                    appState.cognitoUserId = nil
                     appState.authStatus = .signedOut
                     onClose()
                 }

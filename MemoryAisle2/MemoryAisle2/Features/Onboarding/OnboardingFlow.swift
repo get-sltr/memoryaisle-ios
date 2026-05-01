@@ -29,7 +29,8 @@ struct OnboardingFlow: View {
             medication: profile.medication,
             medicationModality: profile.modality,
             productMode: deriveMode(),
-            proteinTargetGrams: deriveProteinTarget()
+            proteinTargetGrams: deriveProteinTarget(),
+            userId: appState.cognitoUserId
         )
         user.hasCompletedOnboarding = true
         user.worries = profile.worries

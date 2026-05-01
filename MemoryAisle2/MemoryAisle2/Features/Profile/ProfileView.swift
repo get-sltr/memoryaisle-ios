@@ -552,6 +552,7 @@ struct ProfileView: View {
                         modelContext: modelContext,
                         subscription: subscriptionManager
                     )
+                    appState.cognitoUserId = nil
                     appState.authStatus = .signedOut
                     dismiss()
                 }
@@ -710,6 +711,7 @@ struct ProfileView: View {
             )
 
             appState.hasCompletedOnboarding = false
+            appState.cognitoUserId = nil
             appState.authStatus = .signedOut
             HapticManager.heavy()
             dismiss()

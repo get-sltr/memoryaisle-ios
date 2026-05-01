@@ -48,7 +48,7 @@ enum AppReviewerSeedService {
     /// user used this device first), seeding is skipped entirely. The
     /// reviewer flag is still set so Pro is granted for this session,
     /// but the pre-existing data is left intact.
-    static func handleSignIn(email: String?, modelContext: ModelContext) {
+    static func handleSignIn(email: String?, userId: String? = nil, modelContext: ModelContext) {
         guard let email, email.lowercased() == reviewerEmail.lowercased() else { return }
 
         // Require the signed-in user to also be a member of the Cognito
@@ -64,7 +64,7 @@ enum AppReviewerSeedService {
         if !UserDefaults.standard.bool(forKey: seedFlagKey) {
             let existingProfile = (try? modelContext.fetch(FetchDescriptor<UserProfile>()))?.first
             if existingProfile == nil {
-                seedDemoData(into: modelContext)
+                seedDemoData(userId: userId, into: modelContext)
             }
             // Mark seed-done either way so we don't keep retrying on
             // every sign-in of a reviewer landing on a device that
@@ -90,17 +90,18 @@ enum AppReviewerSeedService {
 
     // MARK: - Seeding
 
-    private static func seedDemoData(into context: ModelContext) {
-        seedProfile(into: context)
+    private static func seedDemoData(userId: String?, into context: ModelContext) {
+        seedProfile(userId: userId, into: context)
         seedNutritionLogs(into: context)
         seedSymptomLogs(into: context)
         seedBodyComposition(into: context)
         try? context.save()
     }
 
-    private static func seedProfile(into context: ModelContext) {
+    private static func seedProfile(userId: String?, into context: ModelContext) {
         // Caller has already verified there is no existing UserProfile.
         let profile = UserProfile()
+        profile.userId = userId
         profile.name = "Alex"
         profile.age = 38
         profile.sex = .female
