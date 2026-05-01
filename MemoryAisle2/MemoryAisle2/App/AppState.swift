@@ -47,4 +47,11 @@ final class AppState {
     /// Bedrock call was issued (flag off, quota exhausted, etc.). MealsView
     /// reads this so the user gets a hint instead of staring at a missing plan.
     var lastWeeklyGenRejection: WeeklyMealPlanOrchestrator.RejectionReason?
+
+    /// One-shot prompt queued by another surface (currently the Today
+    /// dashboard's "Tell Me More" follow-up card) for `MiraTabView` to send
+    /// as the next user turn. The shell flips `selectedTab` to `.mira` when
+    /// this is set; `MiraTabView` consumes and clears it. Treat as
+    /// fire-and-forget — value is non-nil only between set and consume.
+    var pendingMiraPrompt: String?
 }

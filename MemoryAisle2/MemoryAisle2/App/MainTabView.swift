@@ -58,6 +58,13 @@ struct MainTabView: View {
         .onAppear {
             runOnceOnLaunch()
         }
+        .onChange(of: appState.pendingMiraPrompt) { _, newValue in
+            // Dashboard's "Tell Me More" handler queues a prompt here; flip
+            // the bar to MIRA so the tab can drain it. MiraTabView clears.
+            if newValue != nil {
+                selectedTab = .mira
+            }
+        }
     }
 
     // MARK: - Launch hooks
@@ -109,7 +116,11 @@ struct MainTabView: View {
     private var tabContent: some View {
         switch selectedTab {
         case .today:
-            TodayDashboardView(mode: mode, onTapWordmark: openMenu)
+            TodayDashboardView(
+                mode: mode,
+                onTapWordmark: openMenu,
+                onPresentScan: { activeSheet = .scanMode($0) }
+            )
         case .meals:
             MealsView(mode: mode, onTapWordmark: openMenu)
         case .mira:
@@ -118,7 +129,11 @@ struct MainTabView: View {
             // SCAN and REFLECT trigger sheets via handleTabTap and never land
             // here, but if the state ever desyncs we fall back to Today so
             // users aren't stuck on a blank gradient.
-            TodayDashboardView(mode: mode, onTapWordmark: openMenu)
+            TodayDashboardView(
+                mode: mode,
+                onTapWordmark: openMenu,
+                onPresentScan: { activeSheet = .scanMode($0) }
+            )
         }
     }
 
@@ -176,6 +191,8 @@ struct MainTabView: View {
             )
         case .scan:
             ScanView()
+        case .scanMode(let mode):
+            ScanView(initialMode: mode)
         case .mira:
             MiraChatView()
         case .destination(let dest):
@@ -216,6 +233,7 @@ struct MainTabView: View {
 enum MainSheet: Identifiable, Hashable {
     case menu
     case scan
+    case scanMode(ScanView.ScanMode)
     case mira
     case destination(MenuDestination)
 
@@ -223,6 +241,7 @@ enum MainSheet: Identifiable, Hashable {
         switch self {
         case .menu:                "menu"
         case .scan:                "scan"
+        case .scanMode(let m):     "scan-\(m)"
         case .mira:                "mira"
         case .destination(let d):  "dest-\(d.rawValue)"
         }

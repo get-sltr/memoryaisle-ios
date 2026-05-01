@@ -19,7 +19,9 @@ import SwiftUI
 struct TodayDashboardView: View {
     let mode: MAMode
     let onTapWordmark: () -> Void
+    var onPresentScan: (ScanView.ScanMode) -> Void = { _ in }
 
+    @Environment(AppState.self) private var appState
     @Query private var profiles: [UserProfile]
     @Query(sort: \BodyComposition.date, order: .reverse) private var bodyCompRecords: [BodyComposition]
     @Query(sort: \NutritionLog.date, order: .reverse) private var nutritionLogs: [NutritionLog]
@@ -466,19 +468,18 @@ struct TodayDashboardView: View {
         }
     }
 
-    // MARK: - Action handlers (TODO stubs)
+    // MARK: - Action handlers
 
     private func handleLogPhoto(_ recommendation: MealRecommendation) {
         logger.log("Log via photo: \(recommendation.name, privacy: .public)")
-        // TODO: present AVCaptureSession for meal photo capture, run Bedrock
-        // vision pipeline, return macros, present a confirm step before logging.
         dismissCard()
+        onPresentScan(.photo)
     }
 
     private func handleLogBarcode(_ recommendation: MealRecommendation) {
         logger.log("Log via barcode: \(recommendation.name, privacy: .public)")
-        // TODO: present AVFoundation barcode scanner, look up UPC, log on confirm.
         dismissCard()
+        onPresentScan(.barcode)
     }
 
     private func handleOrderTap(app: DeliveryApp, query: String) {
@@ -497,9 +498,8 @@ struct TodayDashboardView: View {
 
     private func handleMiraFollowUp(_ question: String) {
         logger.log("Mira follow-up: \(question, privacy: .public)")
-        // TODO: route into Mira chat with this prompt as the next user turn,
-        // switch to the Mira tab. Needs a routing hook in MainTabView state.
         dismissCard()
+        appState.pendingMiraPrompt = question
     }
 
     // MARK: - Delivery app detection

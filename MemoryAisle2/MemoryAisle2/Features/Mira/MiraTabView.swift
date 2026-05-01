@@ -17,6 +17,7 @@ struct MiraTabView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(AppState.self) private var appState
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
     @Query(sort: \PantryItem.addedDate, order: .reverse) private var pantry: [PantryItem]
@@ -138,6 +139,15 @@ struct MiraTabView: View {
         .task {
             _ = await voice.requestPermissions()
             ensureConversationReady()
+            drainPendingPrompt()
+        }
+        .onChange(of: appState.pendingMiraPrompt) { _, newValue in
+            // Tab is already mounted when the dashboard queues a prompt;
+            // the .task above only fires on first appearance, so a live
+            // observer covers subsequent arrivals.
+            if newValue != nil {
+                drainPendingPrompt()
+            }
         }
         .onDisappear {
             voice.stopListening()
@@ -390,6 +400,26 @@ struct MiraTabView: View {
             ))
             if speakReply { voiceState = .idle }
         }
+    }
+
+    // MARK: - Pending prompt drain
+
+    /// Consume any prompt the dashboard's "Tell Me More" card queued in
+    /// AppState. Routes through `handleTextSend` so the question lands as
+    /// a normal user turn and Mira's reply is text-only (no TTS — the
+    /// user just tapped a card, not the voice surface).
+    private func drainPendingPrompt() {
+        guard let prompt = appState.pendingMiraPrompt,
+              !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return
+        }
+        appState.pendingMiraPrompt = nil
+        if inputMode != .text {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                inputMode = .text
+            }
+        }
+        handleTextSend(prompt)
     }
 
     // MARK: - Text input mode
