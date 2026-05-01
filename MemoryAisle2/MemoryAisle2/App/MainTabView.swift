@@ -186,7 +186,7 @@ struct MainTabView: View {
         return dest
     }
 
-    private static let proGatedDestinations: Set<MenuDestination> = [.profile, .reflection]
+    private static let proGatedDestinations: Set<MenuDestination> = [.profile, .reflection, .pantry, .favorites]
 
     /// Handles a menu selection. Most rows fall through to a sheet via
     /// `.destination(...)`; a few have side-effect routes (Today pivots
