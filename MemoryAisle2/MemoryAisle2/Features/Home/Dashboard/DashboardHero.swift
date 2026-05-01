@@ -18,7 +18,7 @@ struct DashboardHero: View {
 
             VStack(alignment: .leading, spacing: 0) {
                 Text("Day \(dayNumber.asWord).")
-                    .font(Theme.Editorial.Typography.displayHero())
+                    .font(Theme.Editorial.Typography.displayHeroItalic())
                 Text("Listen")
                     .font(Theme.Editorial.Typography.displayHeroItalic())
                 Text("to the body.")

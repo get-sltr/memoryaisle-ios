@@ -104,12 +104,23 @@ extension Theme {
                 caslon(size: 46)
             }
 
+            /// True italic at displayHero size. Caslon ships only Regular,
+            /// so `.italic()` on Caslon synthesizes a slant from the upright
+            /// glyphs and reads "normal-ish" at 46pt. New York has a real
+            /// italic cut (single-story `a`, true cursive `e`/`g`), which
+            /// is the visible italic we want for hero emphasis words.
             static func displayHeroItalic() -> Font {
-                caslon(size: 46).italic()
+                .system(size: 46, weight: .regular, design: .serif).italic()
             }
 
             static func displaySmall() -> Font {
                 caslon(size: 38)
+            }
+
+            /// True italic at displaySmall size — see `displayHeroItalic`
+            /// for the Caslon-vs-system-serif rationale.
+            static func displaySmallItalic() -> Font {
+                .system(size: 38, weight: .regular, design: .serif).italic()
             }
 
             // MARK: Body (serif — Caslon; italic is synthesized — Libre Caslon

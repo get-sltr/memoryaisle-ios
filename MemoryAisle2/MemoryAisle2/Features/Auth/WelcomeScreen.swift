@@ -21,10 +21,19 @@ struct WelcomeScreen: View {
                 masthead
                     .padding(.bottom, 88)
 
-                MAAuthHero(
-                    line1: "When was the last time you did something",
-                    line2: "for the first time?"
-                )
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("When was the ").font(Theme.Editorial.Typography.displaySmall())
+                    + Text("last time").font(Theme.Editorial.Typography.displaySmallItalic())
+                    + Text(" you did something").font(Theme.Editorial.Typography.displaySmall())
+
+                    Text("for the ").font(Theme.Editorial.Typography.displaySmall())
+                    + Text("first time").font(Theme.Editorial.Typography.displaySmallItalic())
+                    + Text("?").font(Theme.Editorial.Typography.displaySmall())
+                }
+                .kerning(-0.84)
+                .lineSpacing(-4)
+                .foregroundStyle(Theme.Editorial.onSurface)
+                .fixedSize(horizontal: false, vertical: true)
 
                 Spacer()
 
