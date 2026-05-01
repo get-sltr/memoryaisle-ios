@@ -96,13 +96,6 @@ struct EditorialOnboardingFlow: View {
                 onContinue: { advance() },
                 onSkip: { skip() }
             )
-        case .glp1Check:
-            GLP1CheckScreenEditorial(
-                profile: $profile,
-                progress: step.progress,
-                onContinue: { advance() },
-                onSkip: { skip() }
-            )
         case .medication:
             MedicationScreenEditorial(
                 profile: $profile,
@@ -155,6 +148,13 @@ struct EditorialOnboardingFlow: View {
     // MARK: - Routing
 
     private func advance() {
+        // Priority answer is the source of truth for "on a GLP-1?". The
+        // separate glp1Check screen used to ask again — dropped after user
+        // pointed out the duplication.
+        if step == .priorities {
+            profile.isOnGLP1 = profile.priorities.contains(.glp1Appetite)
+        }
+
         let next = nextStep(after: step)
         logger.log("Onboarding advance: \(self.step.rawValue, privacy: .public) -> \(next.rawValue, privacy: .public)")
         withAnimation(.easeInOut(duration: 0.25)) {
@@ -172,12 +172,11 @@ struct EditorialOnboardingFlow: View {
 
     /// Branch-soft routing. Apple Health sits right after Sex so a successful
     /// connect can prefill the Weight screen from HealthKit's latest reading.
-    /// After Movement, the GLP-1 path (Screens 12-15) only runs when
-    /// `.glp1Appetite` appears in the user's top priorities. Otherwise we
-    /// jump straight to the starting photo. Same branch is honored if the
-    /// user reaches Movement without having ranked priorities (skipped
-    /// Screen 02) — they're treated as non-GLP-1 path, which is the safer
-    /// default.
+    /// After Movement, the GLP-1 path (medication / start date / appetite)
+    /// only runs when the user picked `.glp1Appetite` in priorities;
+    /// otherwise we jump straight to the starting photo. The legacy
+    /// `glp1Check` step was redundant with the priority answer and got
+    /// dropped — `advance()` mirrors the priority into `profile.isOnGLP1`.
     private func nextStep(after current: OnboardingStep) -> OnboardingStep {
         switch current {
         case .welcome:          return .priorities
@@ -191,8 +190,6 @@ struct EditorialOnboardingFlow: View {
         case .goalWeight:       return .foodPreferences
         case .foodPreferences:  return .movement
         case .movement:
-            return profile.priorities.contains(.glp1Appetite) ? .glp1Check : .photo
-        case .glp1Check:
             return profile.isOnGLP1 ? .medication : .photo
         case .medication:       return .medStartDate
         case .medStartDate:     return .appetite
@@ -220,7 +217,6 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
     case goalWeight
     case foodPreferences
     case movement
-    case glp1Check
     case medication
     case medStartDate
     case appetite
@@ -228,10 +224,9 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
     case ready
     case transition
 
-    /// Per-step progress fraction (matches the mockup's hardcoded widths).
-    /// Branch-soft skipping is invisible in the bar — users who skip
-    /// Screens 12-15 jump from 66% to 90%, which feels like progress
-    /// rather than a gap.
+    /// Per-step progress fraction. Branch-soft skipping is invisible in the
+    /// bar — users who skip the medication path jump straight to photo,
+    /// which feels like progress rather than a gap.
     var progress: Double {
         switch self {
         case .welcome:          0.06
@@ -245,9 +240,8 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
         case .goalWeight:       0.54
         case .foodPreferences:  0.60
         case .movement:         0.66
-        case .glp1Check:        0.72
-        case .medication:       0.78
-        case .medStartDate:     0.84
+        case .medication:       0.76
+        case .medStartDate:     0.83
         case .appetite:         0.90
         case .photo:            0.96
         case .ready:            1.00
