@@ -233,7 +233,7 @@ struct MainTabView: View {
         case .mira:           MiraChatView()
         case .subscribe:      PaywallView()
         case .proBenefits:    ProBenefitsView()
-        case .settings:       ProfileView()
+        case .settings:       EditorialSettingsView()
         // Routed via handleMenuSelect side-effects, never reach the sheet:
         case .today, .notifications, .medications, .foodAllergies, .emailProfile:
             EmptyView()
