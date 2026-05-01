@@ -16,13 +16,16 @@ struct MainTabView: View {
     @Query private var profiles: [UserProfile]
     @Query private var futurePlans: [MealPlan]
 
-    @State private var mode: MAMode = .auto
     @State private var selectedTab: MATab = .today
     @State private var activeSheet: MainSheet?
     @State private var hasRunBackfillCheck = false
 
     private var isPro: Bool { subscriptionManager.tier == .pro }
     private var profile: UserProfile? { profiles.first }
+    /// Day/Night follows the user's setting in Settings; `nil` falls back to
+    /// the time-of-day auto rule. The toggle moved off the home masthead
+    /// so editorial surfaces stay focused on content.
+    private var mode: MAMode { appState.effectiveAppearanceMode }
 
     var body: some View {
         ZStack {
@@ -38,16 +41,6 @@ struct MainTabView: View {
                     onSelect: handleTabTap
                 )
                 .padding(.bottom, 28)
-            }
-
-            VStack {
-                HStack {
-                    Spacer()
-                    modeToggle
-                }
-                .padding(.top, 12)
-                .padding(.trailing, 12)
-                Spacer()
             }
         }
         .preferredColorScheme(.light)
@@ -150,24 +143,6 @@ struct MainTabView: View {
         case .reflect:
             activeSheet = isPro ? .destination(.reflection) : .destination(.subscribe)
         }
-    }
-
-    // MARK: - Mode toggle
-
-    private var modeToggle: some View {
-        Button {
-            HapticManager.light()
-            withAnimation(.easeInOut(duration: 0.6)) {
-                mode = (mode == .day) ? .night : .day
-            }
-        } label: {
-            Text(mode == .day ? "☾" : "☀")
-                .font(.system(size: 16))
-                .foregroundStyle(Color.white.opacity(0.7))
-                .padding(10)
-                .accessibilityLabel(mode == .day ? "Switch to night mode" : "Switch to day mode")
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Menu

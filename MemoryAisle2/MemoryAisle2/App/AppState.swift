@@ -54,4 +54,16 @@ final class AppState {
     /// this is set; `MiraTabView` consumes and clears it. Treat as
     /// fire-and-forget — value is non-nil only between set and consume.
     var pendingMiraPrompt: String?
+
+    /// User's explicit choice for the editorial Day/Night gradient. `nil`
+    /// means follow the time of day (`MAMode.auto`). The previous design
+    /// surfaced a sun/moon toggle on the home masthead — moved into the
+    /// Settings sheet so the home stays clean.
+    var appearanceMode: MAMode?
+
+    /// Resolved mode that the editorial shell should render. Returns the
+    /// user's explicit choice if set, otherwise the time-of-day default.
+    var effectiveAppearanceMode: MAMode {
+        appearanceMode ?? MAMode.auto
+    }
 }

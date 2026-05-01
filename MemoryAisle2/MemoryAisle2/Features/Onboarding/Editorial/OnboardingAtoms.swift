@@ -314,120 +314,38 @@ struct OnboardingNumberPill: View {
     }
 }
 
-// MARK: - Multi-line text input + voice button
+// MARK: - Multi-line text input
 
-/// Captures free-text answers (Screens 03 and 10). The TextField is the
-/// primary input — tap it to type. The voice button below is an alternate
-/// affordance for users who'd rather speak; it drives `VoiceManager` (Apple
-/// Speech framework) in push-to-talk mode and replaces `text` with the live
-/// transcript while listening. No new STT path is built — this view
-/// delegates entirely to the existing manager. The "OR" prefix on the voice
-/// button label and the modeHint line above it both signal that typing
-/// works for users who can't speak aloud.
+/// Captures free-text answers (Screens 03 and 10). Tap the field to type;
+/// the iOS system keyboard provides the dictation microphone next to the
+/// spacebar for users who'd rather speak — no in-app STT layer needed.
 struct OnboardingTextInput: View {
     @Binding var text: String
     let placeholder: String
     var minHeight: CGFloat = 130
-    let voice: VoiceManager
-    @Binding var isListening: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            TextField(
-                "",
-                text: $text,
-                prompt: Text(placeholder)
-                    .foregroundColor(Theme.Editorial.onSurface.opacity(0.4))
-                    .italic(),
-                axis: .vertical
-            )
-            .font(.system(size: 14, weight: .regular, design: .serif).italic())
-            .foregroundStyle(Theme.Editorial.onSurface)
-            .lineLimit(4...8)
-            .padding(14)
-            .frame(minHeight: minHeight, alignment: .topLeading)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Theme.Editorial.onSurface.opacity(0.06))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Theme.Editorial.onSurface.opacity(0.25), lineWidth: 1)
-            )
-
-            modeHint
-
-            HStack {
-                voiceButton
-                Spacer()
-            }
-        }
-        .onChange(of: voice.transcribedText) { _, new in
-            // Live transcript replaces field text while listening so the
-            // user sees what the recognizer hears.
-            if isListening, !new.isEmpty {
-                text = new
-            }
-        }
-    }
-
-    private var modeHint: some View {
-        Text("TAP THE FIELD TO TYPE — OR HOLD THE MIC TO SPEAK")
-            .font(Theme.Editorial.Typography.caps(8, weight: .medium))
-            .tracking(1.6)
-            .foregroundStyle(Theme.Editorial.onSurfaceFaint)
-            .accessibilityHidden(true)
-    }
-
-    private var voiceButton: some View {
-        // Visual capsule + a DragGesture(minimumDistance: 0) overlay. The
-        // drag is the actual interaction: .onChanged fires on touch-down
-        // (start listening), .onEnded fires on release (commit transcript).
-        // LongPressGesture is discrete and was dropping the held state on
-        // some devices — same fix as MiraTabView's push-to-talk.
-        Capsule()
-            .fill(Theme.Editorial.onSurface.opacity(0.10))
-            .overlay(
-                Capsule().stroke(Theme.Editorial.onSurface.opacity(0.3), lineWidth: 1)
-            )
-            .overlay(
-                HStack(spacing: 6) {
-                    Image(systemName: "mic.fill")
-                        .font(.system(size: 11))
-                    Text(isListening ? "RELEASE WHEN DONE" : "OR HOLD TO SPEAK")
-                        .font(Theme.Editorial.Typography.capsBold(9))
-                        .tracking(1.8)
-                }
-                .foregroundStyle(Theme.Editorial.onSurface)
-                .padding(.vertical, 10)
-                .padding(.horizontal, 14)
-            )
-            .fixedSize()
-            .contentShape(Capsule())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in startListeningIfIdle() }
-                    .onEnded { _ in stopListeningIfActive() }
-            )
-            .accessibilityLabel(isListening ? "Release when done speaking" : "Hold to speak, or tap the field above to type")
-            .accessibilityAddTraits(.isButton)
-    }
-
-    private func startListeningIfIdle() {
-        guard !isListening else { return }
-        HapticManager.light()
-        voice.transcribedText = ""
-        voice.startListening()
-        isListening = true
-    }
-
-    private func stopListeningIfActive() {
-        guard isListening else { return }
-        voice.stopListening()
-        isListening = false
-        if !voice.transcribedText.isEmpty {
-            text = voice.transcribedText
-        }
+        TextField(
+            "",
+            text: $text,
+            prompt: Text(placeholder)
+                .foregroundColor(Theme.Editorial.onSurface.opacity(0.4))
+                .italic(),
+            axis: .vertical
+        )
+        .font(.system(size: 14, weight: .regular, design: .serif).italic())
+        .foregroundStyle(Theme.Editorial.onSurface)
+        .lineLimit(4...8)
+        .padding(14)
+        .frame(minHeight: minHeight, alignment: .topLeading)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Theme.Editorial.onSurface.opacity(0.06))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Theme.Editorial.onSurface.opacity(0.25), lineWidth: 1)
+        )
     }
 }
 

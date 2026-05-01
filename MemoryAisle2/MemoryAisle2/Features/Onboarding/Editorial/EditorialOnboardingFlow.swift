@@ -3,8 +3,8 @@ import SwiftUI
 
 /// Editorial onboarding router. 18 screens, branch-soft routing on Screen 02
 /// priorities. Wraps each step in `OnboardingScaffold` with the right
-/// progress fraction. Owns a single `VoiceManager` that's threaded into the
-/// two open-text screens (03, 10) for hold-to-speak. `onComplete` fires
+/// progress fraction. Free-text screens (03, 10) lean on the iOS system
+/// keyboard's dictation mic — no in-app STT layer. `onComplete` fires
 /// after the timed transition (Screen 18) and hands control back to
 /// `OnboardingFlow.completeOnboarding()` which writes the UserProfile and
 /// kicks off the WeeklyMealPlanOrchestrator.
@@ -13,8 +13,6 @@ struct EditorialOnboardingFlow: View {
     let onComplete: () -> Void
 
     @State private var step: OnboardingStep = .welcome
-    @State private var voice = VoiceManager()
-    @State private var isListening: Bool = false
 
     private let logger = Logger(
         subsystem: "com.sltrdigital.MemoryAisle2",
@@ -25,17 +23,6 @@ struct EditorialOnboardingFlow: View {
         ZStack {
             currentScreen
                 .transition(.opacity)
-        }
-        .task {
-            _ = await voice.requestPermissions()
-            // Speak the first screen's question so Mira's voice is the
-            // first thing the user hears in the editorial flow, matching
-            // the legacy MiraOnboardingView behaviour.
-            speakQuestion(for: step)
-        }
-        .onDisappear {
-            voice.stopListening()
-            voice.stopSpeaking()
         }
     }
 
@@ -56,8 +43,6 @@ struct EditorialOnboardingFlow: View {
         case .openGoal:
             OpenGoalScreen(
                 profile: $profile,
-                voice: voice,
-                isListening: $isListening,
                 progress: step.progress,
                 onContinue: { advance() },
                 onSkip: { skip() }
@@ -107,8 +92,6 @@ struct EditorialOnboardingFlow: View {
         case .movement:
             MovementScreen(
                 profile: $profile,
-                voice: voice,
-                isListening: $isListening,
                 progress: step.progress,
                 onContinue: { advance() },
                 onSkip: { skip() }
@@ -177,7 +160,6 @@ struct EditorialOnboardingFlow: View {
         withAnimation(.easeInOut(duration: 0.25)) {
             step = next
         }
-        speakQuestion(for: next)
     }
 
     private func skip() {
@@ -186,21 +168,6 @@ struct EditorialOnboardingFlow: View {
         // default (no user input).
         logger.log("Onboarding skip: \(self.step.rawValue, privacy: .public)")
         advance()
-    }
-
-    /// Speaks Mira's prompt for the current step. Centralized here so screens
-    /// stay focused on layout and the legacy `MiraOnboardingView.speak`
-    /// pattern carries over to the editorial flow without each screen
-    /// owning its own VoiceManager call. Empty strings (terminal screens)
-    /// short-circuit so we don't trigger an empty utterance.
-    private func speakQuestion(for step: OnboardingStep) {
-        let text = step.spokenQuestion
-        guard !text.isEmpty else { return }
-        // Stop any in-flight utterance from a previous screen so the user
-        // doesn't hear the old line tail into the new one when they
-        // advance quickly.
-        voice.stopSpeaking()
-        voice.speak(text)
     }
 
     /// Branch-soft routing. Apple Health sits right after Sex so a successful
@@ -288,32 +255,4 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
         }
     }
 
-    /// What Mira speaks aloud when the user lands on this step. Phrasing is
-    /// the natural-sounding (single-line) version of each screen's
-    /// typographic question — the layout breaks the line for visual
-    /// rhythm, but a single sentence reads better through TTS. Empty
-    /// strings on terminal screens (`ready`, `transition`) skip the
-    /// utterance.
-    var spokenQuestion: String {
-        switch self {
-        case .welcome:          "Hello. I'm Mira."
-        case .priorities:       "What brings you to MemoryAisle?"
-        case .openGoal:         "In your own words, what are you hoping for?"
-        case .name:             "What should I call you?"
-        case .age:              "How old are you?"
-        case .sex:              "For protein and calorie math, what was your body assigned at birth?"
-        case .appleHealth:      "Want to connect Apple Health so I can read your weight and body composition?"
-        case .weight:           "Where are you now? An approximate weight is fine."
-        case .goalWeight:       "And where would you like to land?"
-        case .foodPreferences:  "Any food preferences I should know?"
-        case .movement:         "How do you want me to think about movement?"
-        case .glp1Check:        "Are you currently on a GLP-1?"
-        case .medication:       "Which medication?"
-        case .medStartDate:     "When did you start?"
-        case .appetite:         "How is your appetite right now?"
-        case .photo:            "Want to set a starting photo? It's optional, you can always change it later."
-        case .ready:            ""
-        case .transition:       ""
-        }
-    }
 }

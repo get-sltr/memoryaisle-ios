@@ -2,11 +2,9 @@ import SwiftUI
 
 /// Screen 10 — Movement (reframed from "exercise").
 /// Includes the deliberate "nutrition only" option per the schema change.
-/// Optional open-text note via `VoiceManager` push-to-talk.
+/// Optional open-text note (type or use the iOS keyboard's dictation mic).
 struct MovementScreen: View {
     @Binding var profile: OnboardingProfile
-    let voice: VoiceManager
-    @Binding var isListening: Bool
     let progress: Double
     let onContinue: () -> Void
     let onSkip: () -> Void
@@ -46,9 +44,7 @@ struct MovementScreen: View {
                         OnboardingTextInput(
                             text: $draftNote,
                             placeholder: "Anything else? Tell Mira about your routine, injuries, or what works for you...",
-                            minHeight: 80,
-                            voice: voice,
-                            isListening: $isListening
+                            minHeight: 80
                         )
                         .padding(.top, 4)
                     }

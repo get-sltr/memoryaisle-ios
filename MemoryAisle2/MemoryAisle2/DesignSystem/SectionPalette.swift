@@ -23,7 +23,10 @@ enum SectionPalette {
         case .home, .mira: return scheme == .dark ? .violet : .violetDeep
         case .pantry:      return scheme == .dark ? .emerald : .emeraldDeep
         case .recipes:     return scheme == .dark ? .amber : .amberDeep
-        case .scanner:     return scheme == .dark ? .cyan : .cyanDeep
+        // Scanner uses the editorial gold tones (matches Day/Night gradient
+        // accent: #D4A148 day / #C49142 night) so the scan sheet reads as
+        // part of the editorial system instead of an isolated cyan island.
+        case .scanner:     return scheme == .dark ? .amber : .amberDeep
         case .grocery:     return scheme == .dark ? .sky : .skyDeep
         case .calendar:    return scheme == .dark ? .rose : .roseDeep
         case .progress:    return scheme == .dark ? .lime : .limeDeep
@@ -36,7 +39,7 @@ enum SectionPalette {
         case .home, .mira: return .violetMid
         case .pantry:      return .emeraldMid
         case .recipes:     return .amberMid
-        case .scanner:     return .cyanMid
+        case .scanner:     return .amberMid
         case .grocery:     return .skyMid
         case .calendar:    return .roseMid
         case .progress:    return .limeMid
@@ -49,7 +52,7 @@ enum SectionPalette {
         case .home, .mira: return .lavender
         case .pantry:      return .emeraldSoft
         case .recipes:     return .amberSoft
-        case .scanner:     return .cyanSoft
+        case .scanner:     return .amberSoft
         case .grocery:     return .skySoft
         case .calendar:    return .roseSoft
         case .progress:    return .limeSoft
@@ -73,7 +76,7 @@ enum SectionPalette {
         case .recipes:
             return (.amber, .rose, .amberSoft)
         case .scanner:
-            return (.cyan, .violet, .cyanSoft)
+            return (.amber, .amberMid, .amberSoft)
         case .grocery:
             return (.sky, .violet, .skySoft)
         case .calendar:

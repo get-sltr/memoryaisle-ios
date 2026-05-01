@@ -1,12 +1,9 @@
 import SwiftUI
 
-/// Screen 03 — Open-text "in your own words" goal.
-/// Voice button delegates to existing `VoiceManager` (Apple Speech
-/// framework, push-to-talk). No new STT path.
+/// Screen 03 — Open-text "in your own words" goal. Users can type or use
+/// the iOS keyboard's built-in dictation mic; no in-app STT layer.
 struct OpenGoalScreen: View {
     @Binding var profile: OnboardingProfile
-    let voice: VoiceManager
-    @Binding var isListening: Bool
     let progress: Double
     let onContinue: () -> Void
     let onSkip: () -> Void
@@ -29,9 +26,7 @@ struct OpenGoalScreen: View {
 
                 OnboardingTextInput(
                     text: $draft,
-                    placeholder: "I want easier meals while I'm on Zepbound... I need help eating enough protein... I'm tired of planning groceries...",
-                    voice: voice,
-                    isListening: $isListening
+                    placeholder: "I want easier meals while I'm on Zepbound... I need help eating enough protein... I'm tired of planning groceries..."
                 )
 
                 OnboardingPrimaryButton(title: "CONTINUE", action: {
