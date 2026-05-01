@@ -96,7 +96,12 @@ struct ScanView: View {
         ZStack {
             if isScanning {
                 BarcodeScannerView { barcode in
-                    handleBarcode(barcode)
+                    // BarcodeScanner already dispatches to main; assume
+                    // isolation so we can call the MainActor handler
+                    // from this @Sendable callback without an extra hop.
+                    MainActor.assumeIsolated {
+                        handleBarcode(barcode)
+                    }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 .frame(width: 300, height: 300)

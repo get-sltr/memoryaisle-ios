@@ -3,7 +3,7 @@ import SwiftUI
 @preconcurrency import Vision
 
 struct BarcodeScannerView: UIViewControllerRepresentable {
-    let onBarcodeDetected: (String) -> Void
+    let onBarcodeDetected: @Sendable (String) -> Void
 
     func makeUIViewController(context: Context) -> BarcodeScannerController {
         let controller = BarcodeScannerController()
@@ -15,7 +15,11 @@ struct BarcodeScannerView: UIViewControllerRepresentable {
 }
 
 final class BarcodeScannerController: UIViewController {
-    var onBarcodeDetected: ((String) -> Void)?
+    // `nonisolated(unsafe)` so the Vision request callback (which runs
+    // off the main actor) can read this without Swift 6 strict
+    // concurrency complaining. Set once on the main actor in
+    // `makeUIViewController` before any frames are processed.
+    nonisolated(unsafe) var onBarcodeDetected: (@Sendable (String) -> Void)?
 
     private let captureSession = AVCaptureSession()
     private var previewLayer: AVCaptureVideoPreviewLayer?
@@ -138,13 +142,18 @@ extension BarcodeScannerController: AVCaptureVideoDataOutputSampleBufferDelegate
                   let barcode = results.first,
                   let payload = barcode.payloadStringValue else { return }
 
-            guard payload != self?.lastDetectedBarcode else { return }
+            guard let self else { return }
+            guard payload != self.lastDetectedBarcode else { return }
 
-            self?.lastDetectedBarcode = payload
-            self?.lastDetectionTime = Date()
+            self.lastDetectedBarcode = payload
+            self.lastDetectionTime = Date()
 
+            // Snapshot the (Sendable) callback before crossing isolation
+            // so we don't send `self` from this nonisolated context to
+            // MainActor — Swift 6 strict concurrency flags that.
+            let callback = self.onBarcodeDetected
             DispatchQueue.main.async {
-                self?.onBarcodeDetected?(payload)
+                callback?(payload)
             }
         }
 
