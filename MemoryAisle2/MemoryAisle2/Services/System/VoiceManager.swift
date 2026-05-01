@@ -38,30 +38,38 @@ final class VoiceManager: NSObject, @unchecked Sendable {
 
     // MARK: - Permissions
 
-    // @MainActor so every internal await resumes on main. Without this,
-    // the non-isolated async function can resume on a cooperative pool
-    // thread after withCheckedContinuation, and then AVAudioApplication
-    // .requestRecordPermission() (iOS 17) traps because it asserts main.
-    @MainActor
+    // The audio-permission call needs MainActor (AVAudioApplication
+    // .requestRecordPermission asserts main on iOS 17). The speech-permission
+    // call must NOT be MainActor: SFSpeechRecognizer.requestAuthorization
+    // delivers its callback from the TCCD worker thread, and a MainActor
+    // continuation captured in that callback trips dispatch_assert_queue_fail
+    // in the Swift concurrency thunk before the body even runs. Splitting
+    // them keeps each on the right executor.
     func requestPermissions() async -> Bool {
-        let speechStatus = await withCheckedContinuation { cont in
+        let speechStatus = await Self.requestSpeechAuthorization()
+        let audioStatus = await Self.requestAudioRecordPermission()
+        return speechStatus && audioStatus
+    }
+
+    private static func requestSpeechAuthorization() async -> Bool {
+        await withCheckedContinuation { cont in
             SFSpeechRecognizer.requestAuthorization { status in
                 cont.resume(returning: status == .authorized)
             }
         }
+    }
 
-        let audioStatus: Bool
+    @MainActor
+    private static func requestAudioRecordPermission() async -> Bool {
         if #available(iOS 17.0, *) {
-            audioStatus = await AVAudioApplication.requestRecordPermission()
+            return await AVAudioApplication.requestRecordPermission()
         } else {
-            audioStatus = await withCheckedContinuation { cont in
+            return await withCheckedContinuation { cont in
                 AVAudioSession.sharedInstance().requestRecordPermission { granted in
                     cont.resume(returning: granted)
                 }
             }
         }
-
-        return speechStatus && audioStatus
     }
 
     // MARK: - Audio Session
