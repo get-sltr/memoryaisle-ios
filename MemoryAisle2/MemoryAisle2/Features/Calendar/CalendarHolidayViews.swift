@@ -1,45 +1,42 @@
 import SwiftUI
 
 struct CalendarHolidayCard: View {
-    @Environment(\.colorScheme) private var scheme
     let holiday: Holiday
 
     var body: some View {
-        SectionCard {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(holiday.culture.emoji)
-                        .font(.system(size: 16))
-                    Text(holiday.name)
-                        .font(Typography.bodyMediumBold)
-                        .foregroundStyle(Theme.Text.primary)
-                    Spacer()
-                    if holiday.fasting {
-                        Text("Fasting")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(Theme.Semantic.fiber(for: scheme))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(Theme.Semantic.fiber(for: scheme).opacity(0.12))
-                            .clipShape(Capsule())
-                    }
-                }
-
-                if let note = holiday.mealNote {
-                    Text(note)
-                        .font(Typography.bodySmall)
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
-                        .lineSpacing(3)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Text(holiday.culture.emoji)
+                    .font(.system(size: 16))
+                Text(holiday.name.uppercased())
+                    .font(Theme.Editorial.Typography.capsBold(11))
+                    .tracking(2)
+                    .foregroundStyle(Theme.Editorial.onSurface)
+                Spacer()
+                if holiday.fasting {
+                    Text("FASTING")
+                        .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                        .tracking(1.6)
+                        .foregroundStyle(Theme.Editorial.onSurface)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .overlay(Capsule().stroke(Theme.Editorial.hairline, lineWidth: 0.5))
                 }
             }
-            .padding(14)
+
+            if let note = holiday.mealNote {
+                Text(note)
+                    .font(Theme.Editorial.Typography.body())
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                    .lineSpacing(3)
+            }
+
+            HairlineDivider().opacity(0.4)
         }
-        .padding(.horizontal, 20)
     }
 }
 
 struct CalendarHolidayRow: View {
-    @Environment(\.colorScheme) private var scheme
     let holiday: Holiday
 
     private var formattedDate: String {
@@ -49,32 +46,28 @@ struct CalendarHolidayRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Text(holiday.culture.emoji)
                 .font(.system(size: 14))
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(holiday.name)
-                    .font(Typography.bodyMediumBold)
-                    .foregroundStyle(Theme.Text.secondary(for: scheme))
-                Text(formattedDate)
-                    .font(Typography.caption)
-                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    .font(Theme.Editorial.Typography.body())
+                    .foregroundStyle(Theme.Editorial.onSurface)
+                Text(formattedDate.uppercased())
+                    .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                    .tracking(1.5)
+                    .foregroundStyle(Theme.Editorial.onSurfaceFaint)
             }
 
             Spacer()
 
-            Text(holiday.culture.rawValue)
-                .font(Typography.label)
-                .fontWeight(.medium)
-                .foregroundStyle(Color(hex: holiday.culture.color).opacity(0.7))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(Color(hex: holiday.culture.color).opacity(0.10))
-                .clipShape(Capsule())
+            Text(holiday.culture.rawValue.uppercased())
+                .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                .tracking(1.5)
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 6)
+        .padding(.vertical, 8)
     }
 }

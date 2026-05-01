@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct CalendarWeekStrip: View {
-    @Environment(\.colorScheme) private var scheme
     @Binding var selectedDate: Date
     let generatedPlan: [Date: [PlannedMeal]]
 
@@ -14,12 +13,12 @@ struct CalendarWeekStrip: View {
         }
 
         return ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 ForEach(days, id: \.self) { day in
                     dayCell(day)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 4)
         }
     }
 
@@ -30,7 +29,6 @@ struct CalendarWeekStrip: View {
             calendar.isDate($0.date, inSameDayAs: day)
         }
         let hasPlan = generatedPlan[calendar.startOfDay(for: day)] != nil
-        let rose = SectionPalette.primary(.calendar, for: scheme)
 
         return Button {
             HapticManager.selection()
@@ -38,68 +36,43 @@ struct CalendarWeekStrip: View {
                 selectedDate = day
             }
         } label: {
-            cellLabel(day: day, isSelected: isSelected, rose: rose, hasHoliday: hasHoliday, hasPlan: hasPlan)
-                .frame(width: 46, height: 66)
-                .background(cellBackground(isSelected: isSelected, isToday: isToday, rose: rose))
-                .overlay(cellBorder(isSelected: isSelected, rose: rose))
-                .shadow(color: isSelected ? rose.opacity(0.35) : .clear, radius: 10)
+            VStack(spacing: 6) {
+                Text(dayOfWeek(day))
+                    .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                    .tracking(1.5)
+                    .foregroundStyle(
+                        isSelected ? Theme.Editorial.onSurface : Theme.Editorial.onSurfaceFaint
+                    )
+
+                Text("\(calendar.component(.day, from: day))")
+                    .font(Theme.Editorial.Typography.body())
+                    .foregroundStyle(Theme.Editorial.onSurface)
+
+                HStack(spacing: 3) {
+                    if hasHoliday {
+                        Circle().fill(Theme.Editorial.onSurfaceMuted).frame(width: 4, height: 4)
+                    }
+                    if hasPlan {
+                        Circle().fill(Theme.Editorial.onSurface).frame(width: 4, height: 4)
+                    }
+                }
+                .frame(height: 4)
+            }
+            .frame(width: 50, height: 72)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isSelected ? Theme.Editorial.onSurface.opacity(0.18) : Color.clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(
+                        isToday && !isSelected ? Theme.Editorial.onSurface : Color.clear,
+                        lineWidth: 0.5
+                    )
+            )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel(day, isSelected: isSelected, hasHoliday: hasHoliday, hasPlan: hasPlan))
-    }
-
-    private func cellLabel(day: Date, isSelected: Bool, rose: Color, hasHoliday: Bool, hasPlan: Bool) -> some View {
-        VStack(spacing: 4) {
-            Text(dayOfWeek(day))
-                .font(Typography.label)
-                .fontWeight(.medium)
-                .foregroundStyle(
-                    isSelected ? Color.white : Theme.Text.tertiary(for: scheme)
-                )
-
-            Text("\(calendar.component(.day, from: day))")
-                .font(.system(size: 16, weight: isSelected ? .semibold : .regular))
-                .foregroundStyle(
-                    isSelected ? Color.white : Theme.Text.secondary(for: scheme)
-                )
-
-            HStack(spacing: 2) {
-                if hasHoliday {
-                    Circle().fill(Theme.Semantic.fiber(for: scheme)).frame(width: 4, height: 4)
-                }
-                if hasPlan {
-                    Circle().fill(isSelected ? .white : rose).frame(width: 4, height: 4)
-                }
-            }
-            .frame(height: 4)
-        }
-    }
-
-    @ViewBuilder
-    private func cellBackground(isSelected: Bool, isToday: Bool, rose: Color) -> some View {
-        if isSelected {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [rose, SectionPalette.mid(.calendar, for: scheme)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        } else if isToday {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Theme.Section.glass(.calendar, for: scheme))
-        } else {
-            Color.clear
-        }
-    }
-
-    @ViewBuilder
-    private func cellBorder(isSelected: Bool, rose: Color) -> some View {
-        if isSelected {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(rose.opacity(0.55), lineWidth: 0.5)
-        }
     }
 
     private func dayOfWeek(_ date: Date) -> String {
