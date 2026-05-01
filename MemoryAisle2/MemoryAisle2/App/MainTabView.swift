@@ -181,7 +181,7 @@ struct MainTabView: View {
         return dest
     }
 
-    private static let proGatedDestinations: Set<MenuDestination> = [.progress, .reflection]
+    private static let proGatedDestinations: Set<MenuDestination> = [.profile, .reflection]
 
     /// Handles a menu selection. Most rows fall through to a sheet via
     /// `.destination(...)`; a few have side-effect routes (Today pivots
@@ -219,8 +219,8 @@ struct MainTabView: View {
     @ViewBuilder
     private func destinationView(_ dest: MenuDestination) -> some View {
         switch dest {
-        case .profile:        JourneyProfileView()
-        case .progress:       ProgressDashboardView()
+        case .profile:        JourneyView()
+        case .progress:       JourneyView()
         case .groceryList:    GroceryListScreen()
         case .recipes:        RecipesView()
         case .calendar:       CalendarView()

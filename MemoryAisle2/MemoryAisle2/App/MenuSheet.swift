@@ -80,15 +80,10 @@ struct MenuSheet: View {
                             action: { onSelect(.foodAllergies) })
                         rowDivider
                         row("My Journey",
-                            subtitle: "GOALS · PROFILE",
+                            subtitle: "PHOTOS · METRICS · TOOLS",
                             icon: "person.crop.circle",
-                            action: { onSelect(.profile) })
-                        rowDivider
-                        row("Progress",
-                            subtitle: "BODY COMPOSITION",
-                            icon: "chart.line.uptrend.xyaxis",
                             proLocked: !isPro,
-                            action: { onSelect(.progress) })
+                            action: { onSelect(.profile) })
                         rowDivider
                         row("My Safe Space",
                             subtitle: "PRIVATE REFLECTIONS",
