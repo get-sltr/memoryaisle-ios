@@ -786,7 +786,7 @@ struct JourneyView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 24)
             } else {
-                Text(miraNote ?? fallbackNote)
+                Text(attributedMiraNote)
                     .font(.system(size: 17, weight: .light, design: .serif))
                     .foregroundStyle(Theme.Editorial.onSurface)
                     .lineSpacing(6)
@@ -814,6 +814,21 @@ struct JourneyView: View {
 
     private var fallbackNote: String {
         "A new chapter is starting. Log a meal or do a check-in this week and I'll have something for you here on Monday."
+    }
+
+    /// Renders Mira's note through Markdown so any `*italic*` Bedrock slips
+    /// past the prompt rule shows up as actual italic instead of literal
+    /// asterisks. Preserves whitespace so paragraph breaks survive.
+    /// Falls back to a plain attributed string on parse failure.
+    private var attributedMiraNote: AttributedString {
+        let raw = miraNote ?? fallbackNote
+        let options = AttributedString.MarkdownParsingOptions(
+            interpretedSyntax: .inlineOnlyPreservingWhitespace
+        )
+        if let attr = try? AttributedString(markdown: raw, options: options) {
+            return attr
+        }
+        return AttributedString(raw)
     }
 
     // MARK: - VI · Tools
