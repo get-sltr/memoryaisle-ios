@@ -1,16 +1,9 @@
 import SwiftUI
 
-/// Toggle state for the Mira tab's input affordance. The voice surface owns
-/// the conversation pipeline; this enum just decides which control set is
-/// on screen — push-to-talk bars (`.voice`) or the typed input bar (`.text`).
-enum MiraInputMode: Sendable, Equatable {
-    case voice, text
-}
-
-/// Editorial text-input bar shown when the user taps the keyboard icon on
-/// the voice hero. Sends typed messages through the same conversation
-/// pipeline as voice; the caller is responsible for not triggering TTS so
-/// the user can chat silently when they prefer typing.
+/// Editorial text-input bar for the Mira tab. Voice was pulled after
+/// device testing showed the audio session was unreliable — this is now
+/// the only input surface. `onSwitchToVoice` is kept on the API for the
+/// dashboard's existing call site but is wired to a no-op in the parent.
 struct MiraTextInput: View {
     @Binding var text: String
     var focused: FocusState<Bool>.Binding
@@ -22,31 +15,10 @@ struct MiraTextInput: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             HairlineDivider().padding(.bottom, 4)
-            switchToVoicePill
             inputRow
         }
-    }
-
-    private var switchToVoicePill: some View {
-        Button(action: onSwitchToVoice) {
-            HStack(spacing: 8) {
-                Image(systemName: "waveform")
-                    .font(.system(size: 11, weight: .semibold))
-                Text("VOICE")
-                    .font(Theme.Editorial.Typography.capsBold(10))
-                    .tracking(2.5)
-            }
-            .foregroundStyle(Theme.Editorial.onSurfaceMuted)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(
-                Capsule().stroke(Theme.Editorial.hairline, lineWidth: 0.5)
-            )
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Switch to voice")
     }
 
     private var inputRow: some View {

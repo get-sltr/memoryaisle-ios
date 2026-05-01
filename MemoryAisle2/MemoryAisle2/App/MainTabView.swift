@@ -159,9 +159,7 @@ struct MainTabView: View {
         case .menu:
             MenuSheet(
                 isPro: isPro,
-                onSelect: { dest in
-                    activeSheet = .destination(gateDestination(dest))
-                },
+                onSelect: { dest in handleMenuSelect(dest) },
                 onClose: { activeSheet = nil }
             )
         case .scan:
@@ -185,22 +183,60 @@ struct MainTabView: View {
 
     private static let proGatedDestinations: Set<MenuDestination> = [.progress, .reflection]
 
+    /// Handles a menu selection. Most rows fall through to a sheet via
+    /// `.destination(...)`; a few have side-effect routes (Today pivots
+    /// the bottom-bar selection, Notifications deep-links into iOS
+    /// Settings) and exit without presenting a sheet.
+    private func handleMenuSelect(_ dest: MenuDestination) {
+        switch dest {
+        case .today:
+            // Pivot the tab bar instead of opening a sheet — Today is
+            // already a top-level tab, the menu entry is a shortcut.
+            activeSheet = nil
+            selectedTab = .today
+        case .notifications:
+            // No in-app notifications pane yet; deep-link to the iOS
+            // Settings page for this app where the user can manage
+            // permissions and toggles.
+            activeSheet = nil
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        case .medications, .foodAllergies:
+            // Both edit fields that live on `UserProfile` and are
+            // already surfaced inside JourneyProfileView. Route there
+            // until each gets its own focused screen.
+            activeSheet = .destination(.profile)
+        case .emailProfile:
+            // Account info lives at the top of the Settings sheet
+            // (ProfileView). Route there.
+            activeSheet = .destination(.settings)
+        default:
+            activeSheet = .destination(gateDestination(dest))
+        }
+    }
+
     @ViewBuilder
     private func destinationView(_ dest: MenuDestination) -> some View {
         switch dest {
-        case .profile:     JourneyProfileView()
-        case .progress:    ProgressDashboardView()
-        case .groceryList: GroceryListScreen()
-        case .recipes:     RecipesView()
-        case .calendar:    CalendarView()
-        case .pantry:      PantryView()
-        case .safeSpace:   SafeSpaceView()
-        case .reflection:  ReflectionView()
-        case .scan:        ScanView()
-        case .mira:        MiraChatView()
-        case .subscribe:   PaywallView()
-        case .proBenefits: ProBenefitsView()
-        case .settings:    ProfileView()
+        case .profile:        JourneyProfileView()
+        case .progress:       ProgressDashboardView()
+        case .groceryList:    GroceryListScreen()
+        case .recipes:        RecipesView()
+        case .calendar:       CalendarView()
+        case .pantry:         PantryView()
+        case .safeSpace:      SafeSpaceView()
+        case .reflection:     ReflectionView()
+        case .scan:           ScanView()
+        case .scanReceipt:    ReceiptScannerView()
+        case .favorites:      RecipesView()  // saved recipes section lives here
+        case .mira:           MiraChatView()
+        case .subscribe:      PaywallView()
+        case .proBenefits:    ProBenefitsView()
+        case .settings:       ProfileView()
+        // Routed via handleMenuSelect side-effects, never reach the sheet:
+        case .today, .notifications, .medications, .foodAllergies, .emailProfile:
+            EmptyView()
         }
     }
 }

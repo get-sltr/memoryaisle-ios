@@ -2,15 +2,13 @@ import OSLog
 import SwiftData
 import SwiftUI
 
-/// Editorial Mira tab. Voice-first conversation surface:
-///   masthead → chat history (mask-faded) → bars + sparkle hero → state hint
+/// Editorial Mira tab. Text-only conversation surface:
+///   masthead → chat history (mask-faded) → text input
 ///
-/// State machine (`MiraVoiceState`):
-///   idle ↔ listening (push-to-talk on the bars)
-///   listening → thinking (release sends transcript to MiraConversation)
-///   thinking → speaking (Bedrock reply triggers TTS)
-///   speaking → idle (TTS finishes, OR user taps to interrupt)
-///   checkIn  → listening (Mira initiated; tap-to-respond — wired later)
+/// Voice (push-to-talk + TTS) was pulled after device testing showed the
+/// audio session was unreliable across the speak/listen handoff. The
+/// VoiceManager service still exists for any future feature that needs it,
+/// but no surface in the editorial app currently drives it.
 struct MiraTabView: View {
     let mode: MAMode
     let onTapWordmark: () -> Void
@@ -23,9 +21,6 @@ struct MiraTabView: View {
     @Query(sort: \PantryItem.addedDate, order: .reverse) private var pantry: [PantryItem]
     @Query(sort: \SymptomLog.date, order: .reverse) private var symptoms: [SymptomLog]
 
-    @State private var voice = VoiceManager.shared
-    @State private var voiceState: MiraVoiceState = .idle
-
     /// PRIVACY INVARIANT: Mira conversations are ephemeral by product design
     /// (see LEGAL-MemoryAisle.md §2.5 and §2.7). Do NOT back this with
     /// SwiftData. Do NOT introduce a "past conversations" archive, server
@@ -35,15 +30,9 @@ struct MiraTabView: View {
     @State private var messages: [MiraTurn] = []
     @State private var conversation: MiraConversation?
 
-    @State private var inputMode: MiraInputMode = .voice
     @State private var typedText: String = ""
     @FocusState private var typedFieldFocused: Bool
-
-    // Tap-vs-hold tracking for the bars gesture. The drag closure can fire
-    // .onChanged repeatedly during a hold; the first call latches both
-    // values and the rest short-circuit.
-    @State private var gestureStartedAt: Date?
-    @State private var gestureEntryState: MiraVoiceState?
+    @State private var isSending: Bool = false
 
     private let logger = Logger(subsystem: "com.memoryaisle.MiraTab", category: "ChatLoop")
 
@@ -103,41 +92,20 @@ struct MiraTabView: View {
                 }
             }
 
-            inputArea
-                // 70pt clears the tab bar in voice mode. When the keyboard
-                // is up the system already lifts the input above the
-                // keyboard, so the extra 70pt would push it back down
-                // into the keyboard. Collapse it while typing.
-                .padding(.bottom, typedFieldFocused ? 0 : 70)
+            MiraTextInput(
+                text: $typedText,
+                focused: $typedFieldFocused,
+                onSend: { handleTextSend($0) },
+                onSwitchToVoice: {}  // voice mode dropped; closure left as no-op
+            )
+            // 70pt clears the tab bar when the keyboard is down. When the
+            // keyboard is up the system already lifts the input above the
+            // keyboard, so the extra padding would push it back down.
+            .padding(.bottom, typedFieldFocused ? 0 : 70)
         }
         .padding(.horizontal, Theme.Editorial.Spacing.pad)
         .padding(.top, Theme.Editorial.Spacing.topInset)
-        .onChange(of: voiceState) { _, newState in
-            handleStateChange(newState)
-        }
-        .onChange(of: voice.isSpeaking) { _, speaking in
-            // When VoiceManager's TTS finishes, slip back to idle automatically
-            // unless the user has already moved us elsewhere.
-            if !speaking, voiceState == .speaking {
-                voiceState = .idle
-            }
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            // Stop any in-flight audio if the user backgrounds the app mid-turn.
-            // Session deactivation is dispatched to a background task so the
-            // mediaserverd IPC does not block main and trip the libdispatch
-            // queue assertion during teardown.
-            if newPhase != .active {
-                voice.stopListening()
-                voice.stopSpeaking()
-                if voiceState != .idle {
-                    voiceState = .idle
-                }
-                Task { await voice.deactivateAudioSessionAsync() }
-            }
-        }
         .task {
-            _ = await voice.requestPermissions()
             ensureConversationReady()
             drainPendingPrompt()
         }
@@ -148,11 +116,6 @@ struct MiraTabView: View {
             if newValue != nil {
                 drainPendingPrompt()
             }
-        }
-        .onDisappear {
-            voice.stopListening()
-            voice.stopSpeaking()
-            Task { await voice.deactivateAudioSessionAsync() }
         }
     }
 
@@ -186,189 +149,45 @@ struct MiraTabView: View {
         let salutation = name.isEmpty ? "Hello." : "Hello, \(name)."
         switch mode {
         case .day:
-            return "\(salutation) Hold the bars when you want to talk. I'm here for meals, symptoms, your medication cycle, anything in your day."
+            return "\(salutation) Type a question and I'll help with meals, symptoms, your medication cycle, anything in your day."
         case .night:
-            return "\(salutation) The day is winding down. Hold the bars when you want to talk."
+            return "\(salutation) The day is winding down. What's on your mind?"
         }
     }
 
-    // MARK: - Input area (voice hero or text input)
+    // MARK: - Pending prompt drain
 
-    @ViewBuilder
-    private var inputArea: some View {
-        if inputMode == .voice {
-            heroBlock
-                .transition(.opacity)
-        } else {
-            MiraTextInput(
-                text: $typedText,
-                focused: $typedFieldFocused,
-                onSend: { handleTextSend($0) },
-                onSwitchToVoice: { switchToVoice() }
-            )
-            .transition(.opacity)
-        }
-    }
-
-    // MARK: - Hero block (voice mode)
-
-    private var heroBlock: some View {
-        VStack(spacing: 18) {
-            HairlineDivider().padding(.bottom, 6)
-
-            Text(voiceState.label)
-                .font(Theme.Editorial.Typography.capsBold(10))
-                .tracking(3.2)
-                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.85))
-                .accessibilityLabel(voiceState.label.lowercased())
-
-            HStack(spacing: 16) {
-                keyboardSwitchButton
-
-                MiraBars(state: voiceState, amplitude: voice.audioLevel)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 64)
-                    .contentShape(Rectangle())
-                    .gesture(pushToTalkGesture)
-                    .accessibilityLabel(voiceState == .idle ? "Hold to talk to Mira" : "Mira voice surface")
-
-                Color.clear
-                    .frame(width: 44, height: 44)
-                    .opacity(voiceState == .idle ? 1 : 0)
-                    .accessibilityHidden(true)
-            }
-            .padding(.horizontal, 8)
-
-            MiraSparkle(isActive: voiceState != .idle, isSpeaking: voiceState == .speaking)
-
-            if !voiceState.hint.isEmpty {
-                Text(voiceState.hint)
-                    .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
-                    .tracking(2.2)
-                    .foregroundStyle(Theme.Editorial.onSurfaceFaint)
-                    .accessibilityLabel(voiceState.hint.lowercased())
-            } else {
-                Color.clear.frame(height: 12)
-            }
-        }
-    }
-
-    /// Keyboard glyph balanced opposite a clear 44x44 spacer so the bars
-    /// remain visually centered. Hidden during active voice states because
-    /// the user is mid-turn and shouldn't be invited to swap modes.
-    private var keyboardSwitchButton: some View {
-        Button(action: switchToTextInput) {
-            Image(systemName: "keyboard")
-                .font(.system(size: 18, weight: .regular))
-                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.55))
-                .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .opacity(voiceState == .idle ? 1 : 0)
-        .animation(.easeInOut(duration: 0.2), value: voiceState)
-        .disabled(voiceState != .idle)
-        .accessibilityLabel("Switch to typing")
-    }
-
-    // MARK: - Push-to-talk gesture
-
-    private var pushToTalkGesture: some Gesture {
-        // DragGesture(minimumDistance: 0) is the correct primitive for
-        // press-and-hold; LongPressGesture is discrete and doesn't track
-        // the held state. Tap and hold flow through the same gesture so
-        // the .onTapGesture stops eating touches — the entry state plus
-        // elapsed time on release decide which behaviour to run.
-        DragGesture(minimumDistance: 0)
-            .onChanged { _ in
-                guard gestureStartedAt == nil else { return }
-                gestureStartedAt = Date()
-                gestureEntryState = voiceState
-
-                switch voiceState {
-                case .idle, .checkIn:
-                    HapticManager.light()
-                    voiceState = .listening
-                case .speaking:
-                    // Tap-to-interrupt fires on touch-down so the cut feels instant.
-                    voice.stopSpeaking()
-                    voiceState = .idle
-                case .listening, .thinking:
-                    break
-                }
-            }
-            .onEnded { _ in
-                defer {
-                    gestureStartedAt = nil
-                    gestureEntryState = nil
-                }
-                let elapsed = gestureStartedAt.map { Date().timeIntervalSince($0) } ?? 0
-                let entry = gestureEntryState
-                let wasTap = elapsed < 0.25
-
-                switch (entry, voiceState) {
-                case (.idle, .listening):
-                    if wasTap {
-                        voice.stopListening()
-                        voiceState = .idle
-                    } else {
-                        voiceState = .thinking
-                    }
-                case (.checkIn, .listening):
-                    // Tap-to-respond stays in .listening so Mira's check-in
-                    // hint ("TAP TO RESPOND") still works; a real hold-release
-                    // submits the turn.
-                    if !wasTap {
-                        voiceState = .thinking
-                    }
-                case (.listening, .listening):
-                    // Second tap (or any release) after a tap-to-respond
-                    // submits — restores the only way out of .listening
-                    // for the check-in flow.
-                    voiceState = .thinking
-                default:
-                    break
-                }
-            }
-    }
-
-    // MARK: - State transitions
-
-    private func handleStateChange(_ newState: MiraVoiceState) {
-        switch newState {
-        case .listening:
-            voice.transcribedText = ""
-            voice.startListening()
-        case .thinking:
-            voice.stopListening()
-            handleUserTurnEnd()
-        case .speaking, .idle, .checkIn:
-            break
-        }
-    }
-
-    private func handleUserTurnEnd() {
-        let raw = voice.transcribedText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !raw.isEmpty else {
-            // No transcript — bounce back to idle without burning a Mira call.
-            voiceState = .idle
+    /// Consume any prompt the dashboard's "Tell Me More" card queued in
+    /// AppState. Lands as a normal user turn via `handleTextSend`.
+    private func drainPendingPrompt() {
+        guard let prompt = appState.pendingMiraPrompt,
+              !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return
         }
+        appState.pendingMiraPrompt = nil
+        handleTextSend(prompt)
+    }
 
-        let userTurn = MiraTurn(author: .user, timestamp: timestampNow(), body: raw)
-        messages.append(userTurn)
+    // MARK: - Send
+
+    private func handleTextSend(_ text: String) {
+        let raw = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty, !isSending else { return }
+        HapticManager.light()
+
+        messages.append(MiraTurn(author: .user, timestamp: timestampNow(), body: raw))
+        typedText = ""
 
         Task { @MainActor in
+            isSending = true
             await runMiraTurn(userText: raw)
+            isSending = false
         }
     }
 
-    private func runMiraTurn(userText: String, speakReply: Bool = true) async {
+    private func runMiraTurn(userText: String) async {
         ensureConversationReady()
-        guard let conversation, let profile else {
-            if speakReply { voiceState = .idle }
-            return
-        }
+        guard let conversation, let profile else { return }
 
         let context = MiraEngine.buildAnonymizedContext(
             profile: profile,
@@ -387,10 +206,6 @@ struct MiraTabView: View {
             )
             let trimmed = reply.trimmingCharacters(in: .whitespacesAndNewlines)
             messages.append(MiraTurn(author: .mira, timestamp: timestampNow(), body: trimmed))
-            if speakReply {
-                voiceState = .speaking
-                voice.speak(trimmed)
-            }
         } catch {
             logger.error("Mira turn failed: \(error.localizedDescription, privacy: .public)")
             messages.append(MiraTurn(
@@ -398,62 +213,6 @@ struct MiraTabView: View {
                 timestamp: timestampNow(),
                 body: "I'm having trouble reaching the network. Try once more in a moment."
             ))
-            if speakReply { voiceState = .idle }
-        }
-    }
-
-    // MARK: - Pending prompt drain
-
-    /// Consume any prompt the dashboard's "Tell Me More" card queued in
-    /// AppState. Routes through `handleTextSend` so the question lands as
-    /// a normal user turn and Mira's reply is text-only (no TTS — the
-    /// user just tapped a card, not the voice surface).
-    private func drainPendingPrompt() {
-        guard let prompt = appState.pendingMiraPrompt,
-              !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return
-        }
-        appState.pendingMiraPrompt = nil
-        if inputMode != .text {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                inputMode = .text
-            }
-        }
-        handleTextSend(prompt)
-    }
-
-    // MARK: - Text input mode
-
-    private func switchToTextInput() {
-        HapticManager.light()
-        withAnimation(.easeInOut(duration: 0.3)) {
-            inputMode = .text
-        }
-        // Slight delay so the swap animation lands before the keyboard
-        // springs in — async/await rather than asyncAfter per house rules.
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(280))
-            typedFieldFocused = true
-        }
-    }
-
-    private func switchToVoice() {
-        typedFieldFocused = false
-        withAnimation(.easeInOut(duration: 0.3)) {
-            inputMode = .voice
-        }
-    }
-
-    private func handleTextSend(_ text: String) {
-        let raw = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !raw.isEmpty else { return }
-        HapticManager.light()
-
-        messages.append(MiraTurn(author: .user, timestamp: timestampNow(), body: raw))
-        typedText = ""
-
-        Task { @MainActor in
-            await runMiraTurn(userText: raw, speakReply: false)
         }
     }
 
