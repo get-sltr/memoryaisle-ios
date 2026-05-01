@@ -32,7 +32,7 @@ struct MedicationView: View {
     /// "Allergies & Restrictions" version of this surface — same canvas,
     /// just the dietary chip grid. The medication-specific sections,
     /// safety note, and footer are hidden for them.
-    private var isOnGLP: Bool {
+    private var hasMedicationConfigured: Bool {
         profile?.medicationModality != nil
             || med != nil
             || profile?.medication != nil
@@ -57,7 +57,7 @@ struct MedicationView: View {
                     header
                     HairlineDivider().padding(.vertical, 8)
 
-                    if isOnGLP {
+                    if hasMedicationConfigured {
                         currentScriptSection
                         sectionDivider
                         providerSection
@@ -73,6 +73,7 @@ struct MedicationView: View {
                         miraGuardrailsNote
                         footer
                     } else {
+                        noMedicationState
                         allergiesSection
                     }
                 }
@@ -117,15 +118,15 @@ struct MedicationView: View {
     private var header: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: 56)
-            Image(systemName: isOnGLP ? "cross.case" : "leaf")
+            Image(systemName: hasMedicationConfigured ? "cross.case" : "leaf")
                 .font(.system(size: 22))
                 .foregroundStyle(Theme.Editorial.onSurface)
                 .padding(.bottom, 14)
-            Text(isOnGLP ? "Medication & Allergies" : "Allergies & Restrictions")
+            Text("Medication & Allergies")
                 .font(.system(size: 26, weight: .regular, design: .serif))
                 .tracking(0.6)
                 .foregroundStyle(Theme.Editorial.onSurface)
-            Text(isOnGLP
+            Text(hasMedicationConfigured
                  ? "DOSE · PROVIDER · PHARMACY · REFILL"
                  : "DIETARY SAFETY · WHAT TO AVOID")
                 .font(Theme.Editorial.Typography.caps(9, weight: .medium))
@@ -308,7 +309,7 @@ struct MedicationView: View {
     /// see. Bound to `UserProfile.dietaryRestrictions` via SwiftData.
     private var allergiesSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionLabel(isOnGLP ? "VI · ALLERGIES & RESTRICTIONS" : "RESTRICTIONS")
+            sectionLabel(hasMedicationConfigured ? "VI · ALLERGIES & RESTRICTIONS" : "RESTRICTIONS")
             if let profile {
                 AllergyChipGrid(selected: dietaryBinding(profile))
             } else {

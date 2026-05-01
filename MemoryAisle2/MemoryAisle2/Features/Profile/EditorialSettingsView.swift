@@ -18,9 +18,9 @@ struct EditorialSettingsView: View {
 
     @State private var showLegal: LegalPage?
     @State private var showDeleteAccountConfirm = false
-    @State private var showDeleteDataAlert = false
+    @State private var showDeleteDataConfirm = false
     @State private var showConsentAlert = false
-    @State private var showExportAlert = false
+    @State private var showExportSheet = false
     @State private var showResetOnboardingConfirm = false
 
     private var profile: UserProfile? { profiles.first }
@@ -69,20 +69,21 @@ struct EditorialSettingsView: View {
         } message: {
             Text("This deletes your account, all data, and signs you out. Subscriptions billed through Apple must be cancelled separately in Settings > Apple ID. We process within 30 days.")
         }
-        .alert("Delete my data?", isPresented: $showDeleteDataAlert) {
-            Button("OK", role: .cancel) {}
+        .alert("Delete my data?", isPresented: $showDeleteDataConfirm) {
+            Button("Delete my data", role: .destructive) {
+                Task { await deleteMyData() }
+            }
+            Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Coming soon. For now, use Delete Account in Danger Zone; that wipes everything.")
+            Text("This wipes your meals, scans, body composition history, and progress photos from this device. Your account stays active. You will be sent back through onboarding.")
         }
         .alert("Consent settings", isPresented: $showConsentAlert) {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Coming soon. Analytics and AI-training consent toggles will land in a follow-up build.")
         }
-        .alert("Export your data", isPresented: $showExportAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Coming soon. We'll generate a download of your meals, scans, and Mira-anonymized history.")
+        .sheet(isPresented: $showExportSheet) {
+            ExportDataSheet()
         }
         .alert("Reset onboarding?", isPresented: $showResetOnboardingConfirm) {
             Button("Reset", role: .destructive) { resetOnboarding() }
@@ -96,6 +97,17 @@ struct EditorialSettingsView: View {
 
     private func resetOnboarding() {
         HapticManager.heavy()
+        appState.hasCompletedOnboarding = false
+        if let profile {
+            profile.hasCompletedOnboarding = false
+        }
+        dismiss()
+    }
+
+    private func deleteMyData() async {
+        HapticManager.warning()
+        await LocalDataPurgeService.purgeAll(modelContext: modelContext)
+
         appState.hasCompletedOnboarding = false
         if let profile {
             profile.hasCompletedOnboarding = false
@@ -194,16 +206,16 @@ struct EditorialSettingsView: View {
             row("Export Data",
                 subtitle: "DOWNLOAD A COPY",
                 icon: "arrow.down.circle") {
-                showExportAlert = true
+                showExportSheet = true
             }
             rowDivider
             row("Delete My Data",
                 subtitle: "WIPE MEALS, SCANS, HISTORY",
                 icon: "trash",
                 tint: warningTint) {
-                showDeleteDataAlert = true
+                showDeleteDataConfirm = true
             }
-            finePrint(text: "Deletion is permanent. We remove your meals, scans, body composition history, and Mira conversations within 30 days. Anonymized aggregates used to train Mira are retained per the Privacy Policy. iCloud backups expire on Apple's schedule.",
+            finePrint(text: "Delete My Data wipes on-device meals, scans, and progress history. It does not delete your account. If you have cloud sync enabled, you may need to delete cloud data separately.",
                       tint: warningTint)
         }
     }
