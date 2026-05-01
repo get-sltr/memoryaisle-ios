@@ -113,7 +113,6 @@ struct MiraRecommendationView: View {
     private var actions: some View {
         HStack(spacing: 18) {
             actionButton("→ LOG IT", primary: true) { onAction(.log) }
-            actionButton("↗ ORDER IT")              { onAction(.order) }
             actionButton("↪ TELL ME MORE")          { onAction(.mira) }
             Spacer()
         }
