@@ -4,6 +4,7 @@ import SwiftUI
 struct PaywallView: View {
     var mode: MAMode = .auto
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @Environment(SubscriptionManager.self) private var subscriptionManager
     @State private var isPurchasing = false
     @State private var showError = false
@@ -163,19 +164,25 @@ struct PaywallView: View {
                 .multilineTextAlignment(.center)
                 .lineSpacing(3)
 
-            HStack(spacing: 14) {
-                if let termsURL = URL(string: "https://memoryaisle.app/terms") {
-                    Link("Terms of Use", destination: termsURL)
-                }
-                if let privacyURL = URL(string: "https://memoryaisle.app/privacy") {
-                    Link("Privacy Policy", destination: privacyURL)
-                }
+            HStack(spacing: 18) {
+                legalLink("Terms of Use", urlString: "https://memoryaisle.app/terms")
+                legalLink("Privacy Policy", urlString: "https://memoryaisle.app/privacy")
             }
-            .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
-            .tracking(1.6)
-            .foregroundStyle(Theme.Editorial.onSurfaceMuted)
         }
         .padding(.top, 6)
+    }
+
+    private func legalLink(_ title: String, urlString: String) -> some View {
+        Button {
+            if let url = URL(string: urlString) { openURL(url) }
+        } label: {
+            Text(title)
+                .font(.system(size: 11, weight: .regular))
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                .underline()
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
     }
 
     // MARK: - CTA copy
