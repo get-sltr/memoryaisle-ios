@@ -45,6 +45,15 @@ final class UserProfile {
     /// semantics as `openGoal`.
     var movementNote: String?
 
+    /// Cognito sub the profile belongs to. Optional + nil-on-legacy keeps
+    /// the migration lightweight; rows pre-dating this field decode with
+    /// userId == nil and are claimed by the first signed-in user via the
+    /// migration logic in `RootView` (see `MemoryAisleApp.swift`). After
+    /// the rollout, every profile written by `OnboardingFlow` and the
+    /// reviewer seed service stamps the current sub here so the routing
+    /// can scope the correct profile per account on a shared device.
+    var userId: String?
+
     init(
         name: String = "",
         medication: Medication? = nil,
@@ -53,7 +62,8 @@ final class UserProfile {
         proteinTargetGrams: Int = 100,
         calorieTarget: Int = 1600,
         waterTargetLiters: Double = 2.5,
-        fiberTargetGrams: Int = 25
+        fiberTargetGrams: Int = 25,
+        userId: String? = nil
     ) {
         self.name = name
         self.createdAt = Date()
@@ -70,6 +80,7 @@ final class UserProfile {
         self.fiberTargetGrams = fiberTargetGrams
         self.openGoal = nil
         self.movementNote = nil
+        self.userId = userId
     }
 }
 

@@ -186,7 +186,7 @@ struct MainTabView: View {
         return dest
     }
 
-    private static let proGatedDestinations: Set<MenuDestination> = [.profile, .reflection]
+    private static let proGatedDestinations: Set<MenuDestination> = [.profile, .reflection, .pantry, .favorites]
 
     /// Handles a menu selection. Most rows fall through to a sheet via
     /// `.destination(...)`; a few have side-effect routes (Today pivots
@@ -212,13 +212,6 @@ struct MainTabView: View {
             // pharmacy, refill) lives there. The Journey page keeps a
             // summary block but doesn't own this surface.
             activeSheet = .destination(.medications)
-        case .foodAllergies:
-            // No focused screen yet — route to Journey until one is built.
-            activeSheet = .destination(.profile)
-        case .emailProfile:
-            // Account info lives at the top of the Settings sheet
-            // (ProfileView). Route there.
-            activeSheet = .destination(.settings)
         default:
             activeSheet = .destination(gateDestination(dest))
         }
@@ -241,10 +234,10 @@ struct MainTabView: View {
         case .medications:    MedicationView(mode: mode)
         case .mira:           MiraChatView()
         case .subscribe:      PaywallView(mode: mode)
-        case .proBenefits:    ProBenefitsView()
+        case .proBenefits:    ProBenefitsView(mode: mode)
         case .settings:       EditorialSettingsView()
         // Routed via handleMenuSelect side-effects, never reach the sheet:
-        case .today, .notifications, .foodAllergies, .emailProfile:
+        case .today, .notifications:
             EmptyView()
         }
     }

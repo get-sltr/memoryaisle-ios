@@ -39,6 +39,14 @@ final class AppState {
 
     var authStatus: AuthStatus = .unknown
     var hasCompletedOnboarding = false
+
+    /// Cognito sub for the currently signed-in user. Populated by
+    /// `RootView.onAppear` after `restoreSession()` resolves. Used by the
+    /// onboarding gate to scope `UserProfile` lookup to the right account
+    /// (a shared device that signed in user A and then user B should not
+    /// treat user A's stale profile as user B's onboarded state). Nil
+    /// while the auth status is `.unknown` or `.signedOut`.
+    var cognitoUserId: String?
     var selectedTab: Tab = .home
     var homePath = NavigationPath()
     var recipesPath = NavigationPath()

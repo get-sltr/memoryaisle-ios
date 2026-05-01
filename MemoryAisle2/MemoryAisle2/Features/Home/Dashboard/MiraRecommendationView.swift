@@ -113,7 +113,6 @@ struct MiraRecommendationView: View {
     private var actions: some View {
         HStack(spacing: 18) {
             actionButton("→ LOG IT", primary: true) { onAction(.log) }
-            actionButton("↗ ORDER IT")              { onAction(.order) }
             actionButton("↪ TELL ME MORE")          { onAction(.mira) }
             Spacer()
         }
@@ -204,7 +203,8 @@ struct MiraRecommendationView: View {
             savedCalories: rec.calories,
             savedProteinG: rec.proteinG,
             savedFatG: rec.fatG,
-            savedCarbsG: rec.carbsG
+            savedCarbsG: rec.carbsG,
+            savedIngredients: rec.ingredients.isEmpty ? nil : rec.ingredients
         )
         modelContext.insert(entry)
     }

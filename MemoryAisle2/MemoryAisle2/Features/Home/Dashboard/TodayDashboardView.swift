@@ -511,10 +511,7 @@ struct TodayDashboardView: View {
     /// delivery apps detected on this device."
     private func installedDeliveryApps() -> [DeliveryApp] {
         DeliveryApp.supported.filter { app in
-            var components = URLComponents()
-            components.scheme = app.urlScheme
-            components.host = ""
-            guard let url = components.url else { return false }
+            guard let url = URL(string: "\(app.urlScheme)://") else { return false }
             return UIApplication.shared.canOpenURL(url)
         }
     }

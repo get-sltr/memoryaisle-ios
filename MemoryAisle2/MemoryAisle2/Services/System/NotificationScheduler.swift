@@ -1,6 +1,10 @@
 import UserNotifications
 
 struct NotificationScheduler {
+    private enum Identifier {
+        static let doseDaily = "dose-daily"
+        static let doseWeekly = "dose-weekly"
+    }
 
     static func requestPermission() async -> Bool {
         let center = UNUserNotificationCenter.current()
@@ -85,6 +89,63 @@ struct NotificationScheduler {
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 
+        center.add(request)
+    }
+
+    // MARK: - Dose Reminders
+
+    static func clearDoseReminders() {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [
+            Identifier.doseDaily,
+            Identifier.doseWeekly,
+        ])
+    }
+
+    static func scheduleDoseReminderWeekly(
+        weekday: Int,
+        hour: Int,
+        minute: Int,
+        title: String = "Dose Reminder",
+        body: String
+    ) {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: [Identifier.doseWeekly])
+
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+
+        var dateComponents = DateComponents()
+        dateComponents.weekday = weekday
+        dateComponents.hour = hour
+        dateComponents.minute = minute
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        let request = UNNotificationRequest(identifier: Identifier.doseWeekly, content: content, trigger: trigger)
+        center.add(request)
+    }
+
+    static func scheduleDoseReminderDaily(
+        hour: Int,
+        minute: Int,
+        title: String = "Dose Reminder",
+        body: String
+    ) {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: [Identifier.doseDaily])
+
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+
+        var dateComponents = DateComponents()
+        dateComponents.hour = hour
+        dateComponents.minute = minute
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        let request = UNNotificationRequest(identifier: Identifier.doseDaily, content: content, trigger: trigger)
         center.add(request)
     }
 

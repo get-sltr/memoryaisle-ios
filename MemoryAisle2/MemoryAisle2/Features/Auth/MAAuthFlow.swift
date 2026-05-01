@@ -50,6 +50,10 @@ struct MAAuthFlow: View {
             await authManager.restoreSession()
             if authManager.isSignedIn {
                 handlePostSignIn(email: authManager.email)
+                if let email = authManager.email, !email.isEmpty {
+                    UserDefaults.standard.set(email, forKey: "ma_email")
+                }
+                appState.cognitoUserId = authManager.userId
                 appState.authStatus = .signedIn
             }
         }
@@ -185,6 +189,10 @@ struct MAAuthFlow: View {
 
     private func handleAuthSuccess(email: String?) {
         handlePostSignIn(email: email)
+        if let email, !email.isEmpty {
+            UserDefaults.standard.set(email, forKey: "ma_email")
+        }
+        appState.cognitoUserId = authManager.userId
         appState.authStatus = .signedIn
     }
 
@@ -194,7 +202,11 @@ struct MAAuthFlow: View {
     /// fire correctly. Does NOT touch local SwiftData; MemoryAisle is a
     /// longitudinal journey app and sign-in/out must preserve user data.
     private func handlePostSignIn(email: String?) {
-        AppReviewerSeedService.handleSignIn(email: email, modelContext: modelContext)
+        AppReviewerSeedService.handleSignIn(
+            email: email,
+            userId: authManager.userId,
+            modelContext: modelContext
+        )
         subscriptionManager.refreshOverrides()
     }
 }

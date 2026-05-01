@@ -2,7 +2,8 @@ import SwiftData
 import SwiftUI
 
 struct ProviderReportView: View {
-    @Environment(\.colorScheme) private var scheme
+    var mode: MAMode = .auto
+
     @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
@@ -35,44 +36,30 @@ struct ProviderReportView: View {
     private var weekEndWeight: Double? { weekBodyComp.last?.weightLbs }
 
     var body: some View {
-        VStack(spacing: 0) {
-            SheetHeader(title: "Provider Report", onClose: { dismiss() })
+        ZStack {
+            EditorialBackground(mode: mode)
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
-                    // Preview header
-                    VStack(spacing: 12) {
-                        Image(systemName: "doc.text.fill")
-                            .font(.system(size: 32))
-                            .foregroundStyle(Color.violet.opacity(0.5))
+                VStack(alignment: .leading, spacing: 0) {
+                    header
+                    HairlineDivider().padding(.vertical, 8)
 
-                        Text("Weekly Report")
-                            .font(.system(size: 24, weight: .light, design: .serif))
-                            .foregroundStyle(Theme.Text.primary)
-                            .tracking(0.3)
-
-                        Text("Share a summary of your week\nwith your healthcare provider.")
-                            .font(.system(size: 14))
-                            .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding(.top, 20)
-
-                    // Preview data
-                    previewSection("Nutrition") {
+                    previewSection("NUTRITION") {
                         previewRow("Avg Protein", value: "\(avgProtein)g / \(profile?.proteinTargetGrams ?? 140)g")
                         previewRow("Protein Hit Rate", value: "\(proteinHitRate)%")
                         previewRow("Avg Calories", value: "\(avgCalories)")
                         previewRow("Avg Water", value: String(format: "%.1fL", avgWater))
                     }
+                    .padding(.top, 12)
 
-                    previewSection("Symptoms") {
+                    previewSection("SYMPTOMS") {
                         previewRow("Avg Nausea", value: String(format: "%.1f / 5", avgNausea))
                         previewRow("Avg Energy", value: String(format: "%.1f / 5", avgEnergy))
                         previewRow("Days Logged", value: "\(weekSymptoms.count)")
                     }
+                    .padding(.top, 12)
 
-                    previewSection("Medication") {
+                    previewSection("MEDICATION") {
                         if let med = profile?.medication {
                             previewRow("Medication", value: med.rawValue)
                         }
@@ -81,69 +68,139 @@ struct ProviderReportView: View {
                         }
                         previewRow("Mode", value: profile?.productMode.rawValue ?? "Everyday")
                     }
+                    .padding(.top, 12)
 
                     if let start = weekStartWeight, let end = weekEndWeight {
-                        previewSection("Weight") {
+                        previewSection("WEIGHT") {
                             previewRow("Start of Week", value: String(format: "%.1f lbs", start))
                             previewRow("End of Week", value: String(format: "%.1f lbs", end))
                             let change = end - start
                             let sign = change >= 0 ? "+" : ""
                             previewRow("Change", value: "\(sign)\(String(format: "%.1f", change)) lbs")
                         }
+                        .padding(.top, 12)
                     }
 
-                    GlowButton(isGenerating ? "Generating..." : "Generate & Share PDF") {
+                    Button {
+                        HapticManager.light()
                         Task { await generateAndShare() }
+                    } label: {
+                        Text(isGenerating ? "GENERATING..." : "GENERATE & SHARE PDF")
+                            .font(Theme.Editorial.Typography.capsBold(11))
+                            .tracking(2.0)
+                            .foregroundStyle(Color(red: 0.961, green: 0.851, blue: 0.478))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Theme.Editorial.onSurface.opacity(0.08))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Theme.Editorial.onSurface.opacity(0.2), lineWidth: 0.5)
+                            )
                     }
+                    .buttonStyle(.plain)
                     .disabled(isGenerating)
-                    .padding(.horizontal, 32)
+                    .padding(.top, 18)
 
-                    Text("PDF includes a medical disclaimer.\nNo personal data is shared with third parties.")
+                    Text("PDF includes a medical disclaimer. No personal data is shared with third parties.")
                         .font(.system(size: 11))
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                        .multilineTextAlignment(.center)
+                        .foregroundStyle(Theme.Editorial.onSurface.opacity(0.6))
+                        .lineSpacing(3)
+                        .padding(.top, 10)
 
                     Spacer(minLength: 40)
                 }
+                .padding(.horizontal, 28)
+                .padding(.top, 60)
+                .padding(.bottom, 32)
+            }
+            .scrollIndicators(.hidden)
+
+            VStack {
+                HStack {
+                    Spacer()
+                    doneButton
+                }
+                .padding(.top, 16)
+                .padding(.trailing, 24)
+                Spacer()
             }
         }
-        .section(.progress)
-        .themeBackground()
+        .preferredColorScheme(.light)
+        .ignoresSafeArea()
     }
 
     // MARK: - Preview Components
 
     @ViewBuilder
     private func previewSection(_ title: String, @ViewBuilder content: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title.uppercased())
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                .tracking(1.2)
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(Theme.Editorial.Typography.caps(9, weight: .medium))
+                .tracking(2.8)
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
             content()
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Theme.Surface.glass(for: scheme))
-        )
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.black.opacity(0.18))
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Theme.Border.glass(for: scheme), lineWidth: Theme.glassBorderWidth)
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Theme.Editorial.onSurface.opacity(0.18), lineWidth: 0.5)
         )
-        .padding(.horizontal, 20)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
     private func previewRow(_ label: String, value: String) -> some View {
         HStack {
             Text(label)
                 .font(.system(size: 13))
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.7))
             Spacer()
             Text(value)
-                .font(.system(size: 13, weight: .medium, design: .monospaced))
-                .foregroundStyle(Theme.Text.primary)
+                .font(Theme.Editorial.Typography.caps(10, weight: .semibold))
+                .tracking(1.6)
+                .foregroundStyle(Theme.Editorial.onSurface)
         }
+    }
+
+    private var header: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: 56)
+            Image(systemName: "doc.text")
+                .font(.system(size: 22))
+                .foregroundStyle(Theme.Editorial.onSurface)
+                .padding(.bottom, 14)
+            Text("Provider Report")
+                .font(.system(size: 26, weight: .regular, design: .serif))
+                .tracking(0.6)
+                .foregroundStyle(Theme.Editorial.onSurface)
+            Text("WEEKLY SUMMARY · PDF")
+                .font(Theme.Editorial.Typography.caps(9, weight: .medium))
+                .tracking(2.8)
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                .padding(.top, 8)
+                .padding(.bottom, 28)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var doneButton: some View {
+        Button {
+            HapticManager.light()
+            dismiss()
+        } label: {
+            Text("DONE")
+                .font(Theme.Editorial.Typography.capsBold(11))
+                .tracking(2.0)
+                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.85))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Data

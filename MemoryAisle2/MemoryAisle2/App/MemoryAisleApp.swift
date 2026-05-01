@@ -60,10 +60,34 @@ struct MemoryAisleApp: App {
 
 struct RootView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
 
+    /// Returns the profile belonging to the currently signed-in user via
+    /// strict `userId == cognitoSub` match. Returns nil when no profile
+    /// matches; caller routes to onboarding.
+    ///
+    /// Pre-migration UserProfile rows have `userId == nil` and are
+    /// effectively orphaned by this scoping — by design, so a fresh
+    /// account on a shared device cannot inherit a previous tester's
+    /// onboarded state. Those rows still live in SwiftData (data
+    /// preservation rule) but are no longer surfaced via routing until
+    /// re-claimed through the auth-rewrite work.
+    private func currentUserProfile() -> UserProfile? {
+        guard let currentUserId = appState.cognitoUserId else { return nil }
+        return profiles.first(where: { $0.userId == currentUserId })
+    }
+
     private var isOnboarded: Bool {
-        appState.hasCompletedOnboarding || (profiles.first?.hasCompletedOnboarding == true)
+        // Trust the in-session flag first — `completeOnboarding` flips it
+        // synchronously the moment a fresh user finishes the flow, so the
+        // routing flips without waiting for the @Query to re-publish the
+        // newly-inserted profile. The flag is sign-out-reset everywhere
+        // (ProfileView, EditorialSettingsView) so a stale value can't leak
+        // across accounts. Falls back to the userId-scoped profile lookup
+        // for returning users on a fresh launch (flag defaults to false).
+        if appState.hasCompletedOnboarding { return true }
+        return currentUserProfile()?.hasCompletedOnboarding == true
     }
 
     var body: some View {
@@ -89,12 +113,10 @@ struct RootView: View {
             }
         }
         .onAppear {
-            if profiles.first?.hasCompletedOnboarding == true {
-                appState.hasCompletedOnboarding = true
-            }
             Task {
                 let auth = CognitoAuthManager()
                 await auth.restoreSession()
+                appState.cognitoUserId = auth.userId
                 appState.authStatus = auth.isSignedIn ? .signedIn : .signedOut
             }
         }

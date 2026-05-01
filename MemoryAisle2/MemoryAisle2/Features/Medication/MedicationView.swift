@@ -22,6 +22,8 @@ struct MedicationView: View {
     @Query private var profiles: [UserProfile]
 
     @State private var editingField: EditingField?
+    @State private var doseReminderEnabledLocal: Bool = false
+    @State private var hasInitializedDoseReminderState = false
 
     private var med: MedicationProfile? { medications.first }
     private var profile: UserProfile? { profiles.first }
@@ -30,17 +32,18 @@ struct MedicationView: View {
     /// "Allergies & Restrictions" version of this surface — same canvas,
     /// just the dietary chip grid. The medication-specific sections,
     /// safety note, and footer are hidden for them.
-    private var isOnGLP: Bool {
+    private var hasMedicationConfigured: Bool {
         profile?.medicationModality != nil
             || med != nil
             || profile?.medication != nil
     }
 
     private enum EditingField: Identifiable {
-        case providerName, providerPhone
-        case pharmacyName, pharmacyPhone
+        case providerName, providerPhone, providerAddress
+        case pharmacyName, pharmacyPhone, pharmacyAddress
         case refillDate
         case dose
+        case doseReminderTime
 
         var id: String { String(describing: self) }
     }
@@ -54,7 +57,7 @@ struct MedicationView: View {
                     header
                     HairlineDivider().padding(.vertical, 8)
 
-                    if isOnGLP {
+                    if hasMedicationConfigured {
                         currentScriptSection
                         sectionDivider
                         providerSection
@@ -70,6 +73,7 @@ struct MedicationView: View {
                         miraGuardrailsNote
                         footer
                     } else {
+                        noMedicationState
                         allergiesSection
                     }
                 }
@@ -94,6 +98,19 @@ struct MedicationView: View {
         .sheet(item: $editingField) { field in
             editorSheet(for: field)
         }
+        .onAppear {
+            guard !hasInitializedDoseReminderState else { return }
+            hasInitializedDoseReminderState = true
+            doseReminderEnabledLocal = doseReminderEnabled
+        }
+        .onChange(of: doseReminderEnabledLocal) { _, newValue in
+            setDoseReminderEnabled(newValue)
+            if newValue {
+                Task { await scheduleDoseReminderIfPossible() }
+            } else {
+                NotificationScheduler.clearDoseReminders()
+            }
+        }
     }
 
     // MARK: - Header
@@ -101,15 +118,15 @@ struct MedicationView: View {
     private var header: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: 56)
-            Image(systemName: isOnGLP ? "cross.case" : "leaf")
+            Image(systemName: hasMedicationConfigured ? "cross.case" : "leaf")
                 .font(.system(size: 22))
                 .foregroundStyle(Theme.Editorial.onSurface)
                 .padding(.bottom, 14)
-            Text(isOnGLP ? "Medications" : "Allergies & Restrictions")
+            Text("Medication & Allergies")
                 .font(.system(size: 26, weight: .regular, design: .serif))
                 .tracking(0.6)
                 .foregroundStyle(Theme.Editorial.onSurface)
-            Text(isOnGLP
+            Text(hasMedicationConfigured
                  ? "DOSE · PROVIDER · PHARMACY · REFILL"
                  : "DIETARY SAFETY · WHAT TO AVOID")
                 .font(Theme.Editorial.Typography.caps(9, weight: .medium))
@@ -168,6 +185,31 @@ struct MedicationView: View {
                 label: "Started",
                 value: startedLabel
             )
+
+            HairlineDivider().padding(.vertical, 8)
+            sectionLabel("DOSE REMINDER")
+            HStack {
+                Text("Enabled")
+                    .font(Theme.Editorial.Typography.body())
+                    .foregroundStyle(Theme.Editorial.onSurface.opacity(0.7))
+                Spacer()
+                Toggle("", isOn: $doseReminderEnabledLocal)
+                    .labelsHidden()
+                    .tint(Color(red: 0.961, green: 0.851, blue: 0.478))
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 4)
+            .overlay(alignment: .top) {
+                Rectangle().fill(Theme.Editorial.onSurface.opacity(0.08)).frame(height: 0.5)
+            }
+
+            if doseReminderEnabledLocal {
+                ledgerEditableRow(
+                    label: "Time",
+                    value: doseReminderTimeLabel,
+                    editing: .doseReminderTime
+                )
+            }
         }
     }
 
@@ -175,7 +217,7 @@ struct MedicationView: View {
         VStack(alignment: .leading, spacing: 0) {
             sectionLabel("II · PROVIDER")
             ledgerEditableRow(
-                label: "Name",
+                label: "Physician",
                 value: med?.providerName ?? "—",
                 editing: .providerName
             )
@@ -184,6 +226,11 @@ struct MedicationView: View {
                 value: med?.providerPhone ?? "—",
                 editing: .providerPhone,
                 callable: med?.providerPhone
+            )
+            ledgerEditableRow(
+                label: "Address",
+                value: providerAddress ?? "—",
+                editing: .providerAddress
             )
         }
     }
@@ -201,6 +248,11 @@ struct MedicationView: View {
                 value: med?.pharmacyPhone ?? "—",
                 editing: .pharmacyPhone,
                 callable: med?.pharmacyPhone
+            )
+            ledgerEditableRow(
+                label: "Address",
+                value: pharmacyAddress ?? "—",
+                editing: .pharmacyAddress
             )
         }
     }
@@ -257,7 +309,7 @@ struct MedicationView: View {
     /// see. Bound to `UserProfile.dietaryRestrictions` via SwiftData.
     private var allergiesSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionLabel(isOnGLP ? "VI · ALLERGIES & RESTRICTIONS" : "RESTRICTIONS")
+            sectionLabel(hasMedicationConfigured ? "VI · ALLERGIES & RESTRICTIONS" : "RESTRICTIONS")
             if let profile {
                 AllergyChipGrid(selected: dietaryBinding(profile))
             } else {
@@ -339,6 +391,12 @@ struct MedicationView: View {
                             keyboard: .phonePad) { value in
                 med?.providerPhone = value.isEmpty ? nil : value
             }
+        case .providerAddress:
+            TextEditorSheet(title: "PROVIDER ADDRESS",
+                            initial: providerAddress ?? "",
+                            placeholder: "Street, City, State") { value in
+                setNoteValue(key: "providerAddress", value: value)
+            }
         case .pharmacyName:
             TextEditorSheet(title: "PHARMACY NAME",
                             initial: med?.pharmacyName ?? "",
@@ -351,6 +409,12 @@ struct MedicationView: View {
                             placeholder: "555 123 4567",
                             keyboard: .phonePad) { value in
                 med?.pharmacyPhone = value.isEmpty ? nil : value
+            }
+        case .pharmacyAddress:
+            TextEditorSheet(title: "PHARMACY ADDRESS",
+                            initial: pharmacyAddress ?? "",
+                            placeholder: "Street, City, State") { value in
+                setNoteValue(key: "pharmacyAddress", value: value)
             }
         case .refillDate:
             DatePickerSheet(
@@ -368,6 +432,14 @@ struct MedicationView: View {
                 } else {
                     profile?.doseAmount = value
                 }
+            }
+        case .doseReminderTime:
+            TimePickerSheet(
+                title: "DOSE REMINDER TIME",
+                initial: doseReminderTime ?? defaultDoseReminderTime
+            ) { date in
+                setDoseReminderTime(date)
+                Task { await scheduleDoseReminderIfPossible() }
             }
         }
     }
@@ -550,132 +622,137 @@ struct MedicationView: View {
     }
 }
 
-// MARK: - Editor sheets
+// MARK: - Notes-backed fields (addresses)
 
-/// Tiny modal for editing a single string field on the Medication page.
-/// Editorial styling matches the parent page so the transition feels
-/// continuous instead of dropping into a system-default form.
-private struct TextEditorSheet: View {
-    let title: String
-    let initial: String
-    let placeholder: String
-    var keyboard: UIKeyboardType = .default
-    let onSave: (String) -> Void
+private extension MedicationView {
+    var providerAddress: String? { noteValue(for: "providerAddress") }
+    var pharmacyAddress: String? { noteValue(for: "pharmacyAddress") }
+    var doseReminderEnabled: Bool { (noteValue(for: "doseReminderEnabled") ?? "") == "true" }
 
-    @Environment(\.dismiss) private var dismiss
-    @State private var draft: String = ""
-    @FocusState private var focused: Bool
+    var doseReminderTime: Date? {
+        guard let raw = noteValue(for: "doseReminderTime") else { return nil }
+        let parts = raw.split(separator: ":", omittingEmptySubsequences: false)
+        guard parts.count == 2,
+              let hour = Int(parts[0]),
+              let minute = Int(parts[1]),
+              (0...23).contains(hour),
+              (0...59).contains(minute) else { return nil }
 
-    var body: some View {
-        ZStack {
-            EditorialBackground(mode: .night)
-
-            VStack(alignment: .leading, spacing: 18) {
-                HStack {
-                    Button { dismiss() } label: {
-                        Text("CANCEL")
-                            .font(Theme.Editorial.Typography.capsBold(11))
-                            .tracking(2.0)
-                            .foregroundStyle(Theme.Editorial.onSurface.opacity(0.7))
-                    }
-                    .buttonStyle(.plain)
-                    Spacer()
-                    Button {
-                        onSave(draft.trimmingCharacters(in: .whitespacesAndNewlines))
-                        dismiss()
-                    } label: {
-                        Text("SAVE")
-                            .font(Theme.Editorial.Typography.capsBold(11))
-                            .tracking(2.0)
-                            .foregroundStyle(Color(red: 0.961, green: 0.851, blue: 0.478))
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                Text(title)
-                    .font(Theme.Editorial.Typography.caps(10, weight: .semibold))
-                    .tracking(3.0)
-                    .foregroundStyle(Theme.Editorial.onSurface.opacity(0.7))
-
-                TextField(placeholder, text: $draft)
-                    .focused($focused)
-                    .keyboardType(keyboard)
-                    .font(.system(size: 22, design: .serif))
-                    .foregroundStyle(Theme.Editorial.onSurface)
-                    .padding(14)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Theme.Editorial.onSurface.opacity(0.08))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Theme.Editorial.onSurface.opacity(0.2), lineWidth: 0.5)
-                    )
-
-                Spacer()
-            }
-            .padding(28)
-        }
-        .preferredColorScheme(.light)
-        .onAppear {
-            draft = initial
-            focused = true
-        }
-        .presentationDetents([.medium])
+        var comps = Calendar.current.dateComponents([.year, .month, .day], from: .now)
+        comps.hour = hour
+        comps.minute = minute
+        return Calendar.current.date(from: comps)
     }
-}
 
-private struct DatePickerSheet: View {
-    let title: String
-    let initial: Date
-    let onSave: (Date) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var date: Date = .now
-
-    var body: some View {
-        ZStack {
-            EditorialBackground(mode: .night)
-
-            VStack(alignment: .leading, spacing: 18) {
-                HStack {
-                    Button { dismiss() } label: {
-                        Text("CANCEL")
-                            .font(Theme.Editorial.Typography.capsBold(11))
-                            .tracking(2.0)
-                            .foregroundStyle(Theme.Editorial.onSurface.opacity(0.7))
-                    }
-                    .buttonStyle(.plain)
-                    Spacer()
-                    Button {
-                        onSave(date)
-                        dismiss()
-                    } label: {
-                        Text("SAVE")
-                            .font(Theme.Editorial.Typography.capsBold(11))
-                            .tracking(2.0)
-                            .foregroundStyle(Color(red: 0.961, green: 0.851, blue: 0.478))
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                Text(title)
-                    .font(Theme.Editorial.Typography.caps(10, weight: .semibold))
-                    .tracking(3.0)
-                    .foregroundStyle(Theme.Editorial.onSurface.opacity(0.7))
-
-                DatePicker("", selection: $date, displayedComponents: .date)
-                    .datePickerStyle(.graphical)
-                    .labelsHidden()
-                    .colorScheme(.dark)
-                    .tint(Color(red: 0.961, green: 0.851, blue: 0.478))
-
-                Spacer()
-            }
-            .padding(28)
+    var defaultDoseReminderTime: Date {
+        // Prefer pill time for oral meds; otherwise default to 9:00 AM today.
+        if let t = med?.pillTime ?? profile?.pillTime {
+            var comps = Calendar.current.dateComponents([.year, .month, .day], from: .now)
+            let time = Calendar.current.dateComponents([.hour, .minute], from: t)
+            comps.hour = time.hour ?? 9
+            comps.minute = time.minute ?? 0
+            return Calendar.current.date(from: comps) ?? .now
         }
-        .preferredColorScheme(.light)
-        .onAppear { date = initial }
-        .presentationDetents([.large])
+        var comps = Calendar.current.dateComponents([.year, .month, .day], from: .now)
+        comps.hour = 9
+        comps.minute = 0
+        return Calendar.current.date(from: comps) ?? .now
+    }
+
+    var doseReminderTimeLabel: String {
+        let date = doseReminderTime ?? defaultDoseReminderTime
+        let f = DateFormatter()
+        f.dateFormat = "h:mm a"
+        return f.string(from: date).uppercased()
+    }
+
+    func setDoseReminderEnabled(_ enabled: Bool) {
+        setNoteValue(key: "doseReminderEnabled", value: enabled ? "true" : "")
+    }
+
+    func setDoseReminderTime(_ date: Date) {
+        let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
+        let hour = comps.hour ?? 9
+        let minute = comps.minute ?? 0
+        setNoteValue(key: "doseReminderTime", value: "\(hour):\(minute)")
+    }
+
+    func scheduleDoseReminderIfPossible() async {
+        guard doseReminderEnabledLocal else { return }
+        guard let med else { return }
+
+        let permitted = await NotificationScheduler.requestPermission()
+        guard permitted else { return }
+
+        let time = doseReminderTime ?? defaultDoseReminderTime
+        let comps = Calendar.current.dateComponents([.hour, .minute], from: time)
+        let hour = comps.hour ?? 9
+        let minute = comps.minute ?? 0
+
+        switch med.modality {
+        case .injectable:
+            guard let weekday = med.injectionDay ?? profile?.injectionDay else { return }
+            let dose = (med.doseAmount.isEmpty ? nil : med.doseAmount)
+                ?? (profile?.doseAmount?.isEmpty == false ? profile?.doseAmount : nil)
+            let body = [med.medication.rawValue, dose].compactMap { $0 }.joined(separator: " · ")
+            NotificationScheduler.scheduleDoseReminderWeekly(
+                weekday: weekday,
+                hour: hour,
+                minute: minute,
+                body: body.isEmpty ? "Time for your weekly dose." : body
+            )
+        case .oralWithFasting, .oralNoFasting:
+            let dose = (med.doseAmount.isEmpty ? nil : med.doseAmount)
+                ?? (profile?.doseAmount?.isEmpty == false ? profile?.doseAmount : nil)
+            let body = [med.medication.rawValue, dose].compactMap { $0 }.joined(separator: " · ")
+            NotificationScheduler.scheduleDoseReminderDaily(
+                hour: hour,
+                minute: minute,
+                body: body.isEmpty ? "Time for your dose." : body
+            )
+        }
+    }
+
+    func noteValue(for key: String) -> String? {
+        guard let notes = med?.notes, !notes.isEmpty else { return nil }
+        let lines = notes.split(separator: "\n", omittingEmptySubsequences: true)
+        let prefix = "\(key):"
+        for lineSub in lines {
+            let line = String(lineSub)
+            guard line.hasPrefix(prefix) else { continue }
+            let raw = line.dropFirst(prefix.count)
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+        return nil
+    }
+
+    func setNoteValue(key: String, value: String) {
+        guard let med else { return }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        var map: [String: String] = [:]
+
+        if let notes = med.notes, !notes.isEmpty {
+            for lineSub in notes.split(separator: "\n", omittingEmptySubsequences: true) {
+                let line = String(lineSub)
+                guard let idx = line.firstIndex(of: ":") else { continue }
+                let k = String(line[..<idx]).trimmingCharacters(in: .whitespacesAndNewlines)
+                let v = String(line[line.index(after: idx)...]).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !k.isEmpty, !v.isEmpty { map[k] = v }
+            }
+        }
+
+        if trimmed.isEmpty {
+            map.removeValue(forKey: key)
+        } else {
+            map[key] = trimmed
+        }
+
+        let serialized = map
+            .sorted(by: { $0.key < $1.key })
+            .map { "\($0.key): \($0.value)" }
+            .joined(separator: "\n")
+
+        med.notes = serialized.isEmpty ? nil : serialized
     }
 }

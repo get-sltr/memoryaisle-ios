@@ -46,7 +46,7 @@ struct JourneyView: View {
 
     var body: some View {
         ZStack {
-            EditorialBackground(mode: .night)
+            EditorialBackground(mode: appState.effectiveAppearanceMode)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
@@ -101,10 +101,10 @@ struct JourneyView: View {
         }
         .preferredColorScheme(.light)
         .ignoresSafeArea()
-        .sheet(isPresented: $showWeighIn) { PhotoCheckInView() }
-        .sheet(isPresented: $showGITolerance) { GIToleranceView() }
+        .sheet(isPresented: $showWeighIn) { PhotoCheckInView(mode: appState.effectiveAppearanceMode) }
+        .sheet(isPresented: $showGITolerance) { GIToleranceView(mode: appState.effectiveAppearanceMode) }
         .sheet(isPresented: $showProviderReport) {
-            ProviderReportView().biometricProtected()
+            ProviderReportView(mode: appState.effectiveAppearanceMode).biometricProtected()
         }
         .task {
             await loadAvatarFromProfile()

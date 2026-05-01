@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 /// The wordmark-tap menu drawer, laid out per the editorial spec
@@ -16,9 +17,17 @@ struct MenuSheet: View {
     let onSelect: (MenuDestination) -> Void
     let onClose: () -> Void
 
+    @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
+    @Environment(SubscriptionManager.self) private var subscriptionManager
+
+    @State private var accountExpanded = false
+    @State private var activeAccountSheet: AccountSheet?
+    @State private var showSignOutConfirm = false
+
     var body: some View {
         ZStack {
-            EditorialBackground(mode: .night)
+            EditorialBackground(mode: appState.effectiveAppearanceMode)
 
             ScrollView {
                 VStack(spacing: 0) {
@@ -69,15 +78,10 @@ struct MenuSheet: View {
                     sectionDivider
 
                     section(label: "III · HEALTH") {
-                        row("Medications",
+                        row("Medication & Allergies",
                             subtitle: "GLP-1 · DOSE · SCHEDULE · REFILLS",
                             icon: "cross.case",
                             action: { onSelect(.medications) })
-                        rowDivider
-                        row("Food Allergies",
-                            subtitle: "AVOID · RESTRICTIONS",
-                            icon: "shield",
-                            action: { onSelect(.foodAllergies) })
                         rowDivider
                         row("My Journey",
                             subtitle: "PHOTOS · METRICS · TOOLS",
@@ -94,10 +98,7 @@ struct MenuSheet: View {
                     sectionDivider
 
                     section(label: "V · ACCOUNT") {
-                        row("Email & Profile",
-                            subtitle: "ACCOUNT INFO",
-                            icon: "envelope",
-                            action: { onSelect(.emailProfile) })
+                        accountRow
                         rowDivider
                         row("Notifications",
                             subtitle: "REMINDERS · CHECK-INS",
@@ -134,6 +135,30 @@ struct MenuSheet: View {
         }
         .preferredColorScheme(.light)
         .ignoresSafeArea()
+        .sheet(item: $activeAccountSheet) { sheet in
+            switch sheet {
+            case .changeEmail:
+                ChangeEmailSheet(onDone: { activeAccountSheet = nil })
+            case .changePassword:
+                ChangePasswordSheet(onDone: { activeAccountSheet = nil })
+            }
+        }
+        .alert("Sign out?", isPresented: $showSignOutConfirm) {
+            Button("Sign Out", role: .destructive) {
+                Task {
+                    await CognitoAuthManager.signOutEverywhere(
+                        modelContext: modelContext,
+                        subscription: subscriptionManager
+                    )
+                    appState.cognitoUserId = nil
+                    appState.authStatus = .signedOut
+                    onClose()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This signs you out on this device. Your meals, logs, and journey stay on-device and will be there when you sign back in.")
+        }
     }
 
     // MARK: - Header
@@ -263,6 +288,170 @@ struct MenuSheet: View {
         .accessibilityLabel(proLocked ? "\(title), Pro feature" : title)
     }
 
+    // MARK: - Account row (expandable)
+
+    private var accountRow: some View {
+        VStack(spacing: 0) {
+            Button {
+                HapticManager.light()
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    accountExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 16) {
+                    Image(systemName: "envelope")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(Theme.Editorial.onSurface)
+                        .frame(width: 18)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Email & Profile")
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundStyle(Theme.Editorial.onSurface)
+                        Text(accountSubtitle)
+                            .font(Theme.Editorial.Typography.caps(9, weight: .medium))
+                            .tracking(1.6)
+                            .foregroundStyle(Theme.Editorial.onSurface.opacity(0.5))
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.Editorial.onSurface.opacity(0.4))
+                        .rotationEffect(.degrees(accountExpanded ? 90 : 0))
+                }
+                .padding(.vertical, 14)
+                .padding(.horizontal, 4)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Email and profile")
+
+            if accountExpanded {
+                VStack(spacing: 0) {
+                    subRow(
+                        title: "Email",
+                        value: currentEmailLabel,
+                        icon: "at",
+                        actionTitle: "Change",
+                        action: { activeAccountSheet = .changeEmail }
+                    )
+                    rowDivider
+                    subRow(
+                        title: "Password",
+                        value: "••••••••",
+                        icon: "key",
+                        actionTitle: "Change",
+                        action: { activeAccountSheet = .changePassword }
+                    )
+                    rowDivider
+                    signOutRow
+                }
+                .padding(.leading, 34)
+                .padding(.bottom, 10)
+            }
+        }
+    }
+
+    private var signOutRow: some View {
+        Button {
+            HapticManager.warning()
+            showSignOutConfirm = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "rectangle.portrait.and.arrow.right")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.Editorial.onSurface.opacity(0.75))
+                    .frame(width: 18)
+
+                Text("Sign Out")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.Editorial.onSurface.opacity(0.85))
+
+                Spacer()
+
+                Text("SIGN OUT")
+                    .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                    .tracking(2.0)
+                    .foregroundStyle(Color(red: 0.910, green: 0.659, blue: 0.486))
+            }
+            .padding(.vertical, 10)
+            .padding(.trailing, 4)
+            .overlay(alignment: .top) {
+                Rectangle().fill(Theme.Editorial.onSurface.opacity(0.08)).frame(height: 0.5)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Sign out")
+    }
+
+    private var currentEmailLabel: String {
+        UserDefaults.standard.string(forKey: "ma_email") ?? "—"
+    }
+
+    private var accountSubtitle: String {
+        let email = UserDefaults.standard.string(forKey: "ma_email")
+        if let email, !email.isEmpty {
+            return email.uppercased()
+        }
+        return "ACCOUNT INFO"
+    }
+
+    private func subRow(
+        title: String,
+        value: String,
+        icon: String,
+        actionTitle: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.75))
+                .frame(width: 18)
+
+            Text(title)
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.85))
+
+            Spacer()
+
+            Text(value)
+                .font(Theme.Editorial.Typography.caps(10, weight: .semibold))
+                .tracking(1.6)
+                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.75))
+                .lineLimit(1)
+
+            Button {
+                HapticManager.light()
+                action()
+            } label: {
+                Text(actionTitle.uppercased())
+                    .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                    .tracking(2.0)
+                    .foregroundStyle(Color(red: 0.961, green: 0.851, blue: 0.478))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Theme.Editorial.onSurface.opacity(0.08))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Theme.Editorial.onSurface.opacity(0.2), lineWidth: 0.5)
+                    )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(actionTitle) \(title)")
+        }
+        .padding(.vertical, 10)
+        .padding(.trailing, 4)
+        .overlay(alignment: .top) {
+            Rectangle().fill(Theme.Editorial.onSurface.opacity(0.08)).frame(height: 0.5)
+        }
+    }
+
     // MARK: - Footer
 
     private var footer: some View {
@@ -283,7 +472,14 @@ struct MenuSheet: View {
 enum MenuDestination: String, Identifiable, Hashable {
     case profile, progress, groceryList, recipes, calendar, pantry,
          safeSpace, reflection, scan, mira, subscribe, proBenefits, settings,
-         today, scanReceipt, favorites, medications, foodAllergies,
-         emailProfile, notifications
+         today, scanReceipt, favorites, medications,
+         notifications
+    var id: String { rawValue }
+}
+
+private enum AccountSheet: String, Identifiable {
+    case changeEmail
+    case changePassword
+
     var id: String { rawValue }
 }
