@@ -36,7 +36,7 @@ jobs:
           xcodebuild \
             -project MemoryAisle2/MemoryAisle2.xcodeproj \
             -scheme MemoryAisle2 \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -destination 'platform=iOS Simulator,name=Any iOS Simulator Device' \
             -configuration Debug \
             clean build \
             | xcbeautify --renderer github-actions || (cat -; exit 1)
@@ -47,7 +47,7 @@ jobs:
           xcodebuild \
             -project MemoryAisle2/MemoryAisle2.xcodeproj \
             -scheme MemoryAisle2 \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -destination 'platform=iOS Simulator,name=Any iOS Simulator Device' \
             -configuration Debug \
             test \
             | xcbeautify --renderer github-actions || (cat -; exit 1)
