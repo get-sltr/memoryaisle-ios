@@ -14,6 +14,7 @@ import SwiftUI
 struct FavoritesView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @Query(sort: \SavedRecipe.savedAt, order: .reverse) private var saved: [SavedRecipe]
 
     @State private var selectedRecipe: SavedRecipe?
@@ -28,7 +29,7 @@ struct FavoritesView: View {
 
     var body: some View {
         ZStack {
-            EditorialBackground(mode: .night)
+            EditorialBackground(mode: appState.effectiveAppearanceMode)
 
             ScrollView {
                 VStack(spacing: 0) {

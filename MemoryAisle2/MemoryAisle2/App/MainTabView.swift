@@ -212,13 +212,6 @@ struct MainTabView: View {
             // pharmacy, refill) lives there. The Journey page keeps a
             // summary block but doesn't own this surface.
             activeSheet = .destination(.medications)
-        case .foodAllergies:
-            // No focused screen yet — route to Journey until one is built.
-            activeSheet = .destination(.profile)
-        case .emailProfile:
-            // Account info lives at the top of the Settings sheet
-            // (ProfileView). Route there.
-            activeSheet = .destination(.settings)
         default:
             activeSheet = .destination(gateDestination(dest))
         }
@@ -244,7 +237,7 @@ struct MainTabView: View {
         case .proBenefits:    ProBenefitsView()
         case .settings:       EditorialSettingsView()
         // Routed via handleMenuSelect side-effects, never reach the sheet:
-        case .today, .notifications, .foodAllergies, .emailProfile:
+        case .today, .notifications:
             EmptyView()
         }
     }

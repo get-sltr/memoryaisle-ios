@@ -27,7 +27,7 @@ struct EditorialSettingsView: View {
 
     var body: some View {
         ZStack {
-            EditorialBackground(mode: .night)
+            EditorialBackground(mode: appState.effectiveAppearanceMode)
 
             ScrollView {
                 VStack(spacing: 0) {

@@ -250,6 +250,97 @@ final class CognitoAuthManager {
         }
     }
 
+    // MARK: - Account updates (signed-in)
+
+    /// Changes the signed-in user's password using the current access token.
+    func changePassword(currentPassword: String, newPassword: String) async -> Bool {
+        isLoading = true
+        error = nil
+
+        guard let token = accessToken else {
+            isLoading = false
+            error = "Please sign in again."
+            return false
+        }
+
+        let body: [String: Any] = [
+            "AccessToken": token,
+            "PreviousPassword": currentPassword,
+            "ProposedPassword": newPassword,
+        ]
+
+        do {
+            _ = try await cognitoRequest(action: "AWSCognitoIdentityProviderService.ChangePassword", body: body)
+            isLoading = false
+            return true
+        } catch {
+            self.error = parseError(error)
+            isLoading = false
+            return false
+        }
+    }
+
+    /// Requests an email change for the signed-in user. Cognito typically
+    /// requires verification; call `confirmEmailChange(code:)` after the
+    /// user enters the code mailed to the new address.
+    func requestEmailChange(to newEmail: String) async -> Bool {
+        isLoading = true
+        error = nil
+
+        guard let token = accessToken else {
+            isLoading = false
+            error = "Please sign in again."
+            return false
+        }
+
+        let body: [String: Any] = [
+            "AccessToken": token,
+            "UserAttributes": [
+                ["Name": "email", "Value": newEmail],
+            ],
+        ]
+
+        do {
+            _ = try await cognitoRequest(action: "AWSCognitoIdentityProviderService.UpdateUserAttributes", body: body)
+            isLoading = false
+            return true
+        } catch {
+            self.error = parseError(error)
+            isLoading = false
+            return false
+        }
+    }
+
+    /// Confirms the pending email change by submitting the verification code.
+    func confirmEmailChange(newEmail: String, code: String) async -> Bool {
+        isLoading = true
+        error = nil
+
+        guard let token = accessToken else {
+            isLoading = false
+            error = "Please sign in again."
+            return false
+        }
+
+        let body: [String: Any] = [
+            "AccessToken": token,
+            "AttributeName": "email",
+            "Code": code,
+        ]
+
+        do {
+            _ = try await cognitoRequest(action: "AWSCognitoIdentityProviderService.VerifyUserAttribute", body: body)
+            email = newEmail
+            saveSession(email: newEmail, token: accessToken)
+            isLoading = false
+            return true
+        } catch {
+            self.error = parseError(error)
+            isLoading = false
+            return false
+        }
+    }
+
     // MARK: - Network
 
     private func cognitoRequest(action: String, body: [String: Any]) async throws -> Data {

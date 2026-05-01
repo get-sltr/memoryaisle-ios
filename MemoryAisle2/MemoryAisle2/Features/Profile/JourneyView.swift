@@ -46,7 +46,7 @@ struct JourneyView: View {
 
     var body: some View {
         ZStack {
-            EditorialBackground(mode: .night)
+            EditorialBackground(mode: appState.effectiveAppearanceMode)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
