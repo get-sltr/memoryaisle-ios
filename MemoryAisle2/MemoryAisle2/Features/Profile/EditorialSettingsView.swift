@@ -71,7 +71,7 @@ struct EditorialSettingsView: View {
         .alert("Delete my data?", isPresented: $showDeleteDataAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Coming soon. For now, use Delete Account in Danger Zone — that wipes everything.")
+            Text("Coming soon. For now, use Delete Account in Danger Zone; that wipes everything.")
         }
         .alert("Consent settings", isPresented: $showConsentAlert) {
             Button("OK", role: .cancel) {}

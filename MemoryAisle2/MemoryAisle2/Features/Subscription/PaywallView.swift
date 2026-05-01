@@ -57,8 +57,9 @@ struct PaywallView: View {
                 Image(systemName: "xmark")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(Theme.Editorial.onSurface)
-                    .frame(width: 32, height: 32)
+                    .frame(width: 36, height: 36)
                     .overlay(Circle().stroke(Theme.Editorial.hairline, lineWidth: 0.5))
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Close")

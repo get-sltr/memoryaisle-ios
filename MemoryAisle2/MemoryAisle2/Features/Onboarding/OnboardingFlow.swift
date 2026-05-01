@@ -195,10 +195,10 @@ struct OnboardingProfile {
 /// Used to bias `ProductMode` selection (significant nausea or no-appeal
 /// answers shift the user into `.sensitiveStomach` mode).
 enum AppetiteState: String, Codable, CaseIterable, Sendable, Identifiable {
-    case normal       = "Pretty normal — I get hungry on schedule"
+    case normal       = "Pretty normal, I get hungry on schedule"
     case quieter      = "Quieter than usual but I can eat"
     case noAppeal     = "Most foods don't appeal right now"
-    case nausea       = "Some nausea — small meals only"
+    case nausea       = "Some nausea, small meals only"
 
     var id: String { rawValue }
 }

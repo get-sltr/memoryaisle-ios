@@ -1211,7 +1211,7 @@ enum WeeklyNoteService {
         var lines: [String] = []
         lines.append("Write a short weekly note from Mira. Two paragraphs max, plain prose.")
         lines.append("")
-        lines.append("Context (anonymized — do NOT echo numbers verbatim, talk about pattern):")
+        lines.append("Context (anonymized; do NOT echo numbers verbatim, talk about pattern):")
         lines.append("- Day \(dayCount), Week \(weekIndex) of the journey")
         if let weightDelta {
             let direction = weightDelta < 0 ? "down" : (weightDelta > 0 ? "up" : "steady")

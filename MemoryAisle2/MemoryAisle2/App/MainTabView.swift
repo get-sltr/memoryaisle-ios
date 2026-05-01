@@ -42,9 +42,14 @@ struct MainTabView: View {
                 )
                 .padding(.bottom, 28)
             }
+            // Only the tab bar ignores the keyboard safe area; tab content
+            // (notably MiraTabView's text input) needs to rise with the
+            // keyboard. Pulling .ignoresSafeArea(.keyboard) off the parent
+            // ZStack restores the system's default keyboard avoidance for
+            // the rest of the shell.
+            .ignoresSafeArea(.keyboard)
         }
         .preferredColorScheme(.light)
-        .ignoresSafeArea(.keyboard)
         .sheet(item: $activeSheet) { sheet in
             sheetContent(for: sheet)
         }

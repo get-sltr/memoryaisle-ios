@@ -74,8 +74,9 @@ struct CalendarView: View {
                 Image(systemName: "sparkles")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Theme.Editorial.onSurface)
-                    .frame(width: 32, height: 32)
+                    .frame(width: 36, height: 36)
                     .overlay(Circle().stroke(Theme.Editorial.hairline, lineWidth: 0.5))
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Generate meal plan with Mira")
@@ -84,8 +85,9 @@ struct CalendarView: View {
                 Image(systemName: "xmark")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(Theme.Editorial.onSurface)
-                    .frame(width: 32, height: 32)
+                    .frame(width: 36, height: 36)
                     .overlay(Circle().stroke(Theme.Editorial.hairline, lineWidth: 0.5))
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Close")
@@ -101,8 +103,10 @@ struct CalendarView: View {
             toggleSegment(label: "MONTH", target: .month)
         }
         .padding(4)
-        .overlay(Capsule().stroke(Theme.Editorial.hairline, lineWidth: 0.5))
-        .clipShape(Capsule())
+        .background(
+            Capsule()
+                .stroke(Theme.Editorial.hairline, lineWidth: 0.5)
+        )
     }
 
     private func toggleSegment(label: String, target: ViewMode) -> some View {
@@ -115,10 +119,11 @@ struct CalendarView: View {
                 .font(Theme.Editorial.Typography.caps(10, weight: .semibold))
                 .tracking(2.5)
                 .foregroundStyle(Theme.Editorial.onSurface)
-                .frame(maxWidth: .infinity, minHeight: 32)
+                .frame(maxWidth: .infinity, minHeight: 36)
                 .background(
                     Capsule().fill(isOn ? Theme.Editorial.onSurface.opacity(0.18) : Color.clear)
                 )
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isOn ? [.isButton, .isSelected] : .isButton)

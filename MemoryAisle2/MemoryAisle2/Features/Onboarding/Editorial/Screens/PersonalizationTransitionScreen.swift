@@ -36,7 +36,7 @@ struct PersonalizationTransitionScreen: View {
 
                 Spacer()
 
-                Text("— ONE MOMENT —")
+                Text("— ONE MOMENT")
                     .font(Theme.Editorial.Typography.capsBold(9))
                     .tracking(2.2)
                     .foregroundStyle(Theme.Editorial.onSurface.opacity(0.55))
