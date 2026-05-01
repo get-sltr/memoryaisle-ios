@@ -77,6 +77,12 @@ struct OnboardingFlow: View {
             modelContext.insert(starting)
         }
 
+        // Persist explicitly so the inserted profile is durable before the
+        // routing flips — otherwise an app kill between insert and autosave
+        // would leave a fresh user without their onboarded profile on
+        // relaunch (would re-show OnboardingFlow against an empty store).
+        try? modelContext.save()
+
         appState.hasCompletedOnboarding = true
 
         // Kick off the 7-day Mira meal plan as part of signup. Honors the

@@ -79,7 +79,15 @@ struct RootView: View {
     }
 
     private var isOnboarded: Bool {
-        currentUserProfile()?.hasCompletedOnboarding == true
+        // Trust the in-session flag first — `completeOnboarding` flips it
+        // synchronously the moment a fresh user finishes the flow, so the
+        // routing flips without waiting for the @Query to re-publish the
+        // newly-inserted profile. The flag is sign-out-reset everywhere
+        // (ProfileView, EditorialSettingsView) so a stale value can't leak
+        // across accounts. Falls back to the userId-scoped profile lookup
+        // for returning users on a fresh launch (flag defaults to false).
+        if appState.hasCompletedOnboarding { return true }
+        return currentUserProfile()?.hasCompletedOnboarding == true
     }
 
     var body: some View {
