@@ -67,6 +67,19 @@ enum MealWindow: String, Sendable {
         case .lateNight: return "A LIGHT BITE BEFORE BED"
         }
     }
+
+    /// Default `RecipeCategory.rawValue` for a window. Used when a Mira
+    /// suggestion is favorited so the saved entry slots into a sensible
+    /// recipe category for the legacy filters.
+    var recipeCategoryRaw: String {
+        switch self {
+        case .breakfast: return "Breakfast"
+        case .lunch:     return "Lunch"
+        case .snack:     return "Snack"
+        case .dinner:    return "Dinner"
+        case .lateNight: return "Snack"
+        }
+    }
 }
 
 // MARK: - Expandable section identifier

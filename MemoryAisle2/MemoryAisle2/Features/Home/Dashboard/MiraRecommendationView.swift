@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 /// The "Recommended for lunch" block in the gold zone of the dashboard.
@@ -7,6 +8,9 @@ struct MiraRecommendationView: View {
     let window: MealWindow
     @Binding var currentIndex: Int
     let onAction: (DashboardCard) -> Void
+
+    @Environment(\.modelContext) private var modelContext
+    @Query private var saved: [SavedRecipe]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -60,8 +64,28 @@ struct MiraRecommendationView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Next meal")
+
+                heartButton
             }
         }
+    }
+
+    /// Heart toggle for the current recommendation. Saved entries land in
+    /// the Favorites menu (`SavedRecipe` with `kind == .suggestion`).
+    private var heartButton: some View {
+        let savedAlready = isCurrentSaved
+        return Button {
+            HapticManager.light()
+            toggleFavorite()
+        } label: {
+            Image(systemName: savedAlready ? "heart.fill" : "heart")
+                .font(.system(size: 14, weight: .regular))
+                .foregroundStyle(Theme.Editorial.onSurface)
+                .padding(.horizontal, 4)
+                .contentTransition(.symbolEffect(.replace))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(savedAlready ? "Remove from favorites" : "Add to favorites")
     }
 
     private var title: some View {
@@ -146,5 +170,42 @@ struct MiraRecommendationView: View {
             guard !recommendations.isEmpty else { return }
             currentIndex = (currentIndex + 1) % recommendations.count
         }
+    }
+
+    // MARK: Favorites
+
+    /// Match by name + macros. Bedrock regenerates `id` per fetch, so we
+    /// can't dedupe on UUID — name + calories + protein is stable enough
+    /// for "is this exact suggestion already saved?" without overcounting.
+    private func savedEntry(for rec: MealRecommendation) -> SavedRecipe? {
+        saved.first { entry in
+            entry.kind == .suggestion
+                && entry.title == rec.name
+                && entry.savedCalories == rec.calories
+                && entry.savedProteinG == rec.proteinG
+        }
+    }
+
+    private var isCurrentSaved: Bool {
+        savedEntry(for: safeRecommendation) != nil
+    }
+
+    private func toggleFavorite() {
+        let rec = safeRecommendation
+        if let existing = savedEntry(for: rec) {
+            modelContext.delete(existing)
+            return
+        }
+        let entry = SavedRecipe(
+            title: rec.name,
+            bodyText: rec.reasoning,
+            categoryRaw: window.recipeCategoryRaw,
+            kindRaw: SavedRecipe.Kind.suggestion.rawValue,
+            savedCalories: rec.calories,
+            savedProteinG: rec.proteinG,
+            savedFatG: rec.fatG,
+            savedCarbsG: rec.carbsG
+        )
+        modelContext.insert(entry)
     }
 }

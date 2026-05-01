@@ -229,7 +229,7 @@ struct MainTabView: View {
         case .reflection:     ReflectionView()
         case .scan:           ScanView()
         case .scanReceipt:    ReceiptScannerView()
-        case .favorites:      RecipesView()  // saved recipes section lives here
+        case .favorites:      FavoritesView()
         case .mira:           MiraChatView()
         case .subscribe:      PaywallView()
         case .proBenefits:    ProBenefitsView()
