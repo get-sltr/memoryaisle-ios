@@ -19,7 +19,7 @@ struct MiraTabView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
-    @Query private var pantry: [PantryItem]
+    @Query(sort: \PantryItem.addedDate, order: .reverse) private var pantry: [PantryItem]
     @Query(sort: \SymptomLog.date, order: .reverse) private var symptoms: [SymptomLog]
 
     @State private var voice = VoiceManager.shared
@@ -37,6 +37,12 @@ struct MiraTabView: View {
     @State private var inputMode: MiraInputMode = .voice
     @State private var typedText: String = ""
     @FocusState private var typedFieldFocused: Bool
+
+    // Tap-vs-hold tracking for the bars gesture. The drag closure can fire
+    // .onChanged repeatedly during a hold; the first call latches both
+    // values and the rest short-circuit.
+    @State private var gestureStartedAt: Date?
+    @State private var gestureEntryState: MiraVoiceState?
 
     private let logger = Logger(subsystem: "com.memoryaisle.MiraTab", category: "ChatLoop")
 
@@ -82,6 +88,11 @@ struct MiraTabView: View {
                         endPoint: .bottom
                     )
                 )
+                // Lets the user swipe the chat area down to dismiss the
+                // keyboard, restoring access to the tab bar without a
+                // dedicated close button. Standard iMessage / Messages
+                // pattern.
+                .scrollDismissesKeyboard(.interactively)
                 .onChange(of: messages.count) { _, _ in
                     if let last = messages.last {
                         withAnimation(.easeOut(duration: 0.25)) {
@@ -92,7 +103,11 @@ struct MiraTabView: View {
             }
 
             inputArea
-                .padding(.bottom, 70)
+                // 70pt clears the tab bar in voice mode. When the keyboard
+                // is up the system already lifts the input above the
+                // keyboard, so the extra 70pt would push it back down
+                // into the keyboard. Collapse it while typing.
+                .padding(.bottom, typedFieldFocused ? 0 : 70)
         }
         .padding(.horizontal, Theme.Editorial.Spacing.pad)
         .padding(.top, Theme.Editorial.Spacing.topInset)
@@ -105,11 +120,6 @@ struct MiraTabView: View {
             if !speaking, voiceState == .speaking {
                 voiceState = .idle
             }
-        }
-        .onChange(of: voice.transcribedText) { _, text in
-            // While listening, the live transcript can be displayed elsewhere
-            // later; for now we just rely on it being present at release time.
-            _ = text
         }
         .onChange(of: scenePhase) { _, newPhase in
             // Stop any in-flight audio if the user backgrounds the app mid-turn.
@@ -210,14 +220,6 @@ struct MiraTabView: View {
                     .frame(height: 64)
                     .contentShape(Rectangle())
                     .gesture(pushToTalkGesture)
-                    .onTapGesture {
-                        if voiceState == .speaking {
-                            voice.stopSpeaking()
-                            voiceState = .idle
-                        } else if voiceState == .checkIn {
-                            voiceState = .listening
-                        }
-                    }
                     .accessibilityLabel(voiceState == .idle ? "Hold to talk to Mira" : "Mira voice surface")
 
                 Color.clear
@@ -262,16 +264,60 @@ struct MiraTabView: View {
     // MARK: - Push-to-talk gesture
 
     private var pushToTalkGesture: some Gesture {
-        LongPressGesture(minimumDuration: 0.05)
+        // DragGesture(minimumDistance: 0) is the correct primitive for
+        // press-and-hold; LongPressGesture is discrete and doesn't track
+        // the held state. Tap and hold flow through the same gesture so
+        // the .onTapGesture stops eating touches — the entry state plus
+        // elapsed time on release decide which behaviour to run.
+        DragGesture(minimumDistance: 0)
             .onChanged { _ in
-                if voiceState == .idle || voiceState == .checkIn {
+                guard gestureStartedAt == nil else { return }
+                gestureStartedAt = Date()
+                gestureEntryState = voiceState
+
+                switch voiceState {
+                case .idle, .checkIn:
                     HapticManager.light()
                     voiceState = .listening
+                case .speaking:
+                    // Tap-to-interrupt fires on touch-down so the cut feels instant.
+                    voice.stopSpeaking()
+                    voiceState = .idle
+                case .listening, .thinking:
+                    break
                 }
             }
             .onEnded { _ in
-                if voiceState == .listening {
+                defer {
+                    gestureStartedAt = nil
+                    gestureEntryState = nil
+                }
+                let elapsed = gestureStartedAt.map { Date().timeIntervalSince($0) } ?? 0
+                let entry = gestureEntryState
+                let wasTap = elapsed < 0.25
+
+                switch (entry, voiceState) {
+                case (.idle, .listening):
+                    if wasTap {
+                        voice.stopListening()
+                        voiceState = .idle
+                    } else {
+                        voiceState = .thinking
+                    }
+                case (.checkIn, .listening):
+                    // Tap-to-respond stays in .listening so Mira's check-in
+                    // hint ("TAP TO RESPOND") still works; a real hold-release
+                    // submits the turn.
+                    if !wasTap {
+                        voiceState = .thinking
+                    }
+                case (.listening, .listening):
+                    // Second tap (or any release) after a tap-to-respond
+                    // submits — restores the only way out of .listening
+                    // for the check-in flow.
                     voiceState = .thinking
+                default:
+                    break
                 }
             }
     }
