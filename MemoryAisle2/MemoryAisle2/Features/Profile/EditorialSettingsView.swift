@@ -21,6 +21,7 @@ struct EditorialSettingsView: View {
     @State private var showDeleteDataAlert = false
     @State private var showConsentAlert = false
     @State private var showExportAlert = false
+    @State private var showResetOnboardingConfirm = false
 
     private var profile: UserProfile? { profiles.first }
 
@@ -83,6 +84,23 @@ struct EditorialSettingsView: View {
         } message: {
             Text("Coming soon. We'll generate a download of your meals, scans, and Mira-anonymized history.")
         }
+        .alert("Reset onboarding?", isPresented: $showResetOnboardingConfirm) {
+            Button("Reset", role: .destructive) { resetOnboarding() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Re-runs the onboarding flow. Your meals, scans, weight history, and Mira context all stay. You'll set up your goals and medication info again.")
+        }
+    }
+
+    // MARK: - Reset onboarding
+
+    private func resetOnboarding() {
+        HapticManager.heavy()
+        appState.hasCompletedOnboarding = false
+        if let profile {
+            profile.hasCompletedOnboarding = false
+        }
+        dismiss()
     }
 
     // MARK: - Header
@@ -192,6 +210,12 @@ struct EditorialSettingsView: View {
 
     private var dangerZoneSection: some View {
         section(label: "IV · DANGER ZONE") {
+            row("Reset Onboarding",
+                subtitle: "RE-RUN THE FLOW · KEEPS DATA",
+                icon: "arrow.counterclockwise",
+                tint: dangerTint.opacity(0.75)) {
+                showResetOnboardingConfirm = true
+            }
             row("Delete Account",
                 subtitle: "PERMANENT · CANNOT UNDO",
                 icon: "exclamationmark.triangle",
