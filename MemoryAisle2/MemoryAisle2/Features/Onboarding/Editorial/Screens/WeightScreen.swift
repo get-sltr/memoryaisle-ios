@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Screen 07 — Current weight.
+/// Screen 08 — Current weight. Pre-fills from `profile.weightLbs` if Apple
+/// Health (Screen 07) authorized and returned a recent reading.
 struct WeightScreen: View {
     @Binding var profile: OnboardingProfile
     let progress: Double

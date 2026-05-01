@@ -1,6 +1,8 @@
 import SwiftUI
 
-/// Screen 15 — Apple Health permission.
+/// Screen 07 — Apple Health permission. Sits before `WeightScreen` so a
+/// successful connect can prefill `profile.weightLbs` from HealthKit's
+/// latest reading; the user still gets to confirm or override on Screen 08.
 ///
 /// **Production copy preserved verbatim** from the legacy
 /// `MiraOnboardingView.appleHealth` step (lines 313 + 159-163). Apple App

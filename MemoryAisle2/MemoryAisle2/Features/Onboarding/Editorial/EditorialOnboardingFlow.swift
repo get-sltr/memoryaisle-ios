@@ -182,12 +182,14 @@ struct EditorialOnboardingFlow: View {
         advance()
     }
 
-    /// Branch-soft routing. After Movement (Screen 10), the GLP-1 path
-    /// (Screens 11-14) only runs when `.glp1Appetite` appears in the user's
-    /// top priorities. Otherwise we jump straight to Apple Health (Screen
-    /// 15). Same branch is honored if the user reaches Movement without
-    /// having ranked priorities (skipped Screen 02) — they're treated as
-    /// non-GLP-1 path, which is the safer default.
+    /// Branch-soft routing. Apple Health sits right after Sex so a successful
+    /// connect can prefill the Weight screen from HealthKit's latest reading.
+    /// After Movement, the GLP-1 path (Screens 12-15) only runs when
+    /// `.glp1Appetite` appears in the user's top priorities. Otherwise we
+    /// jump straight to the starting photo. Same branch is honored if the
+    /// user reaches Movement without having ranked priorities (skipped
+    /// Screen 02) — they're treated as non-GLP-1 path, which is the safer
+    /// default.
     private func nextStep(after current: OnboardingStep) -> OnboardingStep {
         switch current {
         case .welcome:          return .priorities
@@ -195,18 +197,18 @@ struct EditorialOnboardingFlow: View {
         case .openGoal:         return .name
         case .name:             return .age
         case .age:              return .sex
-        case .sex:              return .weight
+        case .sex:              return .appleHealth
+        case .appleHealth:      return .weight
         case .weight:           return .goalWeight
         case .goalWeight:       return .foodPreferences
         case .foodPreferences:  return .movement
         case .movement:
-            return profile.priorities.contains(.glp1Appetite) ? .glp1Check : .appleHealth
+            return profile.priorities.contains(.glp1Appetite) ? .glp1Check : .photo
         case .glp1Check:
-            return profile.isOnGLP1 ? .medication : .appleHealth
+            return profile.isOnGLP1 ? .medication : .photo
         case .medication:       return .medStartDate
         case .medStartDate:     return .appetite
-        case .appetite:         return .appleHealth
-        case .appleHealth:      return .photo
+        case .appetite:         return .photo
         case .photo:            return .ready
         case .ready:            return .transition
         case .transition:       return .transition  // terminal — onComplete fires
@@ -225,6 +227,7 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
     case name
     case age
     case sex
+    case appleHealth
     case weight
     case goalWeight
     case foodPreferences
@@ -233,14 +236,13 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
     case medication
     case medStartDate
     case appetite
-    case appleHealth
     case photo
     case ready
     case transition
 
     /// Per-step progress fraction (matches the mockup's hardcoded widths).
     /// Branch-soft skipping is invisible in the bar — users who skip
-    /// Screens 11-14 jump from 60% to 90%, which feels like progress
+    /// Screens 12-15 jump from 66% to 90%, which feels like progress
     /// rather than a gap.
     var progress: Double {
         switch self {
@@ -250,15 +252,15 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
         case .name:             0.24
         case .age:              0.30
         case .sex:              0.36
-        case .weight:           0.42
-        case .goalWeight:       0.48
-        case .foodPreferences:  0.54
-        case .movement:         0.60
-        case .glp1Check:        0.66
-        case .medication:       0.72
-        case .medStartDate:     0.78
-        case .appetite:         0.84
-        case .appleHealth:      0.90
+        case .appleHealth:      0.42
+        case .weight:           0.48
+        case .goalWeight:       0.54
+        case .foodPreferences:  0.60
+        case .movement:         0.66
+        case .glp1Check:        0.72
+        case .medication:       0.78
+        case .medStartDate:     0.84
+        case .appetite:         0.90
         case .photo:            0.96
         case .ready:            1.00
         case .transition:       1.00
