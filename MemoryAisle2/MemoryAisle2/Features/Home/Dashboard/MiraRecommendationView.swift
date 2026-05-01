@@ -204,7 +204,8 @@ struct MiraRecommendationView: View {
             savedCalories: rec.calories,
             savedProteinG: rec.proteinG,
             savedFatG: rec.fatG,
-            savedCarbsG: rec.carbsG
+            savedCarbsG: rec.carbsG,
+            savedIngredients: rec.ingredients.isEmpty ? nil : rec.ingredients
         )
         modelContext.insert(entry)
     }

@@ -28,6 +28,14 @@ final class SavedRecipe {
     var savedFatG: Int?
     var savedCarbsG: Int?
 
+    /// Ingredient names captured at favorite-time for `.suggestion` rows so
+    /// the detail screen can show the recipe and let the user export the
+    /// list to grocery in one tap. Optional + nil-on-legacy keeps the
+    /// schema migration lightweight (same pattern as the macro fields).
+    /// Always nil for `.recipe` rows — those carry the full recipe inside
+    /// `bodyText`.
+    var savedIngredients: [String]?
+
     init(
         title: String,
         bodyText: String,
@@ -37,7 +45,8 @@ final class SavedRecipe {
         savedCalories: Int? = nil,
         savedProteinG: Int? = nil,
         savedFatG: Int? = nil,
-        savedCarbsG: Int? = nil
+        savedCarbsG: Int? = nil,
+        savedIngredients: [String]? = nil
     ) {
         self.title = title
         self.bodyText = bodyText
@@ -48,6 +57,7 @@ final class SavedRecipe {
         self.savedProteinG = savedProteinG
         self.savedFatG = savedFatG
         self.savedCarbsG = savedCarbsG
+        self.savedIngredients = savedIngredients
     }
 
     enum Kind: String, Sendable {

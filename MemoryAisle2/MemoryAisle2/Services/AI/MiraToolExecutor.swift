@@ -53,30 +53,7 @@ final class MiraToolExecutor {
             return "No items were provided to add."
         }
 
-        // Fetch existing names to avoid duplicates
-        let descriptor = FetchDescriptor<PantryItem>()
-        let existing = (try? context.fetch(descriptor)) ?? []
-        let existingNames = Set(existing.map { $0.name.lowercased() })
-
-        var added: [String] = []
-        var skipped: [String] = []
-
-        for raw in items {
-            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !trimmed.isEmpty else { continue }
-
-            if existingNames.contains(trimmed.lowercased()) {
-                skipped.append(trimmed)
-                continue
-            }
-
-            let item = PantryItem(
-                name: trimmed,
-                category: PantryCategorizer.categorize(trimmed)
-            )
-            context.insert(item)
-            added.append(trimmed)
-        }
+        let result = GroceryAdder.add(items, in: context)
 
         do {
             try context.save()
@@ -84,13 +61,13 @@ final class MiraToolExecutor {
             return "Couldn't save grocery list: \(error.localizedDescription)"
         }
 
-        if added.isEmpty && !skipped.isEmpty {
-            return "All of those were already on the list: \(skipped.joined(separator: ", "))."
+        if result.added.isEmpty && !result.skipped.isEmpty {
+            return "All of those were already on the list: \(result.skipped.joined(separator: ", "))."
         }
-        if skipped.isEmpty {
-            return "Added \(added.count) items to the grocery list: \(added.joined(separator: ", "))."
+        if result.skipped.isEmpty {
+            return "Added \(result.added.count) items to the grocery list: \(result.added.joined(separator: ", "))."
         }
-        return "Added \(added.count) items: \(added.joined(separator: ", ")). Already on the list: \(skipped.joined(separator: ", "))."
+        return "Added \(result.added.count) items: \(result.added.joined(separator: ", ")). Already on the list: \(result.skipped.joined(separator: ", "))."
     }
 
     // MARK: - logMeal
