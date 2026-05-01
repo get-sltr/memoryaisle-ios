@@ -20,7 +20,11 @@ Housekeeping rules: `RULES.md`
 - Theme + tokens: `MemoryAisle2/MemoryAisle2/DesignSystem/Theme.swift`
 - Mira prompt construction: `MemoryAisle2/MemoryAisle2/Services/AI/MiraEngine.swift`
 - App entry / tab shell: `MemoryAisle2/MemoryAisle2/App/MemoryAisleApp.swift`, `MainTabView.swift`, `AppState.swift`
+- Onboarding (editorial): `MemoryAisle2/MemoryAisle2/Features/Onboarding/OnboardingFlow.swift` cuts over to `Editorial/EditorialOnboardingFlow.swift` (router + `OnboardingAtoms.swift` + `Editorial/Screens/`). Legacy non-editorial onboarding screens still live alongside it during the migration.
+- Bundled fonts: `MemoryAisle2/MemoryAisle2/Resources/Fonts/` (Libre Caslon Display only — see typography rule below)
 - Test plan: `MemoryAisle2/MemoryAisle2.xctestplan`
+- CI: `.github/workflows/ci.yml` runs on push/PR to `main` — builds + tests on macos-15 / Xcode 16, then enforces two repo rules as separate steps: em-dash audit on `Features/` + `DesignSystem/Editorial/` string literals, and a `print(` audit across all Swift sources. A PR that adds either will fail CI even if it compiles cleanly locally.
+- Working docs (`docs/`): `appstore-submission.md` (App Store Connect metadata), `auth-rewrite-brief.md` (integration brief for the auth rewrite landing on `feature/auth-rewrite`), `mira-intelligence-review.md` (legal/medical review of Mira's drug-fact handling — pairs with the empty `CuratedDrugFacts` table), `weekly-meal-plan-review.md` (legal/medical review of meal generation), `weekly-meal-plan-device-test.md` (on-device QA pass for the weekly meal plan).
 
 ## Build & Test Commands
 
@@ -92,7 +96,7 @@ MemoryAisle2/MemoryAisle2/
                   (protein, hydration, today's meal) + AppGroupDataProvider bridge
   Assets.xcassets, MemoryAisle2.entitlements, MemoryAisleProducts.storekit, PrivacyInfo.xcprivacy
 
-MemoryAisle2/MemoryAisle2Tests/         Unit tests grouped by service area (Reflection/, Nutrition/, Progress/, ...)
+MemoryAisle2/MemoryAisle2Tests/         Unit tests grouped by service area (MealPlan/, Mira/, Nutrition/, Progress/, Reflection/, Subscription/)
 MemoryAisle2/MemoryAisle2UITests/       UI tests
 MemoryAisle2/MemoryAisleWidgets/        Widget extension sources (consumed by the
                                         MemoryAisleWidgetsExtension target)
