@@ -27,14 +27,10 @@ final class FeatureFlags {
     }
 
     private static let defaultValues: [Flag: Bool] = [
-        // Default OFF until medical/legal review of the weekly plan surface
-        // completes (see docs/weekly-meal-plan-review.md). Flip via the
-        // setter — `FeatureFlags.shared.set(.weeklyMealPlan, true)` — once
-        // the three reviewer sign-offs in that doc are recorded.
-        .weeklyMealPlan: false,
-        // Default OFF for the same reason; backfill activates after the
-        // primary flag is enabled and stable for current signups.
-        .weeklyMealBackfill: false
+        // Both flags ship ON. Flip OFF via `FeatureFlags.shared.set` if a
+        // future kill-switch is needed.
+        .weeklyMealPlan: true,
+        .weeklyMealBackfill: true
     ]
 
     func isEnabled(_ flag: Flag) -> Bool {
