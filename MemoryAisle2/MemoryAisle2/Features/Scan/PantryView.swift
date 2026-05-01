@@ -3,7 +3,6 @@ import SwiftUI
 
 struct PantryView: View {
     var mode: MAMode = .auto
-    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(
@@ -23,45 +22,31 @@ struct PantryView: View {
         }
     }
 
-    private var heroSubtitle: String {
+    private var heroTrailing: String {
         let count = items.count
-        let cats = grouped.count
-        if count == 0 { return "Empty. Let's stock it up" }
-        let itemWord = count == 1 ? "item" : "items"
-        let catWord = cats == 1 ? "category" : "categories"
-        return "\(count) \(itemWord) · \(cats) \(catWord)"
+        if count == 0 { return "EMPTY" }
+        return "\(count) \(count == 1 ? "ITEM" : "ITEMS")"
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HeroHeader(title: "Pantry", subtitle: heroSubtitle) {
-                HStack(spacing: 8) {
-                    IconButton(
-                        systemName: "plus",
-                        accessibilityLabel: "Add pantry item"
-                    ) {
-                        showAddItem = true
-                    }
-                    CloseButton(action: { dismiss() })
-                }
-            }
+        ZStack {
+            EditorialBackground(mode: mode)
 
-            if items.isEmpty {
-                emptyState
-            } else {
-                ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 20) {
-                        ForEach(grouped, id: \.0) { category, categoryItems in
-                            categorySection(category, items: categoryItems)
-                        }
-                        Spacer(minLength: 40)
-                    }
-                    .padding(.top, 20)
+            VStack(alignment: .leading, spacing: 0) {
+                topBar
+                Masthead(wordmark: "PANTRY", trailing: heroTrailing)
+                    .padding(.bottom, 22)
+
+                if items.isEmpty {
+                    emptyState
+                } else {
+                    listScroll
                 }
             }
+            .padding(.horizontal, Theme.Editorial.Spacing.pad)
+            .padding(.top, 12)
         }
-        .section(.pantry)
-        .themeBackground()
+        .preferredColorScheme(.light)
         .alert("Add Item", isPresented: $showAddItem) {
             TextField("Item name", text: $newItemName)
             Button("Add") {
@@ -79,54 +64,63 @@ struct PantryView: View {
         }
     }
 
-    private var emptyState: some View {
-        VStack(spacing: 16) {
+    // MARK: - Top bar
+
+    private var topBar: some View {
+        HStack(spacing: 8) {
             Spacer()
-            Image(systemName: "refrigerator.fill")
-                .font(Typography.displayLarge)
-                .foregroundStyle(SectionPalette.primary(.pantry, for: scheme).opacity(0.35))
-
-            Text("Your pantry is empty")
-                .font(Typography.bodyLargeBold)
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
-
-            Text("Scan barcodes or add items manually.\nMira uses your pantry to suggest meals.")
-                .font(Typography.bodySmall)
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                .multilineTextAlignment(.center)
-
-            GlowButton("Add first item") {
-                showAddItem = true
+            Button { showAddItem = true } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Theme.Editorial.onSurface)
+                    .frame(width: 32, height: 32)
+                    .overlay(Circle().stroke(Theme.Editorial.hairline, lineWidth: 0.5))
             }
-            .padding(.horizontal, 60)
+            .buttonStyle(.plain)
+            .accessibilityLabel("Add pantry item")
 
-            Spacer()
-            Spacer()
+            Button { dismiss() } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Theme.Editorial.onSurface)
+                    .frame(width: 32, height: 32)
+                    .overlay(Circle().stroke(Theme.Editorial.hairline, lineWidth: 0.5))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Close")
+        }
+        .padding(.bottom, 14)
+    }
+
+    // MARK: - List
+
+    private var listScroll: some View {
+        ScrollView(showsIndicators: false) {
+            LazyVStack(alignment: .leading, spacing: 26) {
+                ForEach(grouped, id: \.0) { category, categoryItems in
+                    categorySection(category, items: categoryItems)
+                }
+                Spacer(minLength: 80)
+            }
         }
     }
 
     private func categorySection(_ category: PantryCategory, items: [PantryItem]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 1, style: .continuous)
-                    .fill(SectionPalette.primary(.pantry, for: scheme))
-                    .frame(width: 2, height: 14)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
                 Image(systemName: category.icon)
-                    .font(Typography.caption)
-                    .foregroundStyle(SectionPalette.primary(.pantry, for: scheme))
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.Editorial.onSurface)
                 Text(category.rawValue.uppercased())
-                    .font(Typography.label)
-                    .foregroundStyle(SectionPalette.soft(.pantry))
-                    .tracking(1.2)
+                    .font(Theme.Editorial.Typography.capsBold(10))
+                    .tracking(3)
+                    .foregroundStyle(Theme.Editorial.onSurface)
             }
-            .padding(.horizontal, 20)
-
-            VStack(spacing: 8) {
+            HairlineDivider().opacity(0.5)
+            VStack(spacing: 0) {
                 ForEach(items) { item in
-                    SectionCard {
-                        itemRow(item)
-                    }
-                    .padding(.horizontal, 16)
+                    itemRow(item)
+                    HairlineDivider().opacity(0.3)
                 }
             }
         }
@@ -136,21 +130,23 @@ struct PantryView: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.name)
-                    .font(Typography.bodyMedium)
-                    .foregroundStyle(Theme.Text.primary)
+                    .font(Theme.Editorial.Typography.body())
+                    .foregroundStyle(Theme.Editorial.onSurface)
                 if !item.brand.isEmpty {
-                    Text(item.brand)
-                        .font(Typography.caption)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    Text(item.brand.uppercased())
+                        .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
+                        .tracking(1.4)
+                        .foregroundStyle(Theme.Editorial.onSurfaceFaint)
                 }
             }
 
             Spacer()
 
             if item.proteinPer100g > 0 {
-                Text("\(Int(item.proteinPer100g))g")
-                    .font(Typography.monoSmall)
-                    .foregroundStyle(SectionPalette.primary(.pantry, for: scheme))
+                Text("\(Int(item.proteinPer100g))G")
+                    .font(Theme.Editorial.Typography.dataValue())
+                    .tracking(1.2)
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
             }
 
             Button {
@@ -158,12 +154,45 @@ struct PantryView: View {
                 HapticManager.light()
             } label: {
                 Image(systemName: "minus.circle")
-                    .font(Typography.bodyLarge)
-                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    .font(.system(size: 16))
+                    .foregroundStyle(Theme.Editorial.onSurfaceFaint)
             }
             .accessibilityLabel("Remove \(item.name)")
         }
-        .padding(.horizontal, 20)
         .padding(.vertical, 12)
+    }
+
+    // MARK: - Empty
+
+    private var emptyState: some View {
+        VStack(spacing: 18) {
+            Spacer()
+            Image(systemName: "refrigerator.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(Theme.Editorial.onSurfaceFaint)
+            Text("YOUR PANTRY IS EMPTY")
+                .font(Theme.Editorial.Typography.capsBold(11))
+                .tracking(3)
+                .foregroundStyle(Theme.Editorial.onSurface)
+            Text("Scan barcodes or add items manually.\nMira uses your pantry to suggest meals.")
+                .font(Theme.Editorial.Typography.body())
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+            Button { showAddItem = true } label: {
+                Text("ADD FIRST ITEM")
+                    .font(Theme.Editorial.Typography.capsBold(11))
+                    .tracking(3)
+                    .foregroundStyle(Theme.Editorial.onSurface)
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 12)
+                    .overlay(Capsule().stroke(Theme.Editorial.onSurface, lineWidth: 0.5))
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 6)
+            Spacer()
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
     }
 }
