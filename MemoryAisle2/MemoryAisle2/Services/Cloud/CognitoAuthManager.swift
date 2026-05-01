@@ -10,6 +10,7 @@ final class CognitoAuthManager {
     private(set) var userId: String?
     private(set) var email: String?
     private(set) var accessToken: String?
+    private(set) var refreshToken: String?
     var error: String?
 
     private let userPoolId = "us-east-1_8jluiv1HL"
@@ -89,12 +90,12 @@ final class CognitoAuthManager {
             if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                let result = json["AuthenticationResult"] as? [String: Any] {
                 accessToken = result["AccessToken"] as? String
+                refreshToken = result["RefreshToken"] as? String
                 self.email = email
 
-                // Get user info
-                await fetchUser()
+                try? await fetchUser()
                 isSignedIn = true
-                saveSession(email: email, token: accessToken)
+                saveSession(email: email, token: accessToken, refresh: refreshToken)
             }
             isLoading = false
             return true
@@ -103,6 +104,28 @@ final class CognitoAuthManager {
             isLoading = false
             return false
         }
+    }
+
+    // MARK: - Sign in with Apple
+
+    /// Sign in with Apple entry point. Apple does not issue a renewable
+    /// access token the way Cognito does — subsequent sign-ins only return
+    /// the stable Apple user ID. The session therefore persists via
+    /// UserDefaults keyed on that ID; restoreSession on the next cold
+    /// launch checks for `ma_apple_user_id` and trusts it without a
+    /// Cognito round-trip. Email is recorded only on Apple's first-ever
+    /// SIWA response for a given app/user pair, so callers should always
+    /// persist what they get; we won't see it again.
+    func saveAppleSession(appleUserID: String, email: String?, name: String?) {
+        UserDefaults.standard.set(appleUserID, forKey: "ma_apple_user_id")
+        if let email, !email.isEmpty {
+            UserDefaults.standard.set(email, forKey: "ma_email")
+            self.email = email
+        }
+        if let name, !name.isEmpty {
+            UserDefaults.standard.set(name, forKey: "ma_name")
+        }
+        isSignedIn = true
     }
 
     // MARK: - Sign Out
@@ -114,6 +137,7 @@ final class CognitoAuthManager {
     func signOut() {
         isSignedIn = false
         accessToken = nil
+        refreshToken = nil
         userId = nil
         email = nil
         clearSession()
@@ -128,14 +152,6 @@ final class CognitoAuthManager {
     /// `AuthFlowView.handlePostSignIn` which diffs the incoming email
     /// against the last signed-in email and wipes only when the
     /// account actually changes.
-    ///
-    /// This function:
-    /// 1. Clears the App Reviewer Pro override (`clearReviewerFlag`)
-    ///    so the next user on this device is not granted Pro.
-    /// 2. Tears down keychain + in-memory auth state.
-    /// 3. Re-evaluates the subscription tier so any stale Pro state
-    ///    from the previous session is dropped (a real paid StoreKit
-    ///    entitlement survives and is correctly restored).
     static func signOutEverywhere(
         modelContext: ModelContext,
         subscription: SubscriptionManager
@@ -149,15 +165,43 @@ final class CognitoAuthManager {
 
     // MARK: - Restore Session
 
+    /// Resolves auth state on cold launch.
+    ///
+    /// Three paths, in order of precedence:
+    /// 1. **Sign in with Apple.** If `ma_apple_user_id` is present, the
+    ///    user signed in with Apple — Apple never issues a renewable
+    ///    Cognito token, so the marker is the source of truth. Trust it
+    ///    and skip the Cognito round-trip entirely.
+    /// 2. **Cognito with valid token.** GetUser returns 200, we're done.
+    /// 3. **Cognito with expired token.** Try the refresh-token flow once.
+    ///    On success, store the new access token and retry GetUser. On
+    ///    permanent failure (no refresh token, refresh token also
+    ///    expired) clear the keychain and fall back to signed-out.
+    ///
+    /// **Critical invariant:** transient failures (network down, Cognito
+    /// 5xx, DNS hiccup) must NOT wipe the keychain. Previously any
+    /// `fetchUser` failure cleared the session, so a single network blip
+    /// on launch produced a permanent sign-out — the bug this rewrite
+    /// fixes. On a transient error we keep `isSignedIn = true` (the
+    /// access token may still be valid; later API calls will retry on
+    /// their own) but never delete the saved tokens.
     func restoreSession() async {
+        // 1. Apple SIWA short-circuit.
+        if UserDefaults.standard.string(forKey: "ma_apple_user_id") != nil {
+            email = UserDefaults.standard.string(forKey: "ma_email")
+            isSignedIn = true
+            return
+        }
+
+        // 2. Read Cognito tokens from keychain (with one-time UserDefaults migration).
         var savedEmail = readFromKeychain(key: "ma_email")
         var savedToken = readFromKeychain(key: "ma_token")
+        let savedRefresh = readFromKeychain(key: "ma_refresh")
 
-        // Migrate from UserDefaults if Keychain is empty
         if savedEmail == nil, let udEmail = UserDefaults.standard.string(forKey: "ma_email") {
             savedEmail = udEmail
             savedToken = UserDefaults.standard.string(forKey: "ma_token")
-            saveSession(email: savedEmail, token: savedToken)
+            saveSession(email: savedEmail, token: savedToken, refresh: nil)
             UserDefaults.standard.removeObject(forKey: "ma_email")
             UserDefaults.standard.removeObject(forKey: "ma_token")
         }
@@ -166,33 +210,107 @@ final class CognitoAuthManager {
 
         email = savedEmail
         accessToken = savedToken
+        refreshToken = savedRefresh
 
-        await fetchUser()
-
-        if userId != nil {
+        // 3. Validate against Cognito GetUser, refreshing if expired.
+        do {
+            try await fetchUser()
             isSignedIn = true
-        } else {
+        } catch AuthError.tokenExpired {
+            await handleExpiredAccessToken()
+        } catch {
+            // Network or 5xx — stay optimistic, keep keychain intact.
+            // Subsequent API calls will retry; better than punting the
+            // user back to sign-in over a transient blip.
+            isSignedIn = true
+        }
+    }
+
+    private func handleExpiredAccessToken() async {
+        guard let newToken = await tryRefreshAccessToken() else {
+            // No refresh token, or refresh itself returned tokenExpired.
+            // The session is genuinely over — clear it.
             clearSession()
+            isSignedIn = false
+            accessToken = nil
+            refreshToken = nil
+            return
+        }
+
+        accessToken = newToken
+        saveToKeychain(key: "ma_token", value: newToken)
+
+        do {
+            try await fetchUser()
+            isSignedIn = true
+        } catch AuthError.tokenExpired {
+            // New token already rejected — abandon ship.
+            clearSession()
+            isSignedIn = false
+            accessToken = nil
+            refreshToken = nil
+        } catch {
+            // Transient on the retry — stay optimistic.
+            isSignedIn = true
+        }
+    }
+
+    /// Trades a stored refresh token for a fresh access token. Cognito's
+    /// REFRESH_TOKEN_AUTH does not return a new refresh token; the
+    /// existing one stays valid until its server-configured TTL (30 days
+    /// by default), so we only persist the new access token.
+    /// Returns nil when no refresh token is stored, or when Cognito
+    /// rejects the refresh — in either case the caller treats this as a
+    /// genuine sign-out.
+    private func tryRefreshAccessToken() async -> String? {
+        guard let refresh = refreshToken else { return nil }
+
+        let body: [String: Any] = [
+            "AuthFlow": "REFRESH_TOKEN_AUTH",
+            "ClientId": clientId,
+            "AuthParameters": [
+                "REFRESH_TOKEN": refresh
+            ]
+        ]
+
+        do {
+            let data = try await cognitoRequest(
+                action: "AWSCognitoIdentityProviderService.InitiateAuth",
+                body: body
+            )
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let result = json["AuthenticationResult"] as? [String: Any],
+               let newToken = result["AccessToken"] as? String {
+                return newToken
+            }
+            return nil
+        } catch AuthError.tokenExpired {
+            return nil
+        } catch {
+            // Transient failure — return nil to leave the session
+            // untouched. Caller's transient-error path keeps the user
+            // signed-in optimistically rather than wiping over a blip.
+            return nil
         }
     }
 
     // MARK: - Fetch User
 
-    private func fetchUser() async {
-        guard let token = accessToken else { return }
+    private func fetchUser() async throws {
+        guard let token = accessToken else {
+            throw AuthError.tokenExpired
+        }
 
         let body: [String: Any] = [
             "AccessToken": token
         ]
 
-        do {
-            let data = try await cognitoRequest(action: "AWSCognitoIdentityProviderService.GetUser", body: body)
-            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                userId = json["Username"] as? String
-            }
-        } catch {
-            // Token expired
-            accessToken = nil
+        let data = try await cognitoRequest(
+            action: "AWSCognitoIdentityProviderService.GetUser",
+            body: body
+        )
+        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            userId = json["Username"] as? String
         }
     }
 
@@ -207,18 +325,34 @@ final class CognitoAuthManager {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         request.timeoutInterval = 15
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw AuthError.networkError
+        }
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw AuthError.networkError
         }
 
         if httpResponse.statusCode != 200 {
-            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let message = json["message"] as? String {
-                throw AuthError.serverError(message)
+            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            let type = (json?["__type"] as? String) ?? ""
+            let message = (json?["message"] as? String) ?? "Request failed (\(httpResponse.statusCode))"
+
+            // Cognito returns NotAuthorizedException for both expired-token
+            // and wrong-password. Distinguish by message so a sign-in with
+            // bad credentials doesn't get re-routed through the refresh
+            // path as if a session had merely expired.
+            if type.contains("NotAuthorizedException") {
+                let lower = message.lowercased()
+                if lower.contains("token") && (lower.contains("expired") || lower.contains("invalid") || lower.contains("revoked")) {
+                    throw AuthError.tokenExpired
+                }
             }
-            throw AuthError.serverError("Request failed (\(httpResponse.statusCode))")
+            throw AuthError.serverError(message)
         }
 
         return data
@@ -228,16 +362,22 @@ final class CognitoAuthManager {
 
     private let keychainService = "com.sltrdigital.memoryaisle"
 
-    private func saveSession(email: String?, token: String?) {
+    private func saveSession(email: String?, token: String?, refresh: String?) {
         if let email { saveToKeychain(key: "ma_email", value: email) }
         if let token { saveToKeychain(key: "ma_token", value: token) }
+        if let refresh { saveToKeychain(key: "ma_refresh", value: refresh) }
     }
 
     private func clearSession() {
         deleteFromKeychain(key: "ma_email")
         deleteFromKeychain(key: "ma_token")
+        deleteFromKeychain(key: "ma_refresh")
         UserDefaults.standard.removeObject(forKey: "ma_email")
         UserDefaults.standard.removeObject(forKey: "ma_token")
+        // SIWA markers — without these a signed-out Apple user would
+        // still look signed-in to restoreSession on the next cold launch.
+        UserDefaults.standard.removeObject(forKey: "ma_apple_user_id")
+        UserDefaults.standard.removeObject(forKey: "ma_name")
     }
 
     private func saveToKeychain(key: String, value: String) {
@@ -357,11 +497,13 @@ final class CognitoAuthManager {
 
 enum AuthError: LocalizedError {
     case networkError
+    case tokenExpired
     case serverError(String)
 
     var errorDescription: String? {
         switch self {
         case .networkError: "Network connection failed"
+        case .tokenExpired: "Your session expired. Please sign in again."
         case .serverError(let msg): msg
         }
     }
