@@ -202,10 +202,13 @@ struct MainTabView: View {
             if let url = URL(string: UIApplication.openSettingsURLString) {
                 UIApplication.shared.open(url)
             }
-        case .medications, .foodAllergies:
-            // Both edit fields that live on `UserProfile` and are
-            // already surfaced inside JourneyProfileView. Route there
-            // until each gets its own focused screen.
+        case .medications:
+            // Dedicated MedicationView — operational data (provider,
+            // pharmacy, refill) lives there. The Journey page keeps a
+            // summary block but doesn't own this surface.
+            activeSheet = .destination(.medications)
+        case .foodAllergies:
+            // No focused screen yet — route to Journey until one is built.
             activeSheet = .destination(.profile)
         case .emailProfile:
             // Account info lives at the top of the Settings sheet
@@ -230,12 +233,13 @@ struct MainTabView: View {
         case .scan:           ScanView()
         case .scanReceipt:    ReceiptScannerView()
         case .favorites:      FavoritesView()
+        case .medications:    MedicationView()
         case .mira:           MiraChatView()
         case .subscribe:      PaywallView()
         case .proBenefits:    ProBenefitsView()
         case .settings:       EditorialSettingsView()
         // Routed via handleMenuSelect side-effects, never reach the sheet:
-        case .today, .notifications, .medications, .foodAllergies, .emailProfile:
+        case .today, .notifications, .foodAllergies, .emailProfile:
             EmptyView()
         }
     }
