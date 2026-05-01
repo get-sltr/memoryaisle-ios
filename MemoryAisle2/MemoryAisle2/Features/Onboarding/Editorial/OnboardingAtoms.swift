@@ -380,33 +380,37 @@ struct OnboardingTextInput: View {
     }
 
     private var voiceButton: some View {
-        Button {
-            Task { await togglePushToTalk() }
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 11))
-                Text(isListening ? "RELEASE WHEN DONE" : "OR HOLD TO SPEAK")
-                    .font(Theme.Editorial.Typography.capsBold(9))
-                    .tracking(1.8)
-            }
-            .foregroundStyle(Theme.Editorial.onSurface)
-            .padding(.vertical, 10)
-            .padding(.horizontal, 14)
-            .background(
-                Capsule().fill(Theme.Editorial.onSurface.opacity(0.10))
-            )
+        // Visual capsule + a DragGesture(minimumDistance: 0) overlay. The
+        // drag is the actual interaction: .onChanged fires on touch-down
+        // (start listening), .onEnded fires on release (commit transcript).
+        // LongPressGesture is discrete and was dropping the held state on
+        // some devices — same fix as MiraTabView's push-to-talk.
+        Capsule()
+            .fill(Theme.Editorial.onSurface.opacity(0.10))
             .overlay(
                 Capsule().stroke(Theme.Editorial.onSurface.opacity(0.3), lineWidth: 1)
             )
-        }
-        .buttonStyle(.plain)
-        .simultaneousGesture(
-            LongPressGesture(minimumDuration: 0.05)
-                .onChanged { _ in startListeningIfIdle() }
-                .onEnded { _ in stopListeningIfActive() }
-        )
-        .accessibilityLabel(isListening ? "Release when done speaking" : "Hold to speak, or tap the field above to type")
+            .overlay(
+                HStack(spacing: 6) {
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 11))
+                    Text(isListening ? "RELEASE WHEN DONE" : "OR HOLD TO SPEAK")
+                        .font(Theme.Editorial.Typography.capsBold(9))
+                        .tracking(1.8)
+                }
+                .foregroundStyle(Theme.Editorial.onSurface)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 14)
+            )
+            .fixedSize()
+            .contentShape(Capsule())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in startListeningIfIdle() }
+                    .onEnded { _ in stopListeningIfActive() }
+            )
+            .accessibilityLabel(isListening ? "Release when done speaking" : "Hold to speak, or tap the field above to type")
+            .accessibilityAddTraits(.isButton)
     }
 
     private func startListeningIfIdle() {
@@ -424,11 +428,6 @@ struct OnboardingTextInput: View {
         if !voice.transcribedText.isEmpty {
             text = voice.transcribedText
         }
-    }
-
-    private func togglePushToTalk() async {
-        // The button's primary action is a tap fallback for accessibility;
-        // the real interaction is the simultaneousGesture LongPress.
     }
 }
 
