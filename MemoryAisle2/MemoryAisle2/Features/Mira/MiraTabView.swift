@@ -22,7 +22,7 @@ struct MiraTabView: View {
     @Query private var pantry: [PantryItem]
     @Query(sort: \SymptomLog.date, order: .reverse) private var symptoms: [SymptomLog]
 
-    @State private var voice = VoiceManager()
+    @State private var voice = VoiceManager.shared
     @State private var voiceState: MiraVoiceState = .idle
 
     /// PRIVACY INVARIANT: Mira conversations are ephemeral by product design
@@ -113,12 +113,16 @@ struct MiraTabView: View {
         }
         .onChange(of: scenePhase) { _, newPhase in
             // Stop any in-flight audio if the user backgrounds the app mid-turn.
+            // Session deactivation is dispatched to a background task so the
+            // mediaserverd IPC does not block main and trip the libdispatch
+            // queue assertion during teardown.
             if newPhase != .active {
                 voice.stopListening()
                 voice.stopSpeaking()
                 if voiceState != .idle {
                     voiceState = .idle
                 }
+                Task { await voice.deactivateAudioSessionAsync() }
             }
         }
         .task {
@@ -128,6 +132,7 @@ struct MiraTabView: View {
         .onDisappear {
             voice.stopListening()
             voice.stopSpeaking()
+            Task { await voice.deactivateAudioSessionAsync() }
         }
     }
 
