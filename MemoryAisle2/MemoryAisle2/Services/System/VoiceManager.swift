@@ -52,11 +52,18 @@ final class VoiceManager: NSObject, @unchecked Sendable {
     }
 
     private static func requestSpeechAuthorization() async -> Bool {
-        await withCheckedContinuation { cont in
-            SFSpeechRecognizer.requestAuthorization { status in
-                cont.resume(returning: status == .authorized)
+        // Wrapped in Task.detached so the continuation is owned by an
+        // unstructured task with no inherited actor isolation. Without
+        // this, the SFSpeechRecognizer callback (delivered from TCCD's
+        // XPC worker) hits an executor-mismatch assertion in the Swift
+        // concurrency thunk and crashes before the closure body runs.
+        await Task.detached(priority: .userInitiated) {
+            await withCheckedContinuation { cont in
+                SFSpeechRecognizer.requestAuthorization { status in
+                    cont.resume(returning: status == .authorized)
+                }
             }
-        }
+        }.value
     }
 
     @MainActor
