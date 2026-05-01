@@ -4,6 +4,13 @@ import SwiftUI
 
 @Observable
 final class VoiceManager: NSObject, @unchecked Sendable {
+    /// Shared singleton. Creating a VoiceManager instantiates AVAudioEngine
+    /// and AVSpeechSynthesizer, both of which contact mediaserverd over IPC
+    /// and can block the main thread for several seconds. Re-creating one on
+    /// every Mira tab entry blew past the 3-second mediaserverd budget and
+    /// triggered the iOS watchdog SIGKILL. One shared instance fixes that.
+    static let shared = VoiceManager()
+
     var isListening = false
     var isSpeaking = false
     var transcribedText = ""
@@ -31,33 +38,59 @@ final class VoiceManager: NSObject, @unchecked Sendable {
 
     // MARK: - Permissions
 
-    // @MainActor so every internal await resumes on main. Without this,
-    // the non-isolated async function can resume on a cooperative pool
-    // thread after withCheckedContinuation, and then AVAudioApplication
-    // .requestRecordPermission() (iOS 17) traps because it asserts main.
-    @MainActor
+    // The audio-permission call needs MainActor (AVAudioApplication
+    // .requestRecordPermission asserts main on iOS 17). The speech-permission
+    // call must NOT be MainActor: SFSpeechRecognizer.requestAuthorization
+    // delivers its callback from the TCCD worker thread, and a MainActor
+    // continuation captured in that callback trips dispatch_assert_queue_fail
+    // in the Swift concurrency thunk before the body even runs. Splitting
+    // them keeps each on the right executor.
     func requestPermissions() async -> Bool {
-        let speechStatus = await withCheckedContinuation { cont in
-            SFSpeechRecognizer.requestAuthorization { status in
-                cont.resume(returning: status == .authorized)
-            }
-        }
+        let speechStatus = await Self.requestSpeechAuthorization()
+        let audioStatus = await Self.requestAudioRecordPermission()
+        return speechStatus && audioStatus
+    }
 
-        let audioStatus: Bool
+    private static func requestSpeechAuthorization() async -> Bool {
+        // Wrapped in Task.detached so the continuation is owned by an
+        // unstructured task with no inherited actor isolation. Without
+        // this, the SFSpeechRecognizer callback (delivered from TCCD's
+        // XPC worker) hits an executor-mismatch assertion in the Swift
+        // concurrency thunk and crashes before the closure body runs.
+        await Task.detached(priority: .userInitiated) {
+            await withCheckedContinuation { cont in
+                SFSpeechRecognizer.requestAuthorization { status in
+                    cont.resume(returning: status == .authorized)
+                }
+            }
+        }.value
+    }
+
+    @MainActor
+    private static func requestAudioRecordPermission() async -> Bool {
         if #available(iOS 17.0, *) {
-            audioStatus = await AVAudioApplication.requestRecordPermission()
+            return await AVAudioApplication.requestRecordPermission()
         } else {
-            audioStatus = await withCheckedContinuation { cont in
+            return await withCheckedContinuation { cont in
                 AVAudioSession.sharedInstance().requestRecordPermission { granted in
                     cont.resume(returning: granted)
                 }
             }
         }
-
-        return speechStatus && audioStatus
     }
 
     // MARK: - Audio Session
+    //
+    // AVAudioSession.setCategory / setActive call into mediaserverd over IPC
+    // and can block for hundreds of milliseconds. When invoked on the main
+    // thread from the speak() path, this produces a "Result accumulator
+    // timeout: 3.000000 exceeded" log followed by a _dispatch_assert_queue_fail
+    // crash on a libdispatch concurrent worker thread. The fix is to run
+    // session configuration on a detached task before touching AVAudioPlayer.
+    //
+    // The listen path (startListening) keeps the synchronous call because
+    // SFSpeechRecognizer / AVAudioEngine setup must happen on the main
+    // thread anyway and is not part of the result-accumulator chain.
 
     @discardableResult
     nonisolated private func configureAudioSession(forRecording: Bool) -> Bool {
@@ -85,11 +118,27 @@ final class VoiceManager: NSObject, @unchecked Sendable {
         }
     }
 
-    /// Called when leaving a Mira session - deactivates audio session
-    /// so it doesn't block subsequent audio calls.
+    /// Off-main wrapper around `configureAudioSession`. Used by the speak path
+    /// so the blocking IPC call to mediaserverd does not run on the main
+    /// thread and trip the result-accumulator timeout.
+    nonisolated private func configureAudioSessionAsync(forRecording: Bool) async -> Bool {
+        await Task.detached(priority: .userInitiated) { [weak self] in
+            self?.configureAudioSession(forRecording: forRecording) ?? false
+        }.value
+    }
+
     nonisolated private func deactivateAudioSession() {
         let session = AVAudioSession.sharedInstance()
         try? session.setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    /// Off-main wrapper around `deactivateAudioSession`. Use from any
+    /// MainActor context (e.g. view onDisappear) to release the audio
+    /// session without blocking the UI thread.
+    nonisolated func deactivateAudioSessionAsync() async {
+        await Task.detached(priority: .userInitiated) { [weak self] in
+            self?.deactivateAudioSession()
+        }.value
     }
 
     // MARK: - Listen (Speech to Text)
@@ -130,7 +179,7 @@ final class VoiceManager: NSObject, @unchecked Sendable {
         recognitionRequest = request
 
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
-            // Audio thread — append is thread-safe on the request object.
+            // Audio thread - append is thread-safe on the request object.
             request.append(buffer)
 
             // Compute RMS so the editorial Mira bars can visualize the live
@@ -146,13 +195,13 @@ final class VoiceManager: NSObject, @unchecked Sendable {
                 sum += sample * sample
             }
             let rms = sqrt(sum / Float(frameLength))
-            // Empirical scale — typical speech RMS is ~0.05-0.12; multiplying
+            // Empirical scale - typical speech RMS is ~0.05-0.12; multiplying
             // by 12 lifts it into the 0.6-1.5 range, then we clamp.
             let level = max(0, min(1, rms * 12))
 
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                // Low-pass smoothing — bars feel calmer than raw RMS, which
+                // Low-pass smoothing - bars feel calmer than raw RMS, which
                 // would jitter on every tap.
                 self.audioLevel = self.audioLevel * 0.7 + CGFloat(level) * 0.3
             }
@@ -160,7 +209,7 @@ final class VoiceManager: NSObject, @unchecked Sendable {
         hasInstalledTap = true
 
         recognitionTask = speechRecognizer?.recognitionTask(with: request) { [weak self] result, err in
-            // Recognition callback can arrive on any thread — hop back.
+            // Recognition callback can arrive on any thread - hop back.
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 if let result {
@@ -222,26 +271,38 @@ final class VoiceManager: NSObject, @unchecked Sendable {
         guard !text.isEmpty else { return }
 
         // Stop anything already playing
-        stopSpeaking()
+        Task { @MainActor in
+            self.stopSpeaking()
+        }
 
         Task {
+            // Configure session OFF main first. If it fails, we cannot play
+            // remote audio safely either, so fall straight to local TTS.
+            let sessionOK = await configureAudioSessionAsync(forRecording: false)
+            guard sessionOK else {
+                await speakLocally(text)
+                return
+            }
+
             do {
                 let audioData = try await ttsClient.synthesize(text: text)
                 await MainActor.run {
                     self.playRemoteAudio(audioData)
                 }
             } catch {
-                // Network or Polly failed - fall back to on-device TTS
-                await MainActor.run {
-                    self.speakLocally(text)
-                }
+                // Network or Polly failed - fall back to on-device TTS.
+                // Session is already configured for playback above, so
+                // speakLocally only has to schedule the utterance.
+                await speakLocally(text)
             }
         }
     }
 
     /// Plays an MP3 audio data blob returned by the Polly Lambda.
+    /// Caller is responsible for having configured the audio session for
+    /// playback before invoking this method.
+    @MainActor
     private func playRemoteAudio(_ data: Data) {
-        _ = configureAudioSession(forRecording: false)
         do {
             let player = try AVAudioPlayer(data: data)
             player.delegate = self
@@ -251,27 +312,33 @@ final class VoiceManager: NSObject, @unchecked Sendable {
             isSpeaking = true
             player.play()
         } catch {
-            // Can't decode - fall back to Apple TTS with same text
-            // (we don't have the text here, so just mark not speaking)
+            // Can't decode - clear state and let the UI reflect the failure.
             audioPlayer = nil
             isSpeaking = false
         }
     }
 
     /// Fallback: Apple on-device TTS.
-    private func speakLocally(_ text: String) {
-        let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = Self.bestAvailableVoice()
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 1.0
-        utterance.pitchMultiplier = 1.08
-        utterance.volume = 1.0
-        utterance.preUtteranceDelay = 0.05
-        utterance.postUtteranceDelay = 0.1
+    /// Configures the playback audio session off-main if needed, then
+    /// schedules the utterance on the main actor.
+    private func speakLocally(_ text: String) async {
+        // Best-effort session configuration off main. If it fails we still
+        // attempt to speak; AVSpeechSynthesizer can sometimes proceed with
+        // a default ambient session.
+        _ = await configureAudioSessionAsync(forRecording: false)
 
-        _ = configureAudioSession(forRecording: false)
+        await MainActor.run {
+            let utterance = AVSpeechUtterance(string: text)
+            utterance.voice = Self.bestAvailableVoice()
+            utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 1.0
+            utterance.pitchMultiplier = 1.08
+            utterance.volume = 1.0
+            utterance.preUtteranceDelay = 0.05
+            utterance.postUtteranceDelay = 0.1
 
-        isSpeaking = true
-        synthesizer.speak(utterance)
+            self.isSpeaking = true
+            self.synthesizer.speak(utterance)
+        }
     }
 
     /// Picks the best-sounding installed English voice. Prefers, in order:
@@ -318,6 +385,7 @@ final class VoiceManager: NSObject, @unchecked Sendable {
         return AVSpeechSynthesisVoice(language: "en-US")
     }
 
+    @MainActor
     func stopSpeaking() {
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)
@@ -333,24 +401,24 @@ final class VoiceManager: NSObject, @unchecked Sendable {
 
 extension VoiceManager: AVSpeechSynthesizerDelegate {
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        DispatchQueue.main.async {
-            self.isSpeaking = false
+        Task { @MainActor [weak self] in
+            self?.isSpeaking = false
         }
     }
 }
 
 extension VoiceManager: AVAudioPlayerDelegate {
     nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        DispatchQueue.main.async {
-            self.isSpeaking = false
-            self.audioPlayer = nil
+        Task { @MainActor [weak self] in
+            self?.isSpeaking = false
+            self?.audioPlayer = nil
         }
     }
 
     nonisolated func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
-        DispatchQueue.main.async {
-            self.isSpeaking = false
-            self.audioPlayer = nil
+        Task { @MainActor [weak self] in
+            self?.isSpeaking = false
+            self?.audioPlayer = nil
         }
     }
 }

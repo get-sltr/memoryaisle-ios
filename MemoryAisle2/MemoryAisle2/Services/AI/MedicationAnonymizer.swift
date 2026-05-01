@@ -115,10 +115,11 @@ struct MedicationAnonymizer {
         _ level: TrainingLevel
     ) -> String {
         switch level {
-        case .lifts: "strength_training"
-        case .cardio: "cardio_focused"
-        case .sometimes: "occasional"
-        case .none: "sedentary"
+        case .lifts:         "strength_training"
+        case .cardio:        "cardio_focused"
+        case .sometimes:     "occasional"
+        case .none:          "sedentary"
+        case .nutritionOnly: "nutrition_only"
         }
     }
 }

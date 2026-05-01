@@ -16,13 +16,16 @@ struct MainTabView: View {
     @Query private var profiles: [UserProfile]
     @Query private var futurePlans: [MealPlan]
 
-    @State private var mode: MAMode = .auto
     @State private var selectedTab: MATab = .today
     @State private var activeSheet: MainSheet?
     @State private var hasRunBackfillCheck = false
 
     private var isPro: Bool { subscriptionManager.tier == .pro }
     private var profile: UserProfile? { profiles.first }
+    /// Day/Night follows the user's setting in Settings; `nil` falls back to
+    /// the time-of-day auto rule. The toggle moved off the home masthead
+    /// so editorial surfaces stay focused on content.
+    private var mode: MAMode { appState.effectiveAppearanceMode }
 
     var body: some View {
         ZStack {
@@ -39,16 +42,6 @@ struct MainTabView: View {
                 )
                 .padding(.bottom, 28)
             }
-
-            VStack {
-                HStack {
-                    Spacer()
-                    modeToggle
-                }
-                .padding(.top, 12)
-                .padding(.trailing, 12)
-                Spacer()
-            }
         }
         .preferredColorScheme(.light)
         .ignoresSafeArea(.keyboard)
@@ -57,6 +50,13 @@ struct MainTabView: View {
         }
         .onAppear {
             runOnceOnLaunch()
+        }
+        .onChange(of: appState.pendingMiraPrompt) { _, newValue in
+            // Dashboard's "Tell Me More" handler queues a prompt here; flip
+            // the bar to MIRA so the tab can drain it. MiraTabView clears.
+            if newValue != nil {
+                selectedTab = .mira
+            }
         }
     }
 
@@ -109,7 +109,11 @@ struct MainTabView: View {
     private var tabContent: some View {
         switch selectedTab {
         case .today:
-            HomeView(mode: mode, onTapWordmark: openMenu)
+            TodayDashboardView(
+                mode: mode,
+                onTapWordmark: openMenu,
+                onPresentScan: { activeSheet = .scanMode($0) }
+            )
         case .meals:
             MealsView(mode: mode, onTapWordmark: openMenu)
         case .mira:
@@ -118,7 +122,11 @@ struct MainTabView: View {
             // SCAN and REFLECT trigger sheets via handleTabTap and never land
             // here, but if the state ever desyncs we fall back to Today so
             // users aren't stuck on a blank gradient.
-            HomeView(mode: mode, onTapWordmark: openMenu)
+            TodayDashboardView(
+                mode: mode,
+                onTapWordmark: openMenu,
+                onPresentScan: { activeSheet = .scanMode($0) }
+            )
         }
     }
 
@@ -137,24 +145,6 @@ struct MainTabView: View {
         }
     }
 
-    // MARK: - Mode toggle
-
-    private var modeToggle: some View {
-        Button {
-            HapticManager.light()
-            withAnimation(.easeInOut(duration: 0.6)) {
-                mode = (mode == .day) ? .night : .day
-            }
-        } label: {
-            Text(mode == .day ? "☾" : "☀")
-                .font(.system(size: 16))
-                .foregroundStyle(Color.white.opacity(0.7))
-                .padding(10)
-                .accessibilityLabel(mode == .day ? "Switch to night mode" : "Switch to day mode")
-        }
-        .buttonStyle(.plain)
-    }
-
     // MARK: - Menu
 
     private func openMenu() {
@@ -169,14 +159,13 @@ struct MainTabView: View {
         case .menu:
             MenuSheet(
                 isPro: isPro,
-                isOnGLP: profile?.medicationModality != nil,
-                onSelect: { dest in
-                    activeSheet = .destination(gateDestination(dest))
-                },
+                onSelect: { dest in handleMenuSelect(dest) },
                 onClose: { activeSheet = nil }
             )
         case .scan:
             ScanView()
+        case .scanMode(let mode):
+            ScanView(initialMode: mode)
         case .mira:
             MiraChatView()
         case .destination(let dest):
@@ -192,25 +181,66 @@ struct MainTabView: View {
         return dest
     }
 
-    private static let proGatedDestinations: Set<MenuDestination> = [.progress, .reflection]
+    private static let proGatedDestinations: Set<MenuDestination> = [.profile, .reflection]
+
+    /// Handles a menu selection. Most rows fall through to a sheet via
+    /// `.destination(...)`; a few have side-effect routes (Today pivots
+    /// the bottom-bar selection, Notifications deep-links into iOS
+    /// Settings) and exit without presenting a sheet.
+    private func handleMenuSelect(_ dest: MenuDestination) {
+        switch dest {
+        case .today:
+            // Pivot the tab bar instead of opening a sheet — Today is
+            // already a top-level tab, the menu entry is a shortcut.
+            activeSheet = nil
+            selectedTab = .today
+        case .notifications:
+            // No in-app notifications pane yet; deep-link to the iOS
+            // Settings page for this app where the user can manage
+            // permissions and toggles.
+            activeSheet = nil
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        case .medications:
+            // Dedicated MedicationView — operational data (provider,
+            // pharmacy, refill) lives there. The Journey page keeps a
+            // summary block but doesn't own this surface.
+            activeSheet = .destination(.medications)
+        case .foodAllergies:
+            // No focused screen yet — route to Journey until one is built.
+            activeSheet = .destination(.profile)
+        case .emailProfile:
+            // Account info lives at the top of the Settings sheet
+            // (ProfileView). Route there.
+            activeSheet = .destination(.settings)
+        default:
+            activeSheet = .destination(gateDestination(dest))
+        }
+    }
 
     @ViewBuilder
     private func destinationView(_ dest: MenuDestination) -> some View {
         switch dest {
-        case .profile:     JourneyProfileView()
-        case .progress:    ProgressDashboardView()
-        case .groceryList: GroceryListScreen(mode: mode)
-        case .recipes:     RecipesView()
-        case .calendar:    CalendarView(mode: mode)
-        case .pantry:      PantryView(mode: mode)
-        case .safeSpace:   SafeSpaceView()
-        case .reflection:  ReflectionView()
-        case .scan:        ScanView()
-        case .mira:        MiraChatView()
-        case .subscribe:   PaywallView(mode: mode)
-        case .proBenefits: ProBenefitsView()
-        case .medications: MedicationView(mode: mode)
-        case .settings:    ProfileView()
+        case .profile:        JourneyView()
+        case .progress:       JourneyView()
+        case .groceryList:    GroceryListScreen(mode: mode)
+        case .recipes:        RecipesView()
+        case .calendar:       CalendarView(mode: mode)
+        case .pantry:         PantryView(mode: mode)
+        case .safeSpace:      SafeSpaceView()
+        case .reflection:     ReflectionView()
+        case .scan:           ScanView()
+        case .scanReceipt:    ReceiptScannerView()
+        case .favorites:      FavoritesView()
+        case .medications:    MedicationView(mode: mode)
+        case .mira:           MiraChatView()
+        case .subscribe:      PaywallView(mode: mode)
+        case .proBenefits:    ProBenefitsView()
+        case .settings:       EditorialSettingsView()
+        // Routed via handleMenuSelect side-effects, never reach the sheet:
+        case .today, .notifications, .foodAllergies, .emailProfile:
+            EmptyView()
         }
     }
 }
@@ -218,6 +248,7 @@ struct MainTabView: View {
 enum MainSheet: Identifiable, Hashable {
     case menu
     case scan
+    case scanMode(ScanView.ScanMode)
     case mira
     case destination(MenuDestination)
 
@@ -225,6 +256,7 @@ enum MainSheet: Identifiable, Hashable {
         switch self {
         case .menu:                "menu"
         case .scan:                "scan"
+        case .scanMode(let m):     "scan-\(m)"
         case .mira:                "mira"
         case .destination(let d):  "dest-\(d.rawValue)"
         }

@@ -4,14 +4,25 @@ import UIKit
 
 @Observable
 final class HealthKitManager {
+    /// Cached "ever successfully authorized" flag. iOS hides actual READ
+    /// authorization for privacy (you can't query it synchronously), so
+    /// without a cache every fresh view that creates a HealthKitManager
+    /// would re-show the Connect button until an async fetch finishes,
+    /// even after the user already granted access in onboarding.
+    private static let everConnectedKey = "healthkit.everConnected"
+
     private let store = HKHealthStore()
 
-    var isAuthorized = false
+    var isAuthorized: Bool
     var latestWeight: Double?
     var latestBodyFatPercent: Double?
     var latestLeanBodyMassLbs: Double?
     var weightUnit: String = "lbs"
     var weightHistory: [(date: Date, value: Double)] = []
+
+    init() {
+        self.isAuthorized = UserDefaults.standard.bool(forKey: Self.everConnectedKey)
+    }
 
     var isAvailable: Bool {
         HKHealthStore.isHealthDataAvailable()
@@ -54,6 +65,7 @@ final class HealthKitManager {
                 toShare: [], read: readTypes
             )
             isAuthorized = true
+            UserDefaults.standard.set(true, forKey: Self.everConnectedKey)
             await fetchLatestWeight()
             await fetchWeightHistory()
             await fetchLatestBodyFatPercentage()

@@ -407,6 +407,12 @@
 				INFOPLIST_KEY_CFBundleDisplayName = MemoryAisle;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_LSApplicationQueriesSchemes = (
+					doordash,
+					ubereats,
+					grubhub,
+					instacart,
+				);
 				INFOPLIST_KEY_NSCameraUsageDescription = "MemoryAisle needs camera access to scan food barcodes and analyze meals.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "MemoryAisle uses Face ID to protect your Safe Space journal and sensitive health data.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "MemoryAisle reads your weight and body composition to personalize protein targets and track progress.";
@@ -414,6 +420,9 @@
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MemoryAisle uses the microphone for voice conversations with Mira.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "MemoryAisle uses your photo library for profile photos, progress check-ins, and meal logging.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MemoryAisle uses speech recognition to transcribe your voice on-device for Mira conversations. Audio is never sent to any server.";
+				INFOPLIST_KEY_UIAppFonts = (
+					"LibreCaslonDisplay-Regular.ttf",
+				);
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -457,6 +466,12 @@
 				INFOPLIST_KEY_CFBundleDisplayName = MemoryAisle;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_LSApplicationQueriesSchemes = (
+					doordash,
+					ubereats,
+					grubhub,
+					instacart,
+				);
 				INFOPLIST_KEY_NSCameraUsageDescription = "MemoryAisle needs camera access to scan food barcodes and analyze meals.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "MemoryAisle uses Face ID to protect your Safe Space journal and sensitive health data.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "MemoryAisle reads your weight and body composition to personalize protein targets and track progress.";
@@ -464,6 +479,9 @@
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MemoryAisle uses the microphone for voice conversations with Mira.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "MemoryAisle uses your photo library for profile photos, progress check-ins, and meal logging.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MemoryAisle uses speech recognition to transcribe your voice on-device for Mira conversations. Audio is never sent to any server.";
+				INFOPLIST_KEY_UIAppFonts = (
+					"LibreCaslonDisplay-Regular.ttf",
+				);
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

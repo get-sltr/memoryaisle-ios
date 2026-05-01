@@ -39,8 +39,19 @@ Infrastructure/CDK/dist/
 Infrastructure/lambda/*/node_modules/
 Infrastructure/lambda/*/*.zip
 
+# Claude Code local settings (per-developer, not shared)
+.claude/
+
 # Superpowers scratch (brainstorm sessions, visual companion state)
 .superpowers/
+
+# iCloud / macOS duplicate files (Finder appends " 2" when sync collisions happen)
+* 2.json
+* 2.swift
+* 2.ts
+
+# School / scratch docs that landed here by accident
+CYB200Project2.docx
 
 # Figma state
 /tmp/dsb-state-*.json

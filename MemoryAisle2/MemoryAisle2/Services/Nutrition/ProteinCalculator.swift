@@ -79,10 +79,11 @@ struct ProteinCalculator {
 
     private static func gramsPerLb(for level: TrainingLevel) -> Double {
         switch level {
-        case .lifts: 1.2
-        case .cardio: 1.0
-        case .sometimes: 0.9
-        case .none: 0.8
+        case .lifts:         1.2
+        case .cardio:        1.0
+        case .sometimes:     0.9
+        case .none:          0.8
+        case .nutritionOnly: 0.8
         }
     }
 }

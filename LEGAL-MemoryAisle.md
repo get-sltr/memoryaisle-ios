@@ -202,6 +202,8 @@ We DO NOT:
 
 When you interact with Mira (the AI assistant), your prompts are sent to Amazon Web Services (AWS) Bedrock for processing by an AI model (Claude by Anthropic). These prompts include contextual information about your nutritional profile, dietary preferences, and current meal plan state. They do NOT include your full name, email address, or raw medication data. Prompts are not stored by the AI provider beyond the duration of the request.
 
+**Mira conversations are ephemeral by design.** MemoryAisle does not store your Mira conversations on its servers and does not write them to your device's persistent storage. Conversation history is held only in the active app session's memory and is discarded when you close the conversation, background the app for an extended period, or restart the app. There is no "past conversations" archive, no server-side log of message content, and no way to recover a previous Mira chat. Each interaction is meant to live in the moment.
+
 ## 2.6 Data Security
 
 We implement industry-standard security measures including:
@@ -217,6 +219,7 @@ We implement industry-standard security measures including:
 - **Account data:** Retained for the duration of your account plus 30 days after deletion request
 - **Nutrition logs:** Retained for the duration of your account
 - **Voice transcriptions:** Processed in real-time and not stored after transcription is complete
+- **Mira conversations:** Not retained. Each chat lives only in your device's memory during the active app session and is discarded when the conversation closes, the app is backgrounded for an extended period, or the app restarts. No server-side log of conversation content exists.
 - **Barcode scan results:** Cached locally on device for 30 days for offline access
 - **Community posts:** Retained until deleted by you or removed by moderation
 

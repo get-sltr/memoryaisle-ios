@@ -7,10 +7,11 @@ struct TrainingScreen: View {
 
     private func iconFor(_ level: TrainingLevel) -> String {
         switch level {
-        case .lifts: "dumbbell.fill"
-        case .cardio: "figure.run"
-        case .sometimes: "figure.walk"
-        case .none: "sofa.fill"
+        case .lifts:         "dumbbell.fill"
+        case .cardio:        "figure.run"
+        case .sometimes:     "figure.walk"
+        case .none:          "sofa.fill"
+        case .nutritionOnly: "leaf.fill"
         }
     }
 

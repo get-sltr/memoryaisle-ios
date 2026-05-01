@@ -17,6 +17,20 @@ final class MedicationProfile {
     var previousDose: String?
     var notes: String?
 
+    // MARK: - Care team + refill (added 2026-05-01)
+    //
+    // All optional so the SwiftData migration is lightweight — existing
+    // rows decode with nil here and the Medication page treats nil as
+    // "not yet set" rather than rendering empty values. Phone strings
+    // are free-form (E.164 isn't enforced) so users can paste whatever
+    // the prescriber's office gave them, including extensions.
+    var providerName: String?
+    var providerPhone: String?
+    var pharmacyName: String?
+    var pharmacyPhone: String?
+    var refillDueDate: Date?
+    var refillReminderEnabled: Bool?
+
     init(
         medication: Medication,
         modality: MedicationModality,

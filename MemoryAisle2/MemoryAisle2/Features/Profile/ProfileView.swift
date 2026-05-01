@@ -2,6 +2,37 @@
 import SwiftData
 import SwiftUI
 
+/// Three-way appearance choice surfaced in Settings. `auto` defers to
+/// `MAMode.auto` (time of day). Day and Night force the gradient regardless
+/// of clock.
+enum AppearanceChoice: CaseIterable, Sendable {
+    case auto, day, night
+
+    var label: String {
+        switch self {
+        case .auto:  "Auto (Time of Day)"
+        case .day:   "Day"
+        case .night: "Night"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .auto:  "circle.lefthalf.filled"
+        case .day:   "sun.max"
+        case .night: "moon"
+        }
+    }
+
+    var mode: MAMode? {
+        switch self {
+        case .auto:  nil
+        case .day:   .day
+        case .night: .night
+        }
+    }
+}
+
 struct ProfileView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
@@ -30,6 +61,7 @@ struct ProfileView: View {
                     AppleHealthCard()
                     medicationCard
                     modeSelector
+                    appearanceSelector
                     targetsCard
                     settingsCard
                     dangerZone
@@ -297,6 +329,53 @@ struct ProfileView: View {
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - Appearance (editorial Day/Night)
+
+    private var appearanceSelector: some View {
+        @Bindable var appState = appState
+        return section("Appearance") {
+            // Three-way: Auto follows time of day; Day/Night override.
+            // The previous design surfaced this as a sun/moon toggle on the
+            // home masthead — moved here so the home stays focused on
+            // content.
+            ForEach(AppearanceChoice.allCases, id: \.self) { choice in
+                let isSelected = currentAppearanceChoice == choice
+                Button {
+                    HapticManager.selection()
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        appState.appearanceMode = choice.mode
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: choice.icon)
+                            .font(.system(size: 14))
+                            .foregroundStyle(isSelected ? Color.violet : Theme.Text.secondary(for: scheme))
+                            .frame(width: 22)
+                        Text(choice.label)
+                            .font(.system(size: 14, weight: isSelected ? .medium : .regular))
+                            .foregroundStyle(isSelected ? Theme.Text.primary : Theme.Text.secondary(for: scheme))
+                        Spacer()
+                        if isSelected {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(Color.violet)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private var currentAppearanceChoice: AppearanceChoice {
+        switch appState.appearanceMode {
+        case nil:      return .auto
+        case .day?:    return .day
+        case .night?:  return .night
         }
     }
 

@@ -8,7 +8,12 @@ struct AppleHealthCard: View {
     @State private var showSettingsPrompt = false
 
     private var isConnected: Bool {
-        healthKit.latestWeight != nil || !healthKit.weightHistory.isEmpty
+        // `isAuthorized` is cached in UserDefaults so a freshly-created
+        // manager reflects the user's prior decision instantly. The data
+        // checks remain as a fallback in case the cache flag was lost.
+        healthKit.isAuthorized
+            || healthKit.latestWeight != nil
+            || !healthKit.weightHistory.isEmpty
     }
 
     var body: some View {

@@ -20,7 +20,11 @@ Housekeeping rules: `RULES.md`
 - Theme + tokens: `MemoryAisle2/MemoryAisle2/DesignSystem/Theme.swift`
 - Mira prompt construction: `MemoryAisle2/MemoryAisle2/Services/AI/MiraEngine.swift`
 - App entry / tab shell: `MemoryAisle2/MemoryAisle2/App/MemoryAisleApp.swift`, `MainTabView.swift`, `AppState.swift`
+- Onboarding (editorial): `MemoryAisle2/MemoryAisle2/Features/Onboarding/OnboardingFlow.swift` cuts over to `Editorial/EditorialOnboardingFlow.swift` (router + `OnboardingAtoms.swift` + `Editorial/Screens/`). Legacy non-editorial onboarding screens still live alongside it during the migration.
+- Bundled fonts: `MemoryAisle2/MemoryAisle2/Resources/Fonts/` (Libre Caslon Display only — see typography rule below)
 - Test plan: `MemoryAisle2/MemoryAisle2.xctestplan`
+- CI: `.github/workflows/ci.yml` runs on push/PR to `main` — builds + tests on macos-15 / Xcode 16, then enforces two repo rules as separate steps: em-dash audit on `Features/` + `DesignSystem/Editorial/` string literals, and a `print(` audit across all Swift sources. A PR that adds either will fail CI even if it compiles cleanly locally.
+- Working docs (`docs/`): `appstore-submission.md` (App Store Connect metadata), `auth-rewrite-brief.md` (integration brief for the auth rewrite landing on `feature/auth-rewrite`), `mira-intelligence-review.md` (legal/medical review of Mira's drug-fact handling — pairs with the empty `CuratedDrugFacts` table), `weekly-meal-plan-review.md` (legal/medical review of meal generation), `weekly-meal-plan-device-test.md` (on-device QA pass for the weekly meal plan).
 
 ## Build & Test Commands
 
@@ -92,7 +96,7 @@ MemoryAisle2/MemoryAisle2/
                   (protein, hydration, today's meal) + AppGroupDataProvider bridge
   Assets.xcassets, MemoryAisle2.entitlements, MemoryAisleProducts.storekit, PrivacyInfo.xcprivacy
 
-MemoryAisle2/MemoryAisle2Tests/         Unit tests grouped by service area (Reflection/, Nutrition/, Progress/, ...)
+MemoryAisle2/MemoryAisle2Tests/         Unit tests grouped by service area (MealPlan/, Mira/, Nutrition/, Progress/, Reflection/, Subscription/)
 MemoryAisle2/MemoryAisle2UITests/       UI tests
 MemoryAisle2/MemoryAisleWidgets/        Widget extension sources (consumed by the
                                         MemoryAisleWidgetsExtension target)
@@ -103,7 +107,7 @@ website/, docs/                         Marketing site and product docs
 ```
 
 ### Key Services
-- **MiraEngine** (`Services/AI/`): Builds context-aware prompts from user profile, logs, symptoms, and medication phase, then sends to Bedrock Claude. This is the core decision engine.
+- **MiraEngine** (`Services/AI/`): Builds context-aware prompts from user profile, logs, symptoms, and medication phase, then sends to Bedrock Claude. The system prompt is structured around **six prioritized roles** (medication expert → side-effect triage → medication-assistance → nutrition → lean-mass preservation → long-term lifestyle), plus hard lines (never prescribe/administer/distribute/recommend-dose-changes/use-brand-names) and four jailbreak refusal patterns. All pinned by `MiraSystemPromptTests` (14 tests) — do not edit the prompt without updating those tests. Drug-specific facts must route through the `lookupDrugFact` tool against `CuratedDrugFacts` (which ships intentionally empty pending medical/legal sign-off — see `docs/mira-intelligence-review.md`); never generate drug numbers freeform. The tool registry is mirrored in `Infrastructure/lambda/miraGenerate/index.mjs`, so adding/removing tools requires both sides plus a `cdk deploy`.
 - **MedicationManager** (`Services/Medication/`): Tracks medication modality (injectable, oral+fasting, oral no-fasting), dose phases, and appetite/nausea predictions by cycle day.
 - **ProteinCalculator** (`Services/Nutrition/`): Computes targets from lean mass + goals. Wrong targets = wrong guidance = harm. Test thoroughly.
 - **GIToleranceEngine** (`Services/Nutrition/`): Tracks food-to-symptom correlations to avoid triggering foods.
@@ -121,15 +125,15 @@ Cognito auth (Amplify Swift SDK v2) -> API Gateway -> Lambda (VPC) -> Aurora Ser
 - **Not allowed:** Any other Swift package, CocoaPod, or Carthage dependency without explicit approval. If it can be done with Apple frameworks, do it that way.
 
 ### Code Rules
-- Max 300 lines per file. Max 50 lines per function. One type per file.
+- Max 600 lines per file. Max 50 lines per function. One type per file.
 - Swift 6 strict concurrency. All `Sendable` violations must be fixed, not suppressed.
 - `async/await` only — no completion handlers.
 - No force unwraps (`!`), `try!`, or `as!` outside of tests.
-- No hardcoded colors — use `Theme.swift`. No custom fonts — SF Pro system fonts only.
+- No hardcoded colors — use `Theme.swift`. Apple system fonts (SF Pro / SF Mono / New York) for everything except editorial display + body copy, which uses bundled **Libre Caslon Display** via `Theme.Editorial.Typography.displayHero/displayHeroItalic/displaySmall/body/mealName/miraBody`. The wordmark intentionally stays on the system serif (New York reads better than Caslon at 11pt). No other bundled fonts without explicit approval — surface the request rather than quietly adding a `.ttf`.
 - All UI must work in both dark and light mode using `Theme.swift` adaptive colors.
 - Accessibility labels on all interactive elements. Dynamic Type on all text.
 - No `TODO`/`FIXME` comments — fix it now or don't touch it.
-- No em dashes in any UI copy, Mira prompts, or Mira-generated text. This applies to `MiraEngine` system prompts and any string that could end up rendered in the app.
+- No em dashes in any UI copy, Mira prompts, or Mira-generated text. This applies to `MiraEngine` system prompts and any string that could end up rendered in the app. **Exception:** the editorial subtitle pattern (`— CAPS LINE`, e.g. `— WELCOME BACK`, `— A QUESTION TO BEGIN WITH`) intentionally uses a leading em dash as typographic ornamentation on editorial surfaces (auth, mastheads, day/night editorial canvas). This is the only sanctioned em-dash use; everywhere else still falls under the general ban.
 - No `print(...)` — use `os.Logger` for debug output. Any `print` is a regression.
 
 ### Data Safety

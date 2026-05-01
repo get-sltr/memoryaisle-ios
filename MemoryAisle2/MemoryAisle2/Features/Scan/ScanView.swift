@@ -10,16 +10,20 @@ struct ScanView: View {
     @State private var showPantry = false
     @State private var showMealPhoto = false
     @State private var showFoodSearch = false
-    @State private var selectedMode: ScanMode = .barcode
+    @State private var selectedMode: ScanMode
     @State private var isScanning = false
     @State private var scannedProduct: ScannedProduct?
     @State private var pendingManualEntry: PendingManualEntry?
     @State private var showPaywall = false
     @State private var showLimitAlert = false
 
+    init(initialMode: ScanMode = .barcode) {
+        _selectedMode = State(initialValue: initialMode)
+    }
+
     private var isPro: Bool { subscriptionManager.tier == .pro }
 
-    private enum ScanMode: Hashable {
+    enum ScanMode: Hashable {
         case barcode, photo, search
     }
 

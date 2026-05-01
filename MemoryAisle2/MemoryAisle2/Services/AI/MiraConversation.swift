@@ -12,6 +12,15 @@ final class MiraConversation {
     private let client = MiraAPIClient()
     private let executor: MiraToolExecutor
 
+    /// PRIVACY INVARIANT: this history is in-memory only, scoped to the
+    /// lifetime of this MiraConversation instance. Do NOT persist to
+    /// SwiftData, UserDefaults, Keychain, or any cloud sink. The privacy
+    /// policy (LEGAL-MemoryAisle.md §2.5/§2.7) commits that Mira
+    /// conversations are not stored — that promise is held here and in
+    /// MiraTabView.messages. If a future feature needs persistence (e.g.
+    /// "save this Mira recipe"), copy the specific content into the
+    /// existing SavedRecipe model rather than persisting the chat itself.
+    ///
     /// Conversation history in Anthropic messages format. Each entry is a
     /// dict with "role" ("user" or "assistant") and "content" (a string for
     /// simple text, or an array of content blocks for tool use / results).
