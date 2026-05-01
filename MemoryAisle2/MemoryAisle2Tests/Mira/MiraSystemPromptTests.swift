@@ -109,4 +109,39 @@ final class MiraSystemPromptTests: XCTestCase {
     func test_promptForbidsReferencingUsersRealName() {
         XCTAssertTrue(makePrompt().contains("Never reference the user's real name"))
     }
+
+    // MARK: - Care-team guardrails
+
+    func test_promptForbidsPharmacyAndPrescriberSwitchAdvice() {
+        let prompt = makePrompt()
+        XCTAssertTrue(prompt.contains("Never recommend switching pharmacies or switching prescribers"))
+    }
+
+    func test_promptForbidsAdvertisingMedicationsBrandsOrPharmacies() {
+        let prompt = makePrompt()
+        XCTAssertTrue(prompt.contains("Never advertise, market, promote, or compare"))
+    }
+
+    func test_promptForbidsBridgingFromSymptomToDoseChange() {
+        let prompt = makePrompt()
+        XCTAssertTrue(prompt.contains("Never bridge from symptom to dose change"))
+    }
+
+    func test_promptDefaultsMedicationQuestionsToPrescriber() {
+        let prompt = makePrompt()
+        XCTAssertTrue(prompt.contains("DEFAULT FOR MEDICATION QUESTIONS"))
+        XCTAssertTrue(prompt.contains("their prescriber is the right person for that"))
+    }
+
+    func test_promptHandlesPharmacySwitchJailbreak() {
+        XCTAssertTrue(makePrompt().contains("Should I switch pharmacies"))
+    }
+
+    func test_promptHandlesMedComparisonJailbreak() {
+        XCTAssertTrue(makePrompt().contains("Should I switch to a different GLP-1"))
+    }
+
+    func test_promptHandlesSymptomDangerJailbreak() {
+        XCTAssertTrue(makePrompt().contains("Is this symptom dangerous"))
+    }
 }
