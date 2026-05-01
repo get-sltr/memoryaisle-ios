@@ -316,10 +316,14 @@ struct OnboardingNumberPill: View {
 
 // MARK: - Multi-line text input + voice button
 
-/// Captures free-text answers (Screens 03 and 10). The voice button drives
-/// the existing `VoiceManager` (Apple Speech framework) in push-to-talk
-/// mode. While listening, the live transcript replaces `text`. No new STT
-/// path is built — this view delegates entirely to the existing manager.
+/// Captures free-text answers (Screens 03 and 10). The TextField is the
+/// primary input — tap it to type. The voice button below is an alternate
+/// affordance for users who'd rather speak; it drives `VoiceManager` (Apple
+/// Speech framework) in push-to-talk mode and replaces `text` with the live
+/// transcript while listening. No new STT path is built — this view
+/// delegates entirely to the existing manager. The "OR" prefix on the voice
+/// button label and the modeHint line above it both signal that typing
+/// works for users who can't speak aloud.
 struct OnboardingTextInput: View {
     @Binding var text: String
     let placeholder: String
@@ -328,7 +332,7 @@ struct OnboardingTextInput: View {
     @Binding var isListening: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             TextField(
                 "",
                 text: $text,
@@ -351,6 +355,8 @@ struct OnboardingTextInput: View {
                     .stroke(Theme.Editorial.onSurface.opacity(0.25), lineWidth: 1)
             )
 
+            modeHint
+
             HStack {
                 voiceButton
                 Spacer()
@@ -365,6 +371,14 @@ struct OnboardingTextInput: View {
         }
     }
 
+    private var modeHint: some View {
+        Text("TAP THE FIELD TO TYPE — OR HOLD THE MIC TO SPEAK")
+            .font(Theme.Editorial.Typography.caps(8, weight: .medium))
+            .tracking(1.6)
+            .foregroundStyle(Theme.Editorial.onSurfaceFaint)
+            .accessibilityHidden(true)
+    }
+
     private var voiceButton: some View {
         Button {
             Task { await togglePushToTalk() }
@@ -372,7 +386,7 @@ struct OnboardingTextInput: View {
             HStack(spacing: 6) {
                 Image(systemName: "mic.fill")
                     .font(.system(size: 11))
-                Text(isListening ? "RELEASE WHEN DONE" : "HOLD TO SPEAK")
+                Text(isListening ? "RELEASE WHEN DONE" : "OR HOLD TO SPEAK")
                     .font(Theme.Editorial.Typography.capsBold(9))
                     .tracking(1.8)
             }
@@ -392,7 +406,7 @@ struct OnboardingTextInput: View {
                 .onChanged { _ in startListeningIfIdle() }
                 .onEnded { _ in stopListeningIfActive() }
         )
-        .accessibilityLabel(isListening ? "Release when done speaking" : "Hold to speak")
+        .accessibilityLabel(isListening ? "Release when done speaking" : "Hold to speak, or tap the field above to type")
     }
 
     private func startListeningIfIdle() {
