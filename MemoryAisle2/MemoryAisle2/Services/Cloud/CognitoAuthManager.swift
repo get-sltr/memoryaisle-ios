@@ -89,12 +89,13 @@ final class CognitoAuthManager {
             if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                let result = json["AuthenticationResult"] as? [String: Any] {
                 accessToken = result["AccessToken"] as? String
+                let refreshToken = result["RefreshToken"] as? String
                 self.email = email
 
                 // Get user info
                 await fetchUser()
                 isSignedIn = true
-                saveSession(email: email, token: accessToken)
+                saveSession(email: email, token: accessToken, refreshToken: refreshToken)
             }
             isLoading = false
             return true
@@ -203,6 +204,22 @@ final class CognitoAuthManager {
 
     // MARK: - Restore Session
 
+    /// Re-establishes the signed-in state from keychain on app launch.
+    ///
+    /// Flow:
+    ///   1. Load saved email + access token from keychain (migrate from
+    ///      UserDefaults if needed).
+    ///   2. Try `fetchUser()` with the saved access token.
+    ///   3. If that succeeds (userId populated), we're signed in. Done.
+    ///   4. If it fails (token expired/invalid), try the refresh-token
+    ///      flow to mint a new access token, then retry `fetchUser()`.
+    ///   5. Only if BOTH the access token and the refresh attempt fail
+    ///      do we leave `isSignedIn = false`. We do NOT call
+    ///      `clearSession()` here — silent sign-out without the user's
+    ///      explicit decision is a hard rule. The keychain stays intact
+    ///      so the sign-in screen can prefill email and the user can
+    ///      re-auth without losing local state. Only `signOut()` and
+    ///      `signOutEverywhere()` (both user-initiated) clear the keychain.
     func restoreSession() async {
         var savedEmail = readFromKeychain(key: "ma_email")
         var savedToken = readFromKeychain(key: "ma_token")
@@ -222,12 +239,65 @@ final class CognitoAuthManager {
         accessToken = savedToken
 
         await fetchUser()
-
         if userId != nil {
             isSignedIn = true
-        } else {
-            clearSession()
+            return
         }
+
+        // Access token didn't validate. Try refresh before giving up.
+        if await refreshAccessToken() {
+            await fetchUser()
+            if userId != nil {
+                isSignedIn = true
+                return
+            }
+        }
+
+        // Refresh also failed. Leave signed-out state, but do NOT wipe
+        // the keychain — the user did not ask to sign out. They will be
+        // routed to MAAuthFlow with email prefilled; on next successful
+        // sign-in, saveSession overwrites the stale tokens.
+    }
+
+    /// Calls Cognito's REFRESH_TOKEN_AUTH flow to mint a new access token
+    /// from the saved refresh token. Returns true when a new access token
+    /// was obtained and persisted; false when no refresh token is stored
+    /// or the refresh call failed (network error, refresh token revoked,
+    /// or refresh token expired — Cognito refresh tokens default to 30
+    /// days but can be configured longer in the user pool).
+    private func refreshAccessToken() async -> Bool {
+        guard let refreshToken = readFromKeychain(key: "ma_refresh_token") else {
+            return false
+        }
+
+        let body: [String: Any] = [
+            "AuthFlow": "REFRESH_TOKEN_AUTH",
+            "ClientId": clientId,
+            "AuthParameters": [
+                "REFRESH_TOKEN": refreshToken
+            ]
+        ]
+
+        do {
+            let data = try await cognitoRequest(action: "AWSCognitoIdentityProviderService.InitiateAuth", body: body)
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let result = json["AuthenticationResult"] as? [String: Any],
+               let newAccessToken = result["AccessToken"] as? String {
+                accessToken = newAccessToken
+                saveToKeychain(key: "ma_token", value: newAccessToken)
+                // REFRESH_TOKEN_AUTH only returns a new RefreshToken when
+                // the pool is configured to rotate them; reuse the existing
+                // refresh token when a new one isn't returned.
+                if let newRefresh = result["RefreshToken"] as? String {
+                    saveToKeychain(key: "ma_refresh_token", value: newRefresh)
+                }
+                return true
+            }
+        } catch {
+            // Refresh failed — refresh token revoked, expired, or transient
+            // network error. Caller will leave isSignedIn = false; no wipe.
+        }
+        return false
     }
 
     // MARK: - Fetch User
@@ -373,14 +443,16 @@ final class CognitoAuthManager {
 
     private let keychainService = "com.sltrdigital.memoryaisle"
 
-    private func saveSession(email: String?, token: String?) {
+    private func saveSession(email: String?, token: String?, refreshToken: String? = nil) {
         if let email { saveToKeychain(key: "ma_email", value: email) }
         if let token { saveToKeychain(key: "ma_token", value: token) }
+        if let refreshToken { saveToKeychain(key: "ma_refresh_token", value: refreshToken) }
     }
 
     private func clearSession() {
         deleteFromKeychain(key: "ma_email")
         deleteFromKeychain(key: "ma_token")
+        deleteFromKeychain(key: "ma_refresh_token")
         UserDefaults.standard.removeObject(forKey: "ma_email")
         UserDefaults.standard.removeObject(forKey: "ma_token")
     }
