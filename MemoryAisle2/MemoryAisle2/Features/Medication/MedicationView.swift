@@ -109,6 +109,14 @@ struct MedicationView: View {
             editorSheet(for: field)
         }
         .onAppear {
+            // Lazy-create the MedicationProfile for users who completed
+            // onboarding before MedicationProfile rows existed (or before
+            // their device had one). Without this, every editor below
+            // writes through `med?.field = value` which silently no-ops
+            // when `med` is nil — provider/pharmacy/refill edits would
+            // appear to save but disappear on next view.
+            ensureMedicationProfile()
+
             guard !hasInitializedDoseReminderState else { return }
             hasInitializedDoseReminderState = true
             doseReminderEnabledLocal = doseReminderEnabled
@@ -392,46 +400,60 @@ struct MedicationView: View {
             TextEditorSheet(title: "PROVIDER NAME",
                             initial: med?.providerName ?? "",
                             placeholder: "Dr. Last name") { value in
-                med?.providerName = value.isEmpty ? nil : value
+                guard let m = ensureMedicationProfile() else { return }
+                m.providerName = value.isEmpty ? nil : value
+                try? modelContext.save()
             }
         case .providerPhone:
             TextEditorSheet(title: "PROVIDER PHONE",
                             initial: med?.providerPhone ?? "",
                             placeholder: "555 123 4567",
                             keyboard: .phonePad) { value in
-                med?.providerPhone = value.isEmpty ? nil : value
+                guard let m = ensureMedicationProfile() else { return }
+                m.providerPhone = value.isEmpty ? nil : value
+                try? modelContext.save()
             }
         case .providerAddress:
             TextEditorSheet(title: "PROVIDER ADDRESS",
                             initial: providerAddress ?? "",
                             placeholder: "Street, City, State") { value in
+                _ = ensureMedicationProfile()
                 setNoteValue(key: "providerAddress", value: value)
+                try? modelContext.save()
             }
         case .pharmacyName:
             TextEditorSheet(title: "PHARMACY NAME",
                             initial: med?.pharmacyName ?? "",
                             placeholder: "Pharmacy + location") { value in
-                med?.pharmacyName = value.isEmpty ? nil : value
+                guard let m = ensureMedicationProfile() else { return }
+                m.pharmacyName = value.isEmpty ? nil : value
+                try? modelContext.save()
             }
         case .pharmacyPhone:
             TextEditorSheet(title: "PHARMACY PHONE",
                             initial: med?.pharmacyPhone ?? "",
                             placeholder: "555 123 4567",
                             keyboard: .phonePad) { value in
-                med?.pharmacyPhone = value.isEmpty ? nil : value
+                guard let m = ensureMedicationProfile() else { return }
+                m.pharmacyPhone = value.isEmpty ? nil : value
+                try? modelContext.save()
             }
         case .pharmacyAddress:
             TextEditorSheet(title: "PHARMACY ADDRESS",
                             initial: pharmacyAddress ?? "",
                             placeholder: "Street, City, State") { value in
+                _ = ensureMedicationProfile()
                 setNoteValue(key: "pharmacyAddress", value: value)
+                try? modelContext.save()
             }
         case .refillDate:
             DatePickerSheet(
                 title: "REFILL DUE",
                 initial: med?.refillDueDate ?? .now
             ) { date in
-                med?.refillDueDate = date
+                guard let m = ensureMedicationProfile() else { return }
+                m.refillDueDate = date
+                try? modelContext.save()
             }
         case .dose:
             TextEditorSheet(title: "DOSE",
@@ -560,6 +582,40 @@ struct MedicationView: View {
         .frame(maxWidth: .infinity)
         .padding(.top, 32)
         .padding(.bottom, 8)
+    }
+
+    // MARK: - Lazy MedicationProfile creation
+
+    /// Promotes the user's onboarding-captured medication answers
+    /// (which live on `UserProfile`) into a real `MedicationProfile`
+    /// row the first time this screen appears, so editor sheets that
+    /// write through `med?.field = value` actually persist.
+    ///
+    /// No-op when:
+    ///   - a MedicationProfile already exists, or
+    ///   - the user isn't on a medication (no `profile.medication` /
+    ///     `profile.medicationModality` from onboarding) — those users
+    ///     see the slim allergies-only variant of this surface and
+    ///     never reach the editor sheets.
+    @discardableResult
+    private func ensureMedicationProfile() -> MedicationProfile? {
+        if let existing = med { return existing }
+        guard let profile,
+              let medication = profile.medication,
+              let modality = profile.medicationModality
+        else { return nil }
+        let startDate = (UserDefaults.standard.object(forKey: "medicationStartDate") as? Date) ?? .now
+        let new = MedicationProfile(
+            medication: medication,
+            modality: modality,
+            doseAmount: profile.doseAmount ?? "",
+            startDate: startDate,
+            injectionDay: profile.injectionDay,
+            pillTime: profile.pillTime
+        )
+        modelContext.insert(new)
+        try? modelContext.save()
+        return new
     }
 
     // MARK: - Computed
