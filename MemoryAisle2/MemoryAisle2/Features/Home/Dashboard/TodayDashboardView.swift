@@ -45,7 +45,14 @@ struct TodayDashboardView: View {
     private let api = MiraAPIClient()
     private let logger = Logger(subsystem: "com.sltrdigital.MemoryAisle2", category: "Dashboard")
 
-    private var profile: UserProfile? { profiles.first }
+    /// Same userId-scoped lookup as `RootView.currentUserProfile()` with
+    /// a fallback to `profiles.first` for legacy rows whose userId has
+    /// not been stamped yet. Without the scope the dashboard hero would
+    /// surface a previous tester's profile on a fresh sign-up.
+    private var profile: UserProfile? {
+        profiles.first(where: { $0.userId == appState.cognitoUserId })
+            ?? profiles.first
+    }
     private var medication: MedicationProfile? { medications.first }
 
     private let miraFollowUps = [

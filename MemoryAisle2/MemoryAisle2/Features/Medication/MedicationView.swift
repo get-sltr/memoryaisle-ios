@@ -18,6 +18,7 @@ struct MedicationView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @Query(sort: \MedicationProfile.startDate, order: .reverse) private var medications: [MedicationProfile]
     @Query private var profiles: [UserProfile]
 
@@ -26,7 +27,16 @@ struct MedicationView: View {
     @State private var hasInitializedDoseReminderState = false
 
     private var med: MedicationProfile? { medications.first }
-    private var profile: UserProfile? { profiles.first }
+
+    /// Resolves the current signed-in user's profile. Prefers the
+    /// userId-scoped match (post-migration normal case) and falls back to
+    /// `profiles.first` for legacy rows whose userId hasn't been stamped
+    /// yet — this keeps the screen useful for users who haven't re-
+    /// onboarded since the userId field shipped.
+    private var profile: UserProfile? {
+        profiles.first(where: { $0.userId == appState.cognitoUserId })
+            ?? profiles.first
+    }
 
     /// Non-GLP-1 users (no medication of any flavor recorded) see a slimmer
     /// "Allergies & Restrictions" version of this surface — same canvas,
