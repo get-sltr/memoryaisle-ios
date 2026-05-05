@@ -46,7 +46,10 @@ struct MealRecommendation: Identifiable, Hashable, Sendable {
     /// the chicken default the static list used to show).
     var dynamicFollowUps: [String] {
         let haystack = (name + " " + ingredients.joined(separator: " ")).lowercased()
-        let swap = Self.proteinSwaps.first { haystack.contains($0.0) }
+        let swap = Self.proteinSwaps.first { pair in
+            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: pair.0))\\b"
+            return haystack.range(of: pattern, options: .regularExpression) != nil
+        }
         let swapQuestion = swap.map { "Can I swap \($0.0) for \($0.1)?" }
             ?? "Can I make this lighter?"
         let whyQuestion = isDoseDayFriendly
