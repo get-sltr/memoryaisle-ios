@@ -55,12 +55,6 @@ struct TodayDashboardView: View {
     }
     private var medication: MedicationProfile? { medications.first }
 
-    private let miraFollowUps = [
-        "Can I swap chicken for tofu?",
-        "Show me something heartier.",
-        "Why is this dose-day friendly?"
-    ]
-
     var body: some View {
         ZStack {
             ScrollView {
@@ -462,7 +456,7 @@ struct TodayDashboardView: View {
         case .mira:
             MiraTellMeMoreCard(
                 recommendation: current,
-                followUps: miraFollowUps,
+                followUps: current.dynamicFollowUps,
                 onFollowUp: handleMiraFollowUp,
                 onClose: dismissCard
             )

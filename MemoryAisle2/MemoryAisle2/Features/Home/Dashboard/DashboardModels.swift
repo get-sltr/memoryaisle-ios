@@ -39,6 +39,52 @@ struct MealRecommendation: Identifiable, Hashable, Sendable {
     var macroLine: String {
         "~\(calories) CAL · \(proteinG)G PROTEIN · \(fatG)G FAT"
     }
+
+    /// Three follow-up chips for the "Tell me more" Mira card. Derived from
+    /// the recommendation so the swap question reflects the actual primary
+    /// protein (e.g. "Can I swap salmon for tofu?" on a salmon dish, not
+    /// the chicken default the static list used to show).
+    var dynamicFollowUps: [String] {
+        let haystack = (name + " " + ingredients.joined(separator: " ")).lowercased()
+        let swap = Self.proteinSwaps.first { haystack.contains($0.0) }
+        let swapQuestion = swap.map { "Can I swap \($0.0) for \($0.1)?" }
+            ?? "Can I make this lighter?"
+        let whyQuestion = isDoseDayFriendly
+            ? "Why is this dose-day friendly?"
+            : "Why does this fit my plan?"
+        return [swapQuestion, "Show me something heartier.", whyQuestion]
+    }
+
+    /// Longest phrases first so multi-word matches ("cottage cheese",
+    /// "greek yogurt") win over plain "yogurt"/"cheese" substrings.
+    private static let proteinSwaps: [(String, String)] = [
+        ("cottage cheese", "Greek yogurt"),
+        ("greek yogurt", "cottage cheese"),
+        ("salmon", "tofu"),
+        ("tuna", "chicken"),
+        ("halibut", "chicken"),
+        ("tilapia", "tofu"),
+        ("trout", "tofu"),
+        ("cod", "chicken"),
+        ("shrimp", "tofu"),
+        ("chicken", "tofu"),
+        ("turkey", "tofu"),
+        ("steak", "chicken"),
+        ("beef", "chicken"),
+        ("pork", "chicken"),
+        ("lamb", "chicken"),
+        ("bison", "chicken"),
+        ("tempeh", "tofu"),
+        ("seitan", "tofu"),
+        ("tofu", "chicken"),
+        ("lentils", "chickpeas"),
+        ("chickpeas", "tofu"),
+        ("edamame", "tofu"),
+        ("beans", "lentils"),
+        ("eggs", "Greek yogurt"),
+        ("egg", "Greek yogurt"),
+        ("yogurt", "cottage cheese"),
+    ]
 }
 
 // MARK: - Time-of-day window
