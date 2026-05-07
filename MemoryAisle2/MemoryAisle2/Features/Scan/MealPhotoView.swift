@@ -3,9 +3,9 @@ import SwiftData
 import SwiftUI
 
 struct MealPhotoView: View {
-    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
     @State private var cameraImageData: Data?
@@ -18,124 +18,162 @@ struct MealPhotoView: View {
     @Query private var profiles: [UserProfile]
 
     var body: some View {
-        VStack(spacing: 0) {
-            SheetHeader(title: "Meal Photo", onClose: { dismiss() })
-                .section(.scanner)
+        ZStack {
+            EditorialBackground(mode: appState.effectiveAppearanceMode)
 
-            if let result {
-                resultView(result)
-            } else if isAnalyzing {
-                analyzingView
-            } else if let analysisError {
-                errorView(analysisError)
-            } else {
-                captureView
+            VStack(spacing: 0) {
+                header
+                    .padding(.horizontal, Theme.Editorial.Spacing.pad)
+                    .padding(.top, Theme.Editorial.Spacing.topInset)
+
+                if let result {
+                    resultView(result)
+                } else if isAnalyzing {
+                    analyzingView
+                } else if let analysisError {
+                    errorView(analysisError)
+                } else {
+                    captureView
+                }
             }
         }
-        .themeBackground()
+        .preferredColorScheme(.light)
+        .ignoresSafeArea()
+    }
+
+    // MARK: - Header
+
+    private var header: some View {
+        VStack(spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                Button {
+                    HapticManager.light()
+                    dismiss()
+                } label: {
+                    Text("CLOSE")
+                        .font(Theme.Editorial.Typography.capsBold(10))
+                        .tracking(2.0)
+                        .foregroundStyle(Theme.Editorial.onSurface.opacity(0.85))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close")
+
+                Spacer()
+
+                Text("MEAL")
+                    .font(Theme.Editorial.Typography.wordmark())
+                    .tracking(4)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Theme.Editorial.onSurface)
+
+                Spacer()
+
+                // Symmetry spacer so the wordmark stays centered.
+                Text("CLOSE")
+                    .font(Theme.Editorial.Typography.capsBold(10))
+                    .tracking(2.0)
+                    .foregroundStyle(.clear)
+                    .accessibilityHidden(true)
+            }
+            HairlineDivider()
+        }
     }
 
     // MARK: - Capture
 
     private var captureView: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 0) {
+            Spacer(minLength: 32)
+
+            VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: -8) {
+                    Text("Snap your")
+                        .font(Theme.Editorial.Typography.displayHero())
+                        .foregroundStyle(Theme.Editorial.onSurface)
+                    Text("meal.")
+                        .font(Theme.Editorial.Typography.displayHeroItalic())
+                        .foregroundStyle(Theme.Editorial.onSurface)
+                }
+                .lineSpacing(-6)
+
+                Text("Mira will estimate the macros from your photo.")
+                    .font(Theme.Editorial.Typography.miraBody())
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                    .padding(.top, 6)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Theme.Editorial.Spacing.pad)
+
             Spacer()
 
             MiraWaveform(state: .idle, size: .hero)
-                .frame(height: 50)
-
-            Text("Snap your meal")
-                .font(.system(size: 24, weight: .light, design: .serif))
-                .foregroundStyle(Theme.Text.primary)
-                .tracking(0.3)
-
-            Text("Mira will estimate the macros\nfrom your photo.")
-                .font(.system(size: 14))
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
-                .multilineTextAlignment(.center)
+                .frame(height: 36)
+                .opacity(0.65)
 
             Spacer()
 
-            Button {
-                HapticManager.light()
-                showSourceChoice = true
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: "camera.fill")
-                        .font(.system(size: 18))
-                    Text("Take or choose photo")
-                        .font(.system(size: 16, weight: .medium))
-                }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
-                .background(
-                    LinearGradient(
-                        colors: [
-                            SectionPalette.primary(.scanner, for: scheme),
-                            SectionPalette.mid(.scanner, for: scheme)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .shadow(
-                    color: SectionPalette.primary(.scanner, for: scheme).opacity(0.35),
-                    radius: 20,
-                    y: 4
-                )
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Take or choose meal photo")
-            .padding(.horizontal, 32)
-            .confirmationDialog(
-                "Add Meal Photo",
-                isPresented: $showSourceChoice,
-                titleVisibility: .visible
-            ) {
-                Button("Take Photo") {
-                    showCamera = true
-                }
-                Button("Choose from Library") {
-                    showLibraryPicker = true
-                }
-                Button("Cancel", role: .cancel) {}
-            }
-            .fullScreenCover(isPresented: $showCamera) {
-                CameraPicker(imageData: $cameraImageData)
-                    .ignoresSafeArea()
-            }
-            .photosPicker(
-                isPresented: $showLibraryPicker,
-                selection: $selectedPhoto,
-                matching: .images
-            )
-            .onChange(of: selectedPhoto) { _, newValue in
-                guard let newValue else { return }
-                Task {
-                    if let data = try? await newValue.loadTransferable(type: Data.self) {
-                        photoData = data
-                        analyzePhoto()
+            VStack(spacing: 10) {
+                Button {
+                    HapticManager.light()
+                    showSourceChoice = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 13))
+                        Text("TAKE OR CHOOSE PHOTO")
+                            .font(.system(size: 11, weight: .heavy, design: .monospaced))
+                            .tracking(2.2)
                     }
+                    .foregroundStyle(Theme.Editorial.nightTop)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Capsule().fill(Theme.Editorial.onSurface))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Take or choose meal photo")
+            }
+            .padding(.horizontal, Theme.Editorial.Spacing.pad)
+            .padding(.bottom, 56)
+        }
+        .confirmationDialog(
+            "Add Meal Photo",
+            isPresented: $showSourceChoice,
+            titleVisibility: .visible
+        ) {
+            Button("Take Photo") { showCamera = true }
+            Button("Choose from Library") { showLibraryPicker = true }
+            Button("Cancel", role: .cancel) {}
+        }
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraPicker(imageData: $cameraImageData)
+                .ignoresSafeArea()
+        }
+        .photosPicker(
+            isPresented: $showLibraryPicker,
+            selection: $selectedPhoto,
+            matching: .images
+        )
+        .onChange(of: selectedPhoto) { _, newValue in
+            guard let newValue else { return }
+            Task {
+                if let data = try? await newValue.loadTransferable(type: Data.self) {
+                    photoData = data
+                    analyzePhoto()
                 }
             }
-            .onChange(of: cameraImageData) { _, newValue in
-                guard let newValue else { return }
-                photoData = newValue
-                cameraImageData = nil
-                analyzePhoto()
-            }
-
-            Spacer()
-                .frame(height: 56)
+        }
+        .onChange(of: cameraImageData) { _, newValue in
+            guard let newValue else { return }
+            photoData = newValue
+            cameraImageData = nil
+            analyzePhoto()
         }
     }
 
     // MARK: - Error
 
     private func errorView(_ message: String) -> some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 22) {
             Spacer()
 
             if let photoData, let uiImage = UIImage(data: photoData) {
@@ -145,37 +183,51 @@ struct MealPhotoView: View {
                     .frame(width: 200, height: 200)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .opacity(0.5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Theme.Editorial.hairlineSoft, lineWidth: 0.5)
+                    )
             }
 
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 32))
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                .font(.system(size: 26, weight: .ultraLight))
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
 
             Text(message)
-                .font(.system(size: 15))
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .font(Theme.Editorial.Typography.miraBody())
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 28)
+                .padding(.horizontal, Theme.Editorial.Spacing.pad)
 
-            Button {
-                analysisError = nil
-                analyzePhoto()
-            } label: {
-                Text("Try again")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(Color.violet)
-            }
+            VStack(spacing: 10) {
+                Button {
+                    analysisError = nil
+                    analyzePhoto()
+                } label: {
+                    Text("TRY AGAIN")
+                        .font(.system(size: 11, weight: .heavy, design: .monospaced))
+                        .tracking(2.2)
+                        .foregroundStyle(Theme.Editorial.nightTop)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Capsule().fill(Theme.Editorial.onSurface))
+                }
+                .buttonStyle(.plain)
 
-            Button {
-                analysisError = nil
-                photoData = nil
-                selectedPhoto = nil
-            } label: {
-                Text("Take a different photo")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                Button {
+                    analysisError = nil
+                    photoData = nil
+                    selectedPhoto = nil
+                } label: {
+                    Text("Take a different photo")
+                        .font(Theme.Editorial.Typography.miraBody())
+                        .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                        .padding(.vertical, 8)
+                }
+                .buttonStyle(.plain)
             }
+            .padding(.horizontal, Theme.Editorial.Spacing.pad)
 
             Spacer()
         }
@@ -195,16 +247,17 @@ struct MealPhotoView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(Color.violet.opacity(0.3), lineWidth: 0.5)
+                            .stroke(Theme.Editorial.hairlineSoft, lineWidth: 0.5)
                     )
             }
 
             MiraWaveform(state: .thinking, size: .hero)
-                .frame(height: 50)
+                .frame(height: 36)
 
-            Text("Analyzing your meal...")
-                .font(.system(size: 16))
-                .foregroundStyle(Theme.Text.secondary(for: scheme))
+            Text("ANALYZING YOUR MEAL")
+                .font(Theme.Editorial.Typography.capsBold(10))
+                .tracking(2.2)
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
 
             Spacer()
         }
@@ -222,54 +275,81 @@ struct MealPhotoView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 220)
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .padding(.horizontal, 20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(Theme.Editorial.hairlineSoft, lineWidth: 0.5)
+                        )
+                        .padding(.horizontal, Theme.Editorial.Spacing.pad)
                 }
 
                 Text(r.foodName)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundStyle(Theme.Text.primary)
+                    .font(Theme.Editorial.Typography.mealName())
+                    .foregroundStyle(Theme.Editorial.onSurface)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, Theme.Editorial.Spacing.pad)
 
-                HStack(spacing: 16) {
-                    macroCell("Protein", "\(Int(r.estimatedProtein))g", Color.violet)
-                    macroCell("Calories", "\(Int(r.estimatedCalories))", Theme.Text.secondary(for: scheme))
-                    macroCell("Fat", "\(Int(r.estimatedFat))g", Theme.Text.tertiary(for: scheme))
-                    macroCell("Carbs", "\(Int(r.estimatedCarbs))g", Theme.Text.tertiary(for: scheme))
+                HStack(spacing: 10) {
+                    macroCell("PROTEIN", "\(Int(r.estimatedProtein))g")
+                    macroCell("CALORIES", "\(Int(r.estimatedCalories))")
+                    macroCell("FAT", "\(Int(r.estimatedFat))g")
+                    macroCell("CARBS", "\(Int(r.estimatedCarbs))g")
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, Theme.Editorial.Spacing.pad)
 
                 HStack(alignment: .top, spacing: 10) {
                     MiraWaveform(state: .idle, size: .hero)
                         .scaleEffect(0.35, anchor: .leading)
                         .frame(width: 30, height: 14)
                     Text(r.explanation)
-                        .font(.system(size: 14))
-                        .foregroundStyle(Theme.Text.secondary(for: scheme))
+                        .font(Theme.Editorial.Typography.miraBody())
+                        .foregroundStyle(Theme.Editorial.onSurface)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(16)
+                .padding(14)
                 .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Theme.Surface.glass(for: scheme))
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Theme.Editorial.onSurface.opacity(0.08))
                 )
-                .padding(.horizontal, 20)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Theme.Editorial.hairlineSoft, lineWidth: 0.5)
+                )
+                .padding(.horizontal, Theme.Editorial.Spacing.pad)
 
-                GlowButton("Log this meal") {
-                    saveMeal(r)
-                }
-                .padding(.horizontal, 32)
+                VStack(spacing: 10) {
+                    Button {
+                        saveMeal(r)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 13))
+                            Text("LOG THIS MEAL")
+                                .font(.system(size: 11, weight: .heavy, design: .monospaced))
+                                .tracking(2.2)
+                        }
+                        .foregroundStyle(Theme.Editorial.nightTop)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Capsule().fill(Theme.Editorial.onSurface))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Log this meal")
 
-                Button {
-                    result = nil
-                    analysisError = nil
-                    photoData = nil
-                    selectedPhoto = nil
-                } label: {
-                    Text("Retake photo")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                    Button {
+                        result = nil
+                        analysisError = nil
+                        photoData = nil
+                        selectedPhoto = nil
+                    } label: {
+                        Text("Retake photo")
+                            .font(Theme.Editorial.Typography.miraBody())
+                            .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                            .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
                 }
+                .padding(.horizontal, Theme.Editorial.Spacing.pad)
 
                 Spacer(minLength: 40)
             }
@@ -277,16 +357,26 @@ struct MealPhotoView: View {
         }
     }
 
-    private func macroCell(_ label: String, _ value: String, _ color: Color) -> some View {
+    private func macroCell(_ label: String, _ value: String) -> some View {
         VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 18, weight: .medium, design: .monospaced))
-                .foregroundStyle(color)
+                .font(Theme.Editorial.Typography.dataValue())
+                .foregroundStyle(Theme.Editorial.onSurface)
             Text(label)
-                .font(.system(size: 10))
-                .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                .font(Theme.Editorial.Typography.caps(8, weight: .semibold))
+                .tracking(1.6)
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Theme.Editorial.onSurface.opacity(0.08))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Theme.Editorial.hairlineSoft, lineWidth: 0.5)
+        )
     }
 
     // MARK: - Persistence

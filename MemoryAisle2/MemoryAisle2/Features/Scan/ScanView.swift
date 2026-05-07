@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct ScanView: View {
-    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppState.self) private var appState
     @Environment(SubscriptionManager.self) private var subscriptionManager
     @Environment(BarcodeUsageTracker.self) private var barcodeUsage
     @State private var scanLineOffset: CGFloat = -100
@@ -25,21 +25,55 @@ struct ScanView: View {
 
     enum ScanMode: Hashable {
         case barcode, photo, search
+
+        var promptLine: (top: String, bottom: String, italic: Bool) {
+            switch self {
+            case .barcode: return ("Scan a", "barcode.", true)
+            case .photo:   return ("Snap your", "meal.", true)
+            case .search:  return ("Search the", "label.", true)
+            }
+        }
+
+        var helper: String {
+            switch self {
+            case .barcode: return "Mira reads protein, calories, and fiber off the package."
+            case .photo:   return "Mira estimates the macros from a photo of your plate."
+            case .search:  return "Look up a food by name and pick a serving size."
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .barcode: return "barcode.viewfinder"
+            case .photo:   return "camera"
+            case .search:  return "magnifyingglass"
+            }
+        }
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            Spacer(minLength: 20)
-            viewfinder
-            Spacer(minLength: 20)
-            modeSelector
-                .padding(.horizontal, 40)
-            captureButton
-            Spacer(minLength: 60)
+        ZStack {
+            EditorialBackground(mode: appState.effectiveAppearanceMode)
+
+            VStack(spacing: 0) {
+                header
+                    .padding(.horizontal, Theme.Editorial.Spacing.pad)
+                    .padding(.top, Theme.Editorial.Spacing.topInset)
+
+                Spacer(minLength: 6)
+                prompt
+                Spacer(minLength: 18)
+                viewfinder
+                Spacer(minLength: 24)
+                modeSelector
+                    .padding(.horizontal, Theme.Editorial.Spacing.pad)
+                    .padding(.bottom, 18)
+                captureButton
+                Spacer(minLength: 32)
+            }
         }
-        .section(.scanner)
-        .themeBackground()
+        .preferredColorScheme(.light)
+        .ignoresSafeArea()
         .sheet(isPresented: $showGroceryList) { GroceryListView() }
         .sheet(isPresented: $showPantry) { PantryView() }
         .sheet(isPresented: $showMealPhoto) { MealPhotoView() }
@@ -68,73 +102,120 @@ struct ScanView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 10) {
-            CloseButton(action: { dismiss() })
+        VStack(spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                closeButton
 
-            Text("Scan")
-                .font(.system(size: 26, weight: .light, design: .serif))
-                .foregroundStyle(Theme.Text.primary)
-                .tracking(0.3)
-                .padding(.leading, 4)
+                Spacer()
 
-            Spacer()
+                Text("SCAN")
+                    .font(Theme.Editorial.Typography.wordmark())
+                    .tracking(4)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Theme.Editorial.onSurface)
 
-            IconButton(systemName: "cart", accessibilityLabel: "Grocery list") {
-                showGroceryList = true
+                Spacer()
+
+                HStack(spacing: 14) {
+                    headerIcon("cart", label: "Grocery list") { showGroceryList = true }
+                    headerIcon("refrigerator", label: "Pantry") { showPantry = true }
+                }
             }
-            IconButton(systemName: "refrigerator", accessibilityLabel: "Pantry") {
-                showPantry = true
-            }
+            HairlineDivider()
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
+    }
+
+    private var closeButton: some View {
+        Button {
+            HapticManager.light()
+            dismiss()
+        } label: {
+            Text("CLOSE")
+                .font(Theme.Editorial.Typography.capsBold(10))
+                .tracking(2.0)
+                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.85))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Close")
+    }
+
+    private func headerIcon(_ systemName: String, label: String, action: @escaping () -> Void) -> some View {
+        Button {
+            HapticManager.light()
+            action()
+        } label: {
+            Image(systemName: systemName)
+                .font(.system(size: 14, weight: .regular))
+                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.85))
+                .frame(width: 26, height: 26)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+
+    // MARK: - Prompt
+
+    private var prompt: some View {
+        let lines = selectedMode.promptLine
+        return VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: -6) {
+                Text(lines.top)
+                    .font(Theme.Editorial.Typography.displaySmall())
+                    .foregroundStyle(Theme.Editorial.onSurface)
+                Text(lines.bottom)
+                    .font(lines.italic
+                          ? Theme.Editorial.Typography.displaySmallItalic()
+                          : Theme.Editorial.Typography.displaySmall())
+                    .foregroundStyle(Theme.Editorial.onSurface)
+            }
+            .lineSpacing(-4)
+
+            Text(selectedMode.helper)
+                .font(Theme.Editorial.Typography.miraBody())
+                .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                .padding(.top, 4)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, Theme.Editorial.Spacing.pad)
     }
 
     // MARK: - Viewfinder
 
     private var viewfinder: some View {
         ZStack {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Theme.Editorial.onSurface.opacity(0.06))
+                .frame(width: 260, height: 260)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(Theme.Editorial.hairlineSoft, lineWidth: 0.5)
+                )
+
             if isScanning {
                 BarcodeScannerView { barcode in
-                    // BarcodeScanner already dispatches to main; assume
-                    // isolation so we can call the MainActor handler
-                    // from this @Sendable callback without an extra hop.
-                    MainActor.assumeIsolated {
-                        handleBarcode(barcode)
-                    }
+                    MainActor.assumeIsolated { handleBarcode(barcode) }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .frame(width: 300, height: 300)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .frame(width: 260, height: 260)
             }
 
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(
-                    SectionPalette.primary(.scanner, for: scheme)
-                        .opacity(isScanning ? 0.10 : 0.05)
-                )
-                .frame(width: 280, height: 280)
-                .blur(radius: isScanning ? 30 : 20)
-
             ScannerCorners()
-                .stroke(
-                    SectionPalette.primary(.scanner, for: scheme)
-                        .opacity(isScanning ? 0.9 : 0.55),
-                    lineWidth: 2.5
-                )
-                .frame(width: 240, height: 240)
+                .stroke(Theme.Editorial.onSurface.opacity(isScanning ? 0.85 : 0.55), lineWidth: 1.5)
+                .frame(width: 220, height: 220)
 
-            scanLine
+            if isScanning && selectedMode == .barcode {
+                scanLine
+            }
 
             if !isScanning {
-                VStack(spacing: 10) {
-                    Image(systemName: "barcode.viewfinder")
-                        .font(.system(size: 36, weight: .ultraLight))
-                        .foregroundStyle(
-                            SectionPalette.primary(.scanner, for: scheme).opacity(0.35)
-                        )
-                    Text("Tap capture to start")
-                        .font(Typography.bodySmall)
-                        .foregroundStyle(Theme.Text.tertiary(for: scheme))
+                VStack(spacing: 12) {
+                    Image(systemName: selectedMode.icon)
+                        .font(.system(size: 30, weight: .ultraLight))
+                        .foregroundStyle(Theme.Editorial.onSurface.opacity(0.5))
+                    Text("TAP CAPTURE")
+                        .font(Theme.Editorial.Typography.capsBold(9))
+                        .tracking(2.2)
+                        .foregroundStyle(Theme.Editorial.onSurfaceMuted)
                 }
             }
         }
@@ -144,26 +225,15 @@ struct ScanView: View {
         RoundedRectangle(cornerRadius: 1)
             .fill(
                 LinearGradient(
-                    colors: [
-                        .clear,
-                        SectionPalette.primary(.scanner, for: scheme)
-                            .opacity(isScanning ? 0.85 : 0.55),
-                        .clear
-                    ],
+                    colors: [.clear, Theme.Editorial.onSurface.opacity(0.85), .clear],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
-            .frame(width: 210, height: 2)
-            .shadow(
-                color: SectionPalette.primary(.scanner, for: scheme).opacity(0.5),
-                radius: 4
-            )
+            .frame(width: 200, height: 1.5)
             .offset(y: scanLineOffset)
             .onAppear {
-                withAnimation(
-                    .easeInOut(duration: 2.2).repeatForever(autoreverses: true)
-                ) {
+                withAnimation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true)) {
                     scanLineOffset = 100
                 }
             }
@@ -172,14 +242,40 @@ struct ScanView: View {
     // MARK: - Mode selector
 
     private var modeSelector: some View {
-        SegmentedPill(
-            options: [
-                (ScanMode.barcode, "Barcode"),
-                (ScanMode.photo, "Photo"),
-                (ScanMode.search, "Search")
-            ],
-            selection: $selectedMode
-        )
+        HStack(spacing: 6) {
+            modeChip(.barcode, "BARCODE")
+            modeChip(.photo, "PHOTO")
+            modeChip(.search, "SEARCH")
+        }
+    }
+
+    private func modeChip(_ choice: ScanMode, _ label: String) -> some View {
+        let selected = selectedMode == choice
+        return Button {
+            HapticManager.selection()
+            withAnimation(.easeInOut(duration: 0.18)) {
+                if isScanning && selectedMode == .barcode { isScanning = false }
+                selectedMode = choice
+            }
+        } label: {
+            Text(label)
+                .font(Theme.Editorial.Typography.capsBold(10))
+                .tracking(2.0)
+                .foregroundStyle(Theme.Editorial.onSurface.opacity(selected ? 1.0 : 0.65))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 11)
+                .background(
+                    Capsule().fill(Theme.Editorial.onSurface.opacity(selected ? 0.18 : 0.06))
+                )
+                .overlay(
+                    Capsule().stroke(
+                        Theme.Editorial.onSurface.opacity(selected ? 0.7 : 0.2),
+                        lineWidth: selected ? 1.0 : 0.5
+                    )
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(label) mode\(selected ? ", selected" : "")")
     }
 
     // MARK: - Capture button
@@ -203,40 +299,17 @@ struct ScanView: View {
                 showFoodSearch = true
             }
         } label: {
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            SectionPalette.primary(.scanner, for: scheme).opacity(0.35),
-                            SectionPalette.primary(.scanner, for: scheme).opacity(0.12)
-                        ],
-                        center: .center,
-                        startRadius: 4,
-                        endRadius: 36
-                    )
-                )
-                .frame(width: 72, height: 72)
-                .overlay(
-                    Circle().stroke(
-                        SectionPalette.primary(.scanner, for: scheme).opacity(0.55),
-                        lineWidth: 1
-                    )
-                )
-                .overlay(
-                    Image(systemName: isScanning ? "stop.fill" : "viewfinder")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundStyle(SectionPalette.primary(.scanner, for: scheme))
-                )
-                .shadow(
-                    color: SectionPalette.primary(.scanner, for: scheme).opacity(0.45),
-                    radius: 18,
-                    y: 0
-                )
+            ZStack {
+                Circle()
+                    .fill(Theme.Editorial.onSurface)
+                    .frame(width: 76, height: 76)
+                Image(systemName: isScanning ? "stop.fill" : selectedMode.icon)
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(Theme.Editorial.nightTop)
+            }
         }
-        .buttonStyle(GlassPressStyle())
-        .accessibilityLabel("Capture")
-        .padding(.top, 20)
-        .padding(.bottom, 12)
+        .buttonStyle(.plain)
+        .accessibilityLabel(isScanning ? "Stop scanning" : "Capture")
     }
 
     // MARK: - Barcode Handler
