@@ -4,6 +4,7 @@ import SwiftUI
 struct RecipeDetailView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
     let recipe: RecipeItem
 
@@ -41,7 +42,13 @@ struct RecipeDetailView: View {
                     if isOnMedication {
                         miraTipCard
                     }
-                    GlowButton("Add to today's plan", icon: "plus") {
+                    GlowButton("Log this meal", icon: "checkmark.circle.fill") {
+                        MealLogger.log(
+                            name: recipe.name,
+                            proteinGrams: Double(recipe.protein),
+                            caloriesConsumed: Double(recipe.calories),
+                            in: modelContext
+                        )
                         HapticManager.success()
                         dismiss()
                     }

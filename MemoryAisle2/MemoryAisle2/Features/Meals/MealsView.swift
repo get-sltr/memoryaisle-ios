@@ -358,8 +358,41 @@ struct MealsView: View {
                     .foregroundStyle(Theme.Editorial.onSurfaceMuted)
                     .fixedSize(horizontal: false, vertical: true)
             }
+
+            logMealButton(for: meal)
+                .padding(.top, 8)
         }
         .padding(.top, 4)
+    }
+
+    private func logMealButton(for meal: Meal) -> some View {
+        Button {
+            HapticManager.success()
+            MealLogger.log(
+                name: meal.name,
+                proteinGrams: meal.proteinGrams,
+                caloriesConsumed: meal.caloriesTotal,
+                fiberGrams: meal.fiberGrams,
+                in: modelContext
+            )
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                Text("LOG THIS MEAL")
+                    .font(Theme.Editorial.Typography.capsBold(10))
+                    .tracking(2.0)
+            }
+            .foregroundStyle(Theme.Editorial.onSurface)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Theme.Editorial.hairline, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Log this meal without a photo")
     }
 
     // MARK: - States

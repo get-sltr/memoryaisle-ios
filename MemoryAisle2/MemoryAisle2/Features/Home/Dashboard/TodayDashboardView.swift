@@ -23,6 +23,7 @@ struct TodayDashboardView: View {
     var onPresentScan: (ScanView.ScanMode) -> Void = { _ in }
 
     @Environment(AppState.self) private var appState
+    @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
     @Query(sort: \BodyComposition.date, order: .reverse) private var bodyCompRecords: [BodyComposition]
     @Query(sort: \NutritionLog.date, order: .reverse) private var nutritionLogs: [NutritionLog]
@@ -545,9 +546,10 @@ struct TodayDashboardView: View {
         case .log:
             LogMealCard(
                 recommendation: current,
-                onPhoto:   { handleLogPhoto(current) },
-                onBarcode: { handleLogBarcode(current) },
-                onClose:   dismissCard
+                onLogDirect: { handleLogDirect(current) },
+                onPhoto:     { handleLogPhoto(current) },
+                onBarcode:   { handleLogBarcode(current) },
+                onClose:     dismissCard
             )
         case .order:
             OrderMealCard(
@@ -573,6 +575,18 @@ struct TodayDashboardView: View {
     }
 
     // MARK: - Action handlers
+
+    private func handleLogDirect(_ recommendation: MealRecommendation) {
+        logger.log("Log direct (no photo): \(recommendation.name, privacy: .public)")
+        MealLogger.log(
+            name: recommendation.name,
+            proteinGrams: Double(recommendation.proteinG),
+            caloriesConsumed: Double(recommendation.calories),
+            in: modelContext
+        )
+        HapticManager.success()
+        dismissCard()
+    }
 
     private func handleLogPhoto(_ recommendation: MealRecommendation) {
         logger.log("Log via photo: \(recommendation.name, privacy: .public)")

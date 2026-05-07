@@ -11,6 +11,7 @@ struct SavedRecipeDetailView: View {
     let recipe: SavedRecipe
     @State private var showDeleteConfirm = false
     @State private var groceryFeedback: String?
+    @State private var didLog = false
 
     private var category: RecipeCategory {
         RecipeCategory(rawValue: recipe.categoryRaw) ?? .dinner
@@ -51,6 +52,10 @@ struct SavedRecipeDetailView: View {
                     if let ingredients = suggestionIngredients {
                         ingredientsSection(ingredients)
                         addToGroceryButton(ingredients)
+                    }
+
+                    if recipe.kind == .suggestion, hasLoggableMacros {
+                        logMealButton
                     }
                 }
                 .padding(20)
@@ -192,6 +197,43 @@ struct SavedRecipeDetailView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Add ingredients to grocery list")
+        .padding(.top, 4)
+    }
+
+    /// True if the saved suggestion captured at least one macro number, so we
+    /// have something meaningful to write to today's NutritionLog. Legacy
+    /// rows from before macros were captured don't show the log button.
+    private var hasLoggableMacros: Bool {
+        (recipe.savedCalories ?? 0) > 0 || (recipe.savedProteinG ?? 0) > 0
+    }
+
+    private var logMealButton: some View {
+        Button {
+            MealLogger.log(
+                name: recipe.title,
+                proteinGrams: Double(recipe.savedProteinG ?? 0),
+                caloriesConsumed: Double(recipe.savedCalories ?? 0),
+                in: modelContext
+            )
+            HapticManager.success()
+            didLog = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: didLog ? "checkmark.seal.fill" : "checkmark.circle.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                Text(didLog ? "Logged to today" : "Log this meal")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(
+                Capsule().fill(SectionPalette.primary(.recipes, for: scheme).opacity(didLog ? 0.6 : 1.0))
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(didLog)
+        .accessibilityLabel("Log this meal without a photo")
         .padding(.top, 4)
     }
 

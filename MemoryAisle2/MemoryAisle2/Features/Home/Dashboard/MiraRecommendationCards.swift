@@ -50,6 +50,7 @@ private struct CardChrome<Content: View>: View {
 
 struct LogMealCard: View {
     let recommendation: MealRecommendation
+    let onLogDirect: () -> Void
     let onPhoto: () -> Void
     let onBarcode: () -> Void
     let onClose: () -> Void
@@ -61,12 +62,38 @@ struct LogMealCard: View {
                     .font(Theme.Editorial.Typography.miraBody())
                     .foregroundStyle(Color.cardInk)
 
+                Button(action: onLogDirect) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 18))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("LOG IT")
+                                .font(Theme.Editorial.Typography.capsBold(10))
+                                .tracking(2.0)
+                            Text("Use Mira's macros, no photo needed.")
+                                .font(Theme.Editorial.Typography.miraBody())
+                                .opacity(0.75)
+                        }
+                        Spacer()
+                    }
+                    .foregroundStyle(Color.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .padding(.horizontal, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.cardInk)
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Log this meal without a photo")
+
                 HStack(spacing: 10) {
                     logOption(
                         icon: "camera.fill",
                         title: "TAKE A PHOTO",
-                        desc: "Mira reads what's on the plate.",
-                        primary: true,
+                        desc: "If you ate something different.",
+                        primary: false,
                         action: onPhoto
                     )
                     logOption(
