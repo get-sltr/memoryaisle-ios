@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 /// Reusable expandable row used for Daily Targets, Meals, and Feeling on the
@@ -149,6 +150,69 @@ struct MealsEmptyContent: View {
                     }
                 Spacer()
             }
+        }
+    }
+}
+
+// MARK: - Logged meals list content
+
+/// Shown inside the meals expandable section when the user has at least one
+/// food-bearing log for today. Lists each meal with its captured macros so a
+/// silent zero-macro row is immediately visible (the previous build always
+/// rendered `MealsEmptyContent` here regardless of state, hiding the issue).
+struct LoggedMealsContent: View {
+    struct Row: Identifiable {
+        let id: PersistentIdentifier
+        let name: String
+        let time: String
+        let proteinG: Int
+        let calories: Int
+    }
+
+    let rows: [Row]
+    let onLogAnother: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(rows) { row in
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(row.name)
+                            .font(Theme.Editorial.Typography.body())
+                            .foregroundStyle(Theme.Editorial.onSurface)
+                            .lineLimit(1)
+                        Text(row.time)
+                            .font(Theme.Editorial.Typography.caps(8))
+                            .tracking(1.8)
+                            .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                    }
+                    Spacer(minLength: 12)
+                    Text("\(row.proteinG)g · \(row.calories) cal")
+                        .font(Theme.Editorial.Typography.dataValue())
+                        .tracking(0.5)
+                        .foregroundStyle(Theme.Editorial.onSurface)
+                }
+                .padding(.vertical, 8)
+            }
+
+            Button(action: onLogAnother) {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 10, weight: .semibold))
+                    Text("LOG ANOTHER MEAL")
+                        .font(Theme.Editorial.Typography.capsBold(8))
+                        .tracking(1.8)
+                }
+                .foregroundStyle(Theme.Editorial.onSurface)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Theme.Editorial.hairlineSoft, lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 6)
         }
     }
 }

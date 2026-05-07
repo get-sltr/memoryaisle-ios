@@ -1,3 +1,4 @@
+import Foundation
 import OSLog
 import SwiftData
 import SwiftUI
@@ -90,6 +91,77 @@ struct TodayDashboardView: View {
         .task(id: MealWindow.current()) {
             await loadRecommendations()
         }
+        // #region agent log (H2 + H3)
+        .onAppear {
+            let count = todaysLogs.count
+            let protein = proteinConsumed
+            let calories = caloriesConsumed
+            let fiber = fiberConsumed
+            let water = waterConsumed
+            let sample = todaysLogs
+                .prefix(3)
+                .enumerated()
+                .map { idx, log in
+                    let w = String(format: "%.1f", log.waterLiters)
+                    return "\(idx):p=\(Int(log.proteinGrams)),c=\(Int(log.caloriesConsumed)),f=\(Int(log.fiberGrams)),w=\(w),food=\(log.foodName != nil)"
+                }
+                .joined(separator: "|")
+
+            let todayStart = Calendar.current.startOfDay(for: .now)
+            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: todayStart) ?? todayStart
+            let isMealsOpen = openSections.contains(.meals)
+
+            AgentDebugLogger.log(
+                runId: "pre-fix",
+                hypothesisId: "H2_zeroMacrosAtReadTime",
+                location: "TodayDashboardView.swift:onAppear",
+                message: "Today's NutritionLog aggregation snapshot",
+                data: [
+                    "todaysLogsCount": "\(count)",
+                    "proteinConsumed": "\(protein)",
+                    "caloriesConsumed": "\(calories)",
+                    "fiberConsumed": "\(fiber)",
+                    "waterConsumed": "\(String(format: "%.1f", water))",
+                    "todayStart": "\(todayStart.timeIntervalSince1970)",
+                    "tomorrowStart": "\(tomorrow.timeIntervalSince1970)",
+                    "sample0to2": sample,
+                ]
+            )
+
+            AgentDebugLogger.log(
+                runId: "pre-fix",
+                hypothesisId: "H3_CTACondition",
+                location: "TodayDashboardView.swift:onAppear",
+                message: "Meals CTA visibility inputs",
+                data: [
+                    "todaysLogsIsEmpty": "\(todaysLogs.isEmpty)",
+                    "isMealsSectionOpen": "\(isMealsOpen)",
+                    // Content currently always renders MealsEmptyContent inside the meals section,
+                    // so this confirms whether CTA is appearing despite non-empty logs.
+                    "ctaShouldBeHiddenWhenNotEmpty": "true"
+                ]
+            )
+        }
+        // #endregion
+        .onChange(of: todaysLogs.count) { _, newCount in
+            let protein = proteinConsumed
+            let calories = caloriesConsumed
+            let fiber = fiberConsumed
+            let water = waterConsumed
+            AgentDebugLogger.log(
+                runId: "pre-fix",
+                hypothesisId: "H2_zeroMacrosAtReadTime",
+                location: "TodayDashboardView.swift:onChange(todaysLogs.count)",
+                message: "Today's NutritionLog aggregation after log count change",
+                data: [
+                    "newTodaysLogsCount": "\(newCount)",
+                    "proteinConsumed": "\(protein)",
+                    "caloriesConsumed": "\(calories)",
+                    "fiberConsumed": "\(fiber)",
+                    "waterConsumed": "\(String(format: "%.1f", water))"
+                ]
+            )
+        }
     }
 
     // MARK: - Masthead trailing
@@ -153,6 +225,30 @@ struct TodayDashboardView: View {
         nutritionLogs.filter { Calendar.current.isDateInToday($0.date) }
     }
 
+    /// Today's logs that represent real meals (have a `foodName`). Water-only
+    /// rows from `HydrationTracker` show up in `todaysLogs` too, so the meals
+    /// counter and empty-state CTA need this stricter view to stay honest.
+    private var todaysMeals: [NutritionLog] {
+        todaysLogs.filter { ($0.foodName?.isEmpty == false) }
+    }
+
+    /// Reverse-chronological meal rows for the meals expandable section.
+    private var loggedMealRows: [LoggedMealsContent.Row] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return todaysMeals
+            .sorted(by: { $0.date > $1.date })
+            .map { log in
+                LoggedMealsContent.Row(
+                    id: log.persistentModelID,
+                    name: log.foodName ?? "Meal",
+                    time: formatter.string(from: log.date).uppercased(),
+                    proteinG: Int(log.proteinGrams.rounded()),
+                    calories: Int(log.caloriesConsumed.rounded())
+                )
+            }
+    }
+
     private var calorieTarget: Int {
         profile?.calorieTarget ?? 0
     }
@@ -188,7 +284,7 @@ struct TodayDashboardView: View {
     }
 
     private var mealsSummary: String {
-        let count = todaysLogs.count
+        let count = todaysMeals.count
         return count == 0 ? "Nothing logged yet." : "\(count) logged today."
     }
 
@@ -213,12 +309,19 @@ struct TodayDashboardView: View {
             DashboardExpandableSection(
                 label: DashboardSection.meals.label,
                 summary: mealsSummary,
-                summaryItalic: todaysLogs.isEmpty,
+                summaryItalic: todaysMeals.isEmpty,
                 isOpen: binding(for: .meals)
             ) {
-                MealsEmptyContent {
-                    logger.log("Tapped meal-snap shortcut")
-                    activeCard = .log
+                if todaysMeals.isEmpty {
+                    MealsEmptyContent {
+                        logger.log("Tapped meal-snap shortcut")
+                        activeCard = .log
+                    }
+                } else {
+                    LoggedMealsContent(rows: loggedMealRows) {
+                        logger.log("Tapped log-another-meal shortcut")
+                        activeCard = .log
+                    }
                 }
             }
 
