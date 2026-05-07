@@ -7,7 +7,5 @@
   "scripts": {
     "test": "node --test test.mjs"
   },
-  "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "^3.0.0"
-  }
+  "comment": "AWS SDK v3 is provided by the Lambda NODEJS_22_X runtime. Listing it here as a dependency would force a node_modules install at deploy time and risk ESM resolution drift at cold start; the runtime resolver picks up '@aws-sdk/client-bedrock-runtime' from /var/runtime."
 }
