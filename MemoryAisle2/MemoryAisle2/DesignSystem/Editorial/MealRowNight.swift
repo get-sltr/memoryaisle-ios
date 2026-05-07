@@ -9,6 +9,10 @@ struct MealRowNight: View {
     let name: String
     let proteinGrams: Int
     let calories: Int
+    /// Adherence state. Same semantics as MealRow.adherence — drives
+    /// the leading checkmark dot's color, the strikethrough on swap/
+    /// skip, and the status caps line below the meal name.
+    var adherence: AdherenceState = .open
     var onTap: (() -> Void)? = nil
 
     var body: some View {
@@ -18,11 +22,17 @@ struct MealRowNight: View {
             HStack(alignment: .top, spacing: 14) {
                 ZStack {
                     Circle()
-                        .fill(Theme.Editorial.onSurface)
+                        .fill(badgeFill)
                         .frame(width: 16, height: 16)
-                    Text("✓")
-                        .font(.system(size: 9, weight: .heavy))
-                        .foregroundStyle(Theme.Editorial.nightTop)
+                    if showsCheckmark {
+                        Text("✓")
+                            .font(.system(size: 9, weight: .heavy))
+                            .foregroundStyle(Theme.Editorial.nightTop)
+                    } else if showsSkippedSlash {
+                        Image(systemName: "slash.circle")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Theme.Editorial.onSurface)
+                    }
                 }
                 .padding(.top, 5)
 
@@ -37,9 +47,17 @@ struct MealRowNight: View {
                         .font(Theme.Editorial.Typography.mealName())
                         .kerning(-0.3)
                         .foregroundStyle(Theme.Editorial.onSurface)
-                        .opacity(0.65)
+                        .opacity(nameOpacity)
+                        .strikethrough(strikesName)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    if let line = statusLine {
+                        Text(line)
+                            .font(Theme.Editorial.Typography.caps(8, weight: .semibold))
+                            .tracking(1.6)
+                            .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                    }
 
                     HStack(spacing: 16) {
                         MacroLabel(value: "\(proteinGrams)", unit: "g protein")
@@ -59,6 +77,69 @@ struct MealRowNight: View {
         .buttonStyle(.plain)
         .disabled(onTap == nil)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(time), \(name), \(proteinGrams) grams protein, \(calories) calories, completed")
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var badgeFill: Color {
+        switch adherence {
+        case .eaten:                 return Theme.Editorial.onSurface
+        case .skipped, .swapped:     return Theme.Editorial.onSurface.opacity(0.18)
+        case .open:                  return Theme.Editorial.onSurface
+        }
+    }
+
+    private var showsCheckmark: Bool {
+        switch adherence {
+        case .eaten, .open: return true
+        default:            return false
+        }
+    }
+
+    private var showsSkippedSlash: Bool {
+        switch adherence {
+        case .skipped, .swapped: return true
+        default:                 return false
+        }
+    }
+
+    private var nameOpacity: Double {
+        switch adherence {
+        case .eaten:               return 0.85
+        case .skipped, .swapped:   return 0.4
+        case .open:                return 0.65
+        }
+    }
+
+    private var strikesName: Bool {
+        switch adherence {
+        case .skipped, .swapped: return true
+        default: return false
+        }
+    }
+
+    private var statusLine: String? {
+        switch adherence {
+        case .open:                                 return nil
+        case .eaten(let at):                        return "LOGGED \(formatTime(at).uppercased())"
+        case .skipped(let at):                      return "SKIPPED \(formatTime(at).uppercased())"
+        case .swapped(let to, let at):              return "ATE: \(to.uppercased()) · \(formatTime(at).uppercased())"
+        }
+    }
+
+    private func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
+    private var accessibilityLabel: String {
+        let base = "\(time), \(name), \(proteinGrams) grams protein, \(calories) calories"
+        switch adherence {
+        case .open:                     return "\(base), completed"
+        case .eaten:                    return "\(base), logged"
+        case .skipped:                  return "\(base), skipped"
+        case .swapped(let to, _):       return "\(base), swapped for \(to)"
+        }
     }
 }

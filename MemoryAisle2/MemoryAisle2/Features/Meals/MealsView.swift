@@ -25,6 +25,7 @@ struct MealsView: View {
     @State private var expandedMealId: String? = nil
     @State private var localError: String? = nil
     @State private var groceryFeedback: String? = nil
+    @State private var swappingMeal: Meal? = nil
 
     /// Forward navigation cap. Four weeks is enough for "show me next month
     /// roughly" without inviting the user to plan a quarter ahead — meal
@@ -145,6 +146,11 @@ struct MealsView: View {
                 Button("OK", role: .cancel) { groceryFeedback = nil }
             } message: { text in
                 Text(text)
+            }
+            .sheet(item: $swappingMeal) { meal in
+                MealSwapSheet(meal: meal) { swappedTo in
+                    recordSwap(meal: meal, swappedTo: swappedTo)
+                }
             }
     }
 
@@ -434,11 +440,13 @@ struct MealsView: View {
                             name: meal.name,
                             proteinGrams: Int(meal.proteinGrams),
                             calories: Int(meal.caloriesTotal),
+                            adherence: meal.adherenceState,
                             onTap: {
                                 HapticManager.light()
                                 expandedMealId = expandedMealId == meal.id ? nil : meal.id
                             }
                         )
+                        .contextMenu { adherenceMenu(for: meal) }
                         if expandedMealId == meal.id {
                             mealExpansion(meal).padding(.bottom, 12)
                         }
@@ -575,11 +583,13 @@ struct MealsView: View {
                         proteinGrams: Int(meal.proteinGrams),
                         calories: Int(meal.caloriesTotal),
                         prepMinutes: meal.prepTimeMinutes,
+                        adherence: meal.adherenceState,
                         onTap: {
                             HapticManager.light()
                             expandedMealId = expandedMealId == meal.id ? nil : meal.id
                         }
                     )
+                    .contextMenu { adherenceMenu(for: meal) }
 
                     if expandedMealId == meal.id {
                         mealExpansion(meal)
@@ -680,6 +690,7 @@ struct MealsView: View {
                 proteinGrams: meal.proteinGrams,
                 caloriesConsumed: meal.caloriesTotal,
                 fiberGrams: meal.fiberGrams,
+                sourceMeal: meal,
                 in: modelContext
             )
         } label: {
@@ -905,5 +916,188 @@ struct MealsView: View {
             return "Added \(n) ingredient\(n == 1 ? "" : "s") to your grocery list."
         }
         return "Added \(result.added.count). \(result.skipped.count) already on your list."
+    }
+
+    // MARK: - Adherence (Task 4)
+
+    /// Context-menu builder for a meal-plan row. Surfaces the four
+    /// adherence affordances (Eaten / Skipped / Swap for / Open) that
+    /// previously had no UI: row tap was already overloaded for the
+    /// expansion toggle, so the new state lives behind a long-press
+    /// (.contextMenu) which VoiceOver knows about as the iOS-standard
+    /// hidden affordance. Long-press alone would be invisible to
+    /// screen readers.
+    @ViewBuilder
+    private func adherenceMenu(for meal: Meal) -> some View {
+        switch meal.adherenceState {
+        case .open:
+            Button {
+                markEaten(meal)
+            } label: {
+                Label("Mark as eaten", systemImage: "checkmark.circle")
+            }
+            Button {
+                markSkipped(meal)
+            } label: {
+                Label("Skipped", systemImage: "slash.circle")
+            }
+            Button {
+                swappingMeal = meal
+            } label: {
+                Label("Swap for...", systemImage: "arrow.triangle.swap")
+            }
+        case .eaten:
+            Button(role: .destructive) {
+                clearAdherence(meal)
+            } label: {
+                Label("Undo log", systemImage: "arrow.uturn.backward")
+            }
+        case .skipped:
+            Button {
+                markEaten(meal)
+            } label: {
+                Label("Actually, I ate it", systemImage: "checkmark.circle")
+            }
+            Button(role: .destructive) {
+                clearAdherence(meal)
+            } label: {
+                Label("Undo skip", systemImage: "arrow.uturn.backward")
+            }
+        case .swapped:
+            Button {
+                swappingMeal = meal
+            } label: {
+                Label("Edit swap", systemImage: "pencil")
+            }
+            Button(role: .destructive) {
+                clearAdherence(meal)
+            } label: {
+                Label("Undo swap", systemImage: "arrow.uturn.backward")
+            }
+        }
+    }
+
+    private func markEaten(_ meal: Meal) {
+        HapticManager.success()
+        MealLogger.log(
+            name: meal.name,
+            proteinGrams: meal.proteinGrams,
+            caloriesConsumed: meal.caloriesTotal,
+            fiberGrams: meal.fiberGrams,
+            sourceMeal: meal,
+            in: modelContext
+        )
+    }
+
+    private func markSkipped(_ meal: Meal) {
+        HapticManager.light()
+        meal.consumedAt = nil
+        meal.swappedTo = nil
+        meal.swappedAt = nil
+        meal.skippedAt = .now
+        try? modelContext.save()
+    }
+
+    private func clearAdherence(_ meal: Meal) {
+        HapticManager.light()
+        // If this meal had a NutritionLog stamped via "Mark as eaten",
+        // delete that log too so today's totals stay honest. Free-form
+        // logs (NutritionLog with sourceMealId == nil) are preserved
+        // since they came from a different surface.
+        let mealId = meal.id
+        let descriptor = FetchDescriptor<NutritionLog>(
+            predicate: #Predicate { $0.sourceMealId == mealId }
+        )
+        if let logs = try? modelContext.fetch(descriptor) {
+            for log in logs {
+                modelContext.delete(log)
+            }
+        }
+        meal.consumedAt = nil
+        meal.skippedAt = nil
+        meal.swappedTo = nil
+        meal.swappedAt = nil
+        try? modelContext.save()
+    }
+
+    private func recordSwap(meal: Meal, swappedTo name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        HapticManager.light()
+        // The swap is a separate signal from "ate this." We don't
+        // automatically log a NutritionLog because we don't have macros
+        // for the swap target — the user gets a separate "Ate something
+        // else" sheet for that case. Here we just record what they ate
+        // and when, for Task 5's adherence summary.
+        meal.consumedAt = nil
+        meal.skippedAt = nil
+        meal.swappedTo = trimmed
+        meal.swappedAt = .now
+        try? modelContext.save()
+    }
+}
+
+// MARK: - Swap sheet
+
+/// Quick text-entry sheet that captures what the user actually ate
+/// instead of the planned meal. Free-form name only; macros come from
+/// MealLogger if the user separately taps "Ate something else" on a
+/// surface that has macros (Mira chat, dashboard rec card, scan).
+struct MealSwapSheet: View {
+    let meal: Meal
+    let onSubmit: (String) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var draft: String = ""
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 18) {
+                Text("Planned: \(meal.name)")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+
+                Text("What did you eat instead?")
+                    .font(.system(size: 22, weight: .regular, design: .serif))
+
+                TextField("e.g., Chipotle chicken bowl", text: $draft)
+                    .focused($focused)
+                    .textInputAutocapitalization(.sentences)
+                    .submitLabel(.done)
+                    .onSubmit(submit)
+                    .padding(.vertical, 14)
+                    .padding(.horizontal, 14)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(.tertiary, lineWidth: 0.5)
+                    )
+
+                Spacer()
+            }
+            .padding(20)
+            .navigationTitle("Swap meal")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save", action: submit)
+                        .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+            .onAppear {
+                draft = meal.swappedTo ?? ""
+                focused = true
+            }
+        }
+    }
+
+    private func submit() {
+        let trimmed = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        onSubmit(trimmed)
+        dismiss()
     }
 }
