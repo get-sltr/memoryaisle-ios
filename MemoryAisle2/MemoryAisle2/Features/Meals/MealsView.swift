@@ -16,8 +16,21 @@ struct MealsView: View {
     @Query private var jobs: [MealGenerationJob]
 
     @State private var selectedDay: Weekday = Weekday.from(date: .now)
+    /// Week relative to "this week" (the week that contains today). 0 is
+    /// current; negative is past, positive is future. Bounded by
+    /// `earliestWeekOffset` (so users can't navigate before they have any
+    /// data) and `Self.maxFutureWeeks` (so idle scrolling doesn't trigger
+    /// six months of speculative meal generation).
+    @State private var weekOffset: Int = 0
     @State private var expandedMealId: String? = nil
     @State private var localError: String? = nil
+
+    /// Forward navigation cap. Four weeks is enough for "show me next month
+    /// roughly" without inviting the user to plan a quarter ahead — meal
+    /// generation runs at signup + per-week regen + backfill, not as a
+    /// rolling 90-day plan, and removing this cap would let an idle swipe
+    /// gesture trigger weeks of unused Bedrock spend.
+    private static let maxFutureWeeks = 4
 
     private var profile: UserProfile? { profiles.first }
     private var medication: MedicationProfile? { medications.first }
@@ -33,12 +46,69 @@ struct MealsView: View {
             .first
     }
 
-    private var selectedDate: Date {
+    /// Earliest plan we've ever generated, used to bound backward
+    /// navigation. `plans` is reverse-chrono so `.last` is the oldest;
+    /// reading `.last` on a sorted Array is O(1) so this stays cheap on
+    /// every render. No separate query needed.
+    private var earliestPlanDate: Date? { plans.last?.date }
+
+    /// Backward bound expressed as a week offset relative to today.
+    /// Returns 0 when the user has no plans yet (lock to current week);
+    /// otherwise the negative offset to the week containing the earliest
+    /// plan.
+    private var earliestWeekOffset: Int {
+        guard let earliest = earliestPlanDate else { return 0 }
+        let cal = Calendar.current
+        let earliestWeekStart = sundayOfWeek(containing: cal.startOfDay(for: earliest))
+        let thisWeekStart = sundayOfWeek(containing: cal.startOfDay(for: .now))
+        let dayDiff = cal.dateComponents([.day], from: thisWeekStart, to: earliestWeekStart).day ?? 0
+        return min(dayDiff / 7, 0)
+    }
+
+    /// Inclusive offsets the user is allowed to navigate to.
+    private var weekOffsetRange: ClosedRange<Int> {
+        earliestWeekOffset...Self.maxFutureWeeks
+    }
+
+    /// Sunday-anchored start of the displayed week.
+    private var displayedWeekStart: Date {
         let cal = Calendar.current
         let today = cal.startOfDay(for: .now)
-        let todayWeekday = Weekday.from(date: today)
-        let diff = selectedDay.calendarWeekday - todayWeekday.calendarWeekday
-        return cal.date(byAdding: .day, value: diff, to: today) ?? today
+        let thisWeekSunday = sundayOfWeek(containing: today)
+        return cal.date(byAdding: .day, value: weekOffset * 7, to: thisWeekSunday) ?? today
+    }
+
+    private var displayedWeekEnd: Date {
+        Calendar.current.date(byAdding: .day, value: 6, to: displayedWeekStart) ?? displayedWeekStart
+    }
+
+    /// "MAY 5 - 11" when start and end share a month, otherwise "APR 27 - MAY 3".
+    /// Hyphen separator (not en/em dash) per the no-em-dash UI rule.
+    private var displayedWeekRange: String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "MMM d"
+        let startStr = fmt.string(from: displayedWeekStart).uppercased()
+        let cal = Calendar.current
+        if cal.isDate(displayedWeekStart, equalTo: displayedWeekEnd, toGranularity: .month) {
+            let dayFmt = DateFormatter()
+            dayFmt.dateFormat = "d"
+            return "\(startStr) - \(dayFmt.string(from: displayedWeekEnd))"
+        }
+        return "\(startStr) - \(fmt.string(from: displayedWeekEnd).uppercased())"
+    }
+
+    private func sundayOfWeek(containing date: Date) -> Date {
+        let cal = Calendar.current
+        let weekday = cal.component(.weekday, from: date) // 1 = Sun ... 7 = Sat
+        return cal.date(byAdding: .day, value: -(weekday - 1), to: date) ?? date
+    }
+
+    private var selectedDate: Date {
+        Calendar.current.date(
+            byAdding: .day,
+            value: selectedDay.calendarWeekday - 1,
+            to: displayedWeekStart
+        ) ?? displayedWeekStart
     }
 
     private var planForSelectedDay: MealPlan? {
@@ -72,9 +142,10 @@ struct MealsView: View {
         VStack(alignment: .leading, spacing: 0) {
             Masthead(
                 wordmark: "MEALS",
-                trailing: "WEEK · \(currentWeekNumber)",
+                trailing: dayMastheadTrailing,
                 onTapWordmark: onTapWordmark
             )
+            .padding(.horizontal, Theme.Editorial.Spacing.pad)
             .padding(.bottom, 24)
 
             Text(sectionLabel)
@@ -82,9 +153,11 @@ struct MealsView: View {
                 .tracking(3.5)
                 .textCase(.uppercase)
                 .foregroundStyle(Theme.Editorial.onSurface)
+                .padding(.horizontal, Theme.Editorial.Spacing.pad)
                 .padding(.bottom, 14)
 
             heroBlock
+                .padding(.horizontal, Theme.Editorial.Spacing.pad)
                 .padding(.bottom, 8)
 
             Text(curatedLine)
@@ -92,29 +165,163 @@ struct MealsView: View {
                 .tracking(2)
                 .textCase(.uppercase)
                 .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                .padding(.horizontal, Theme.Editorial.Spacing.pad)
                 .padding(.bottom, 22)
 
-            DayRail(selection: $selectedDay)
-                .padding(.bottom, 18)
+            weekNavigationHeader
+                .padding(.horizontal, Theme.Editorial.Spacing.pad)
 
-            content
+            // Paged week content. TabView with .page style gives the
+            // horizontal swipe + edge resistance + accessibility for
+            // free, and avoids the dragGesture-vs-vertical-scroll
+            // conflict the meal list would otherwise produce.
+            TabView(selection: $weekOffset) {
+                ForEach(weekOffsetRange, id: \.self) { offset in
+                    weekPage(for: offset)
+                        .tag(offset)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 360)
+            .animation(.easeInOut(duration: 0.18), value: weekOffset)
 
             if let localError {
                 Text(localError)
                     .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
                     .tracking(1)
                     .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+                    .padding(.horizontal, Theme.Editorial.Spacing.pad)
                     .padding(.top, 8)
             }
 
             Spacer(minLength: 80)
         }
-        .padding(.horizontal, Theme.Editorial.Spacing.pad)
         .padding(.top, Theme.Editorial.Spacing.topInset)
     }
 
+    /// Day-mode masthead trailing. Stays "WEEK · NN" of today (the
+    /// masthead is a static "now" anchor); the displayed week's date
+    /// range lives in `weekNavigationHeader`.
+    private var dayMastheadTrailing: String {
+        "WEEK · \(currentWeekNumber)"
+    }
+
+    /// Chevron-flanked week label above the day rail. Drives `weekOffset`
+    /// state, which both the TabView selection and the data computeds
+    /// observe.
+    private var weekNavigationHeader: some View {
+        HStack(spacing: 12) {
+            chevronButton(
+                systemName: "chevron.left",
+                accessibility: "Previous week",
+                disabled: weekOffset <= earliestWeekOffset
+            ) {
+                if weekOffset > earliestWeekOffset {
+                    weekOffset -= 1
+                }
+            }
+
+            Spacer(minLength: 4)
+
+            VStack(spacing: 2) {
+                Text(displayedWeekHeadline)
+                    .font(Theme.Editorial.Typography.capsBold(10))
+                    .tracking(2.2)
+                    .foregroundStyle(Theme.Editorial.onSurface)
+                Text(displayedWeekRange)
+                    .font(Theme.Editorial.Typography.caps(9, weight: .medium))
+                    .tracking(1.8)
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+            }
+
+            Spacer(minLength: 4)
+
+            chevronButton(
+                systemName: "chevron.right",
+                accessibility: "Next week",
+                disabled: weekOffset >= Self.maxFutureWeeks
+            ) {
+                if weekOffset < Self.maxFutureWeeks {
+                    weekOffset += 1
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.bottom, 10)
+    }
+
+    private func chevronButton(
+        systemName: String,
+        accessibility: String,
+        disabled: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button {
+            HapticManager.selection()
+            action()
+        } label: {
+            Image(systemName: systemName)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(
+                    disabled
+                        ? Theme.Editorial.onSurface.opacity(0.25)
+                        : Theme.Editorial.onSurface
+                )
+                .frame(width: 32, height: 32)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(disabled)
+        .accessibilityLabel(accessibility)
+    }
+
+    private var displayedWeekHeadline: String {
+        switch weekOffset {
+        case 0:  return "THIS WEEK"
+        case -1: return "LAST WEEK"
+        case 1:  return "NEXT WEEK"
+        case let n where n < 0: return "\(-n) WEEKS AGO"
+        default: return "IN \(weekOffset) WEEKS"
+        }
+    }
+
+    /// One paged week's content. DayRail + meal list / empty state for
+    /// the given `offset`. Adjacent pages render eagerly (TabView page
+    /// style is non-lazy), so each page reads from the shared @Query
+    /// state via `meals(for:)` and stays cheap.
+    @ViewBuilder
+    private func weekPage(for offset: Int) -> some View {
+        VStack(spacing: 0) {
+            DayRail(selection: $selectedDay)
+                .padding(.bottom, 18)
+
+            if offset == weekOffset {
+                content
+            } else {
+                // Off-screen pages: render a placeholder of the same
+                // approximate height so the TabView's page semantics
+                // don't snap when the user partially swipes. Cheap to
+                // render; never visible at rest.
+                Color.clear.frame(height: 200)
+            }
+        }
+        .padding(.horizontal, Theme.Editorial.Spacing.pad)
+    }
+
     private var nightLayout: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        // Night mode is the "tonight's recap" framing — always reads
+        // today's plan regardless of where the user navigated to in
+        // day mode. weekOffset stays as the user left it so day mode
+        // resumes where they were on next morning's auto-flip.
+        let tonightMeals = todaysActiveMeals
+        let proteinTotal = Int(tonightMeals.reduce(0.0) { $0 + $1.proteinGrams }.rounded())
+        let calorieTotal = Int(tonightMeals.reduce(0.0) { $0 + $1.caloriesTotal }.rounded())
+        let countWord = tonightMeals.isEmpty
+            ? "Three"
+            : EnglishNumber.word(from: tonightMeals.count).capitalized
+
+        return VStack(alignment: .leading, spacing: 0) {
             Masthead(
                 wordmark: "MEALS",
                 trailing: EditorialDate.eveningString(from: Date(), style: appState.numberStyle),
@@ -122,7 +329,7 @@ struct MealsView: View {
             )
             .padding(.bottom, 24)
 
-            Text(sectionLabel)
+            Text(tonightSectionLabel)
                 .font(Theme.Editorial.Typography.capsBold(10))
                 .tracking(3.5)
                 .textCase(.uppercase)
@@ -130,7 +337,7 @@ struct MealsView: View {
                 .padding(.bottom, 14)
 
             VStack(alignment: .leading, spacing: 0) {
-                Text("\(mealCountWord) meals,")
+                Text("\(countWord) meals,")
                     .font(Theme.Editorial.Typography.displaySmall())
                 Text("well done.")
                     .font(Theme.Editorial.Typography.displaySmall())
@@ -149,18 +356,18 @@ struct MealsView: View {
                 .padding(.bottom, 22)
 
             DailyTotalsRow(
-                proteinGrams: nightProteinTotal,
-                calories: nightCalorieTotal,
-                mealsCompleted: meals.count,
-                mealsTotal: meals.count == 0 ? 3 : meals.count
+                proteinGrams: proteinTotal,
+                calories: calorieTotal,
+                mealsCompleted: tonightMeals.count,
+                mealsTotal: tonightMeals.count == 0 ? 3 : tonightMeals.count
             )
             .padding(.bottom, 22)
 
             VStack(spacing: 0) {
-                if meals.isEmpty {
+                if tonightMeals.isEmpty {
                     emptyState
                 } else {
-                    ForEach(meals, id: \.id) { meal in
+                    ForEach(tonightMeals, id: \.id) { meal in
                         MealRowNight(
                             time: timeLabel(for: meal),
                             name: meal.name,
@@ -200,21 +407,32 @@ struct MealsView: View {
 
     // MARK: - Night totals + recap
 
-    private var nightProteinTotal: Int {
-        Int(meals.reduce(0.0) { $0 + $1.proteinGrams }.rounded())
+    /// Today's active plan, used by the night layout. Bypasses
+    /// `weekOffset` because night mode is the "tonight's recap" framing —
+    /// it must show today regardless of where the user navigated to in
+    /// day mode earlier.
+    private var todaysActiveMeals: [Meal] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: .now)
+        let plan = plans.first { cal.isDate($0.date, inSameDayAs: today) && $0.isActive }
+        return (plan?.meals ?? []).sorted { sortKey(for: $0) < sortKey(for: $1) }
     }
 
-    private var nightCalorieTotal: Int {
-        Int(meals.reduce(0.0) { $0 + $1.caloriesTotal }.rounded())
+    /// Section label for the night layout — "N° NN · TONIGHT".
+    private var tonightSectionLabel: String {
+        let mark = EditorialDate.ordinal(cycleDayNumber, style: appState.numberStyle)
+        return "\(mark) · TONIGHT"
     }
 
     private var nightRecapMessage: String {
-        if meals.isEmpty {
+        let tonightMeals = todaysActiveMeals
+        if tonightMeals.isEmpty {
             return "Tomorrow's plan is ready when you are."
         }
+        let proteinTotal = tonightMeals.reduce(0.0) { $0 + $1.proteinGrams }
         if let target = profile?.proteinTargetGrams,
            Double(target) > 0,
-           Double(nightProteinTotal) >= Double(target) * 0.95 {
+           proteinTotal >= Double(target) * 0.95 {
             return "A complete day. Tomorrow's plan is ready when you are."
         }
         return "Closing well. Tomorrow we go again, kindly."
@@ -423,10 +641,9 @@ struct MealsView: View {
                 .tracking(2.2)
                 .foregroundStyle(Theme.Editorial.onSurface)
 
-            if Calendar.current.isDateInToday(selectedDate) ||
-               (selectedDate >= Calendar.current.startOfDay(for: .now) && lastJobFailedSelectedDay) {
+            if showsRegenerateButton {
                 Button {
-                    regenerateWeek()
+                    regenerateWeek(startDate: displayedWeekStart)
                 } label: {
                     HStack(spacing: 10) {
                         Text(regenButtonLabel)
@@ -445,7 +662,7 @@ struct MealsView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(regenButtonLabel)
             } else {
-                Text("MIRA CURATES UPCOMING DAYS")
+                Text(pastWeekHelperLine)
                     .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
                     .tracking(1.6)
                     .foregroundStyle(Theme.Editorial.onSurfaceMuted)
@@ -458,19 +675,49 @@ struct MealsView: View {
         if lastJobFailedSelectedDay {
             return "MIRA COULDN'T REACH THIS DAY"
         }
-        return "NO PLAN FOR THIS DAY YET"
+        if weekOffset == 0 {
+            return "NO PLAN FOR THIS DAY YET"
+        }
+        if weekOffset > 0 {
+            return "NO PLAN FOR THIS WEEK YET"
+        }
+        return "NO PLAN ON FILE FOR THIS WEEK"
+    }
+
+    /// Regenerate / Generate button is offered for the current week and
+    /// any future week the user might want to plan. Past weeks don't get
+    /// a button because the orchestrator would happily generate a "plan"
+    /// dated to last month, which is meaningless (you can't eat the past)
+    /// and would silently consume a weekly-gen quota slot.
+    private var showsRegenerateButton: Bool {
+        weekOffset >= 0
+    }
+
+    private var pastWeekHelperLine: String {
+        "MIRA ONLY PLANS FROM THIS WEEK FORWARD"
     }
 
     private var regenButtonLabel: String {
         if lastJobFailedSelectedDay {
             return "RETRY THIS WEEK"
         }
-        return "GENERATE THIS WEEK"
+        if weekOffset == 0 {
+            return "GENERATE THIS WEEK"
+        }
+        if weekOffset == 1 {
+            return "PLAN NEXT WEEK"
+        }
+        return "PLAN THIS WEEK"
     }
 
     // MARK: - Generate
 
-    private func regenerateWeek() {
+    /// Kick off a 7-day generation anchored at `startDate`. Defaults to
+    /// today (the original signature) so the dashboard / signup flow keeps
+    /// working unchanged; the empty-state button now passes the displayed
+    /// week's Sunday so navigating to next month and tapping "PLAN NEXT
+    /// WEEK" plans that specific week, not always the current one.
+    private func regenerateWeek(startDate: Date = .now) {
         guard let profile else { return }
         localError = nil
 
@@ -480,7 +727,7 @@ struct MealsView: View {
             profile: profile,
             giTriggers: fetchGITriggers(),
             pantryItems: fetchPantryItems(),
-            startDate: .now,
+            startDate: startDate,
             days: 7,
             trigger: .manual,
             isPro: isPro,
