@@ -151,9 +151,12 @@ struct MealPhotoView: View {
                 .font(.system(size: 32))
                 .foregroundStyle(Theme.Text.tertiary(for: scheme))
 
-            Text("Mira couldn't analyze this photo.")
-                .font(.system(size: 16))
+            Text(message)
+                .font(.system(size: 15))
                 .foregroundStyle(Theme.Text.secondary(for: scheme))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 28)
 
             Button {
                 analysisError = nil
@@ -289,12 +292,43 @@ struct MealPhotoView: View {
     // MARK: - Persistence
 
     private func saveMeal(_ analysis: FoodAnalyzer.Analysis) {
+        // #region agent log (H4_insertionZerosAtWriteTime)
+        AgentDebugLogger.log(
+            runId: "pre-fix",
+            hypothesisId: "H4_insertionZerosAtWriteTime",
+            location: "MealPhotoView.swift:saveMeal",
+            message: "MealPhotoView.saveMeal analysis-derived inputs",
+            data: [
+                "estimatedProtein": "\(analysis.estimatedProtein)",
+                "estimatedCalories": "\(analysis.estimatedCalories)",
+                // Fiber + water are intentionally set to 0 at this layer.
+                "setFiberGramsTo": "0",
+                "setWaterLitersTo": "0",
+                "foodNamePresent": analysis.foodName.isEmpty ? "false" : "true"
+            ]
+        )
+        // #endregion
+
+        // Belt-and-suspenders: never persist a NutritionLog row that has no
+        // macros and no food name. The analyzer should already have thrown
+        // before reaching here, but if anything slips through, surface it
+        // as an error rather than silently inflating today's meals counter.
+        guard !analysis.foodName.isEmpty,
+              analysis.foodName.lowercased() != "unknown meal",
+              analysis.estimatedProtein > 0 || analysis.estimatedCalories > 0
+        else {
+            analysisError = "Mira couldn't read the macros from this photo. Try a closer shot, or describe what you ate in chat."
+            HapticManager.error()
+            result = nil
+            return
+        }
+
         let log = NutritionLog(
             date: .now,
             proteinGrams: analysis.estimatedProtein,
             caloriesConsumed: analysis.estimatedCalories,
             waterLiters: 0,
-            fiberGrams: 0,
+            fiberGrams: analysis.estimatedFiber,
             foodName: analysis.foodName,
             photoData: photoData
         )

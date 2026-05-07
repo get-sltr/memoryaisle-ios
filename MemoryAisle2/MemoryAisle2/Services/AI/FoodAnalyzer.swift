@@ -27,6 +27,30 @@ final class FoodAnalyzer {
         case skip = "Skip"
     }
 
+    /// Raised when Mira returns a conversational/refusal response instead of
+    /// the pipe-delimited contract — or when she returns the contract but
+    /// every numeric macro lands at zero, which is the same signal in
+    /// disguise. We surface this as an explicit error so MealPhotoView
+    /// stops at the error view (and never persists a zero-macro
+    /// NutritionLog) rather than silently rendering an "Unknown meal" 0/0/0
+    /// result that the user can still tap "Log this meal" on.
+    enum AnalysisError: LocalizedError {
+        case notRecognized(reply: String)
+
+        var errorDescription: String? {
+            switch self {
+            case .notRecognized:
+                return "Mira couldn't read the macros from this photo. Try a closer shot, or describe what you ate in chat."
+            }
+        }
+
+        var conversationalReply: String? {
+            switch self {
+            case .notRecognized(let reply): return reply
+            }
+        }
+    }
+
     func analyzeBarcodeResult(
         foodName: String,
         nutrition: NutritionData,
@@ -160,32 +184,61 @@ final class FoodAnalyzer {
             dietaryRestrictions: anon.dietaryRestrictions
         )
 
+        // Tight, no-room-to-refuse prompt. The earlier version was soft
+        // enough that Claude sometimes redirected to "I focus on nutrition
+        // guidance, not photos" and returned conversational prose, which
+        // landed in the dashboard as zero-macro phantom logs. We require
+        // the exact pipe format and ban preamble. If the photo really
+        // isn't food, we instruct an empty NAME field so the parser can
+        // surface a clean error instead of a fabricated estimate.
         let prompt = """
-        A user photographed their meal. Estimate the macros. \
-        Their daily protein target is \(anon.proteinTargetGrams)g. \
-        Respond in format: \
-        NAME|protein_g|calories|carbs_g|fat_g|fiber_g|\
-        nausea_safe(true/false)|verdict(good/okay/skip)|explanation
+        Estimate macros for this meal photo. The user's daily protein \
+        target is \(anon.proteinTargetGrams)g.
+
+        Respond with ONE LINE in this exact pipe-delimited format and \
+        nothing else (no preamble, no markdown, no commentary):
+
+        NAME|protein_g|calories|carbs_g|fat_g|fiber_g|nausea_safe(true/false)|verdict(good/okay/skip)|explanation
+
+        Rules:
+        - Estimate to the best of your ability from the photo. A rough \
+          estimate is better than a refusal.
+        - Macros must be positive integers when food is visible.
+        - If the photo is clearly not food, return: NOT_FOOD|0|0|0|0|0|true|okay|This photo doesn't look like a meal.
+        - Do not refuse, hedge, or ask the user a question. Output the line.
         """
 
         let response = try await apiClient.send(
             message: prompt, context: context, imageData: imageData
         )
 
-        return parsePhotoAnalysis(response)
+        let analysis = try parsePhotoAnalysis(response)
+
+        // Defense-in-depth: if Mira followed the format but returned all
+        // zeros (e.g. produced "Unknown|0|0|0|0|0|true|okay|..." as a soft
+        // refusal), treat it the same as a refusal. Persisting a zero
+        // NutritionLog row is the bug we're trying to prevent.
+        if analysis.estimatedProtein <= 0
+            && analysis.estimatedCalories <= 0
+            && analysis.estimatedFat <= 0
+            && analysis.estimatedCarbs <= 0 {
+            throw AnalysisError.notRecognized(reply: analysis.explanation)
+        }
+
+        return analysis
     }
 
-    private func parsePhotoAnalysis(_ response: String) -> Analysis {
+    private func parsePhotoAnalysis(_ response: String) throws -> Analysis {
         let parts = response.components(separatedBy: "|")
 
+        // Mira sometimes refuses photo analysis ("I focus on nutrition
+        // guidance, not photos") and replies in prose. The legacy code
+        // returned an "Unknown meal" 0/0/0 placeholder which then rendered
+        // as a result the user could tap "Log this meal" on, persisting
+        // empty NutritionLog rows. Treat both shapes — non-conforming
+        // response and conforming-but-all-zero macros — as failures.
         guard parts.count >= 8 else {
-            return Analysis(
-                foodName: "Unknown meal",
-                estimatedProtein: 0, estimatedCalories: 0,
-                estimatedCarbs: 0, estimatedFat: 0, estimatedFiber: 0,
-                isNauseaSafe: true, glp1Verdict: .okay,
-                explanation: response, suggestions: []
-            )
+            throw AnalysisError.notRecognized(reply: response)
         }
 
         let name = parts[0].trimmingCharacters(in: .whitespaces)
