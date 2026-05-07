@@ -8,6 +8,7 @@ struct ReflectionHeroCard: View {
     let photos: HeroPhotos
 
     @Environment(\.colorScheme) private var scheme
+    @Environment(AppState.self) private var appState
 
     var body: some View {
         HStack(spacing: 8) {
@@ -57,7 +58,7 @@ struct ReflectionHeroCard: View {
                     .foregroundStyle(labelColor)
                 HStack(spacing: 8) {
                     if let weight {
-                        Text("\(formatted(weight)) lbs")
+                        Text(formattedWeight(weight))
                             .font(.system(size: 13, weight: .medium, design: .monospaced))
                             .monospacedDigit()
                             .foregroundStyle(Color.white)
@@ -82,8 +83,9 @@ struct ReflectionHeroCard: View {
         .accessibilityLabel("\(label) photo")
     }
 
-    private func formatted(_ lbs: Double) -> String {
-        String(format: "%.1f", lbs)
+    private func formattedWeight(_ lbs: Double) -> String {
+        let displayValue = appState.unitSystem == .metric ? lbs * 0.45359237 : lbs
+        return String(format: "%.1f \(WeightFormat.unit(system: appState.unitSystem))", displayValue)
     }
 
     private func shortDate(_ date: Date) -> String {

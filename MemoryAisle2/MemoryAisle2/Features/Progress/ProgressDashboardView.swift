@@ -4,6 +4,7 @@ import SwiftUI
 struct ProgressDashboardView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppState.self) private var appState
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
     @Query(sort: \BodyComposition.date, order: .reverse) private var bodyComp: [BodyComposition]
@@ -302,12 +303,12 @@ struct ProgressDashboardView: View {
             HStack(spacing: 10) {
                 statCard(
                     "Weight",
-                    value: "\(Int(latest.weightLbs)) lbs",
+                    value: WeightFormat.display(latest.weightLbs, system: appState.unitSystem),
                     color: Theme.Text.secondary(for: scheme)
                 )
                 statCard(
                     "Lean Mass",
-                    value: "\(Int(latest.computedLeanMass)) lbs",
+                    value: WeightFormat.display(latest.computedLeanMass, system: appState.unitSystem),
                     color: Color.violet
                 )
                 if let bf = latest.bodyFatPercent {
@@ -321,11 +322,14 @@ struct ProgressDashboardView: View {
 
             if bodyComp.count >= 2 {
                 let first = bodyComp.last
-                let change = latest.weightLbs - (first?.weightLbs ?? latest.weightLbs)
-                let leanChange = latest.computedLeanMass - (first?.computedLeanMass ?? latest.computedLeanMass)
+                let lbsToDisplay: (Double) -> Double = {
+                    appState.unitSystem == .metric ? $0 * 0.45359237 : $0
+                }
+                let change = lbsToDisplay(latest.weightLbs - (first?.weightLbs ?? latest.weightLbs))
+                let leanChange = lbsToDisplay(latest.computedLeanMass - (first?.computedLeanMass ?? latest.computedLeanMass))
                 HStack(spacing: 16) {
-                    trendLabel("Weight", change: change, unit: "lbs")
-                    trendLabel("Lean", change: leanChange, unit: "lbs")
+                    trendLabel("Weight", change: change, unit: WeightFormat.unit(system: appState.unitSystem))
+                    trendLabel("Lean", change: leanChange, unit: WeightFormat.unit(system: appState.unitSystem))
                 }
             }
         }

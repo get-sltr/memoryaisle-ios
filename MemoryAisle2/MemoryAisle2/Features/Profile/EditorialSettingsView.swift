@@ -36,6 +36,10 @@ struct EditorialSettingsView: View {
 
                     appearanceSection
                     sectionDivider
+                    unitsSection
+                    sectionDivider
+                    numbersSection
+                    sectionDivider
                     privacySection
                     sectionDivider
                     yourDataSection
@@ -179,8 +183,20 @@ struct EditorialSettingsView: View {
         }
     }
 
+    private var unitsSection: some View {
+        section(label: "II · UNITS") {
+            unitsPicker
+        }
+    }
+
+    private var numbersSection: some View {
+        section(label: "III · NUMBERS") {
+            numbersPicker
+        }
+    }
+
     private var privacySection: some View {
-        section(label: "II · PRIVACY & CONSENT") {
+        section(label: "IV · PRIVACY & CONSENT") {
             row("Consent",
                 subtitle: "ANALYTICS · AI TRAINING",
                 icon: "lock") {
@@ -202,7 +218,7 @@ struct EditorialSettingsView: View {
     }
 
     private var yourDataSection: some View {
-        section(label: "III · YOUR DATA") {
+        section(label: "V · YOUR DATA") {
             row("Export Data",
                 subtitle: "DOWNLOAD A COPY",
                 icon: "arrow.down.circle") {
@@ -221,7 +237,7 @@ struct EditorialSettingsView: View {
     }
 
     private var dangerZoneSection: some View {
-        section(label: "IV · DANGER ZONE") {
+        section(label: "VI · DANGER ZONE") {
             row("Reset Onboarding",
                 subtitle: "RE-RUN THE FLOW · KEEPS DATA",
                 icon: "arrow.counterclockwise",
@@ -306,6 +322,146 @@ struct EditorialSettingsView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(choice.label)\(selected ? ", selected" : "")")
+    }
+
+    // MARK: - Units picker
+
+    private var unitsPicker: some View {
+        @Bindable var appState = appState
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 16) {
+                Image(systemName: "ruler")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.Editorial.onSurface)
+                    .frame(width: 18)
+                Text("WEIGHT · HEIGHT")
+                    .font(Theme.Editorial.Typography.caps(9, weight: .medium))
+                    .tracking(2.8)
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+            }
+            .padding(.horizontal, 4)
+
+            HStack(spacing: 8) {
+                unitsChip(.imperial)
+                unitsChip(.metric)
+            }
+            .padding(.leading, 38)
+
+            Text("DEFAULT FOLLOWS YOUR REGION")
+                .font(Theme.Editorial.Typography.caps(9, weight: .regular))
+                .tracking(1.8)
+                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.4))
+                .padding(.leading, 38)
+                .padding(.bottom, 12)
+        }
+        .padding(.vertical, 14)
+    }
+
+    @ViewBuilder
+    private func unitsChip(_ choice: UnitSystem) -> some View {
+        let selected = appState.unitSystem == choice
+        Button {
+            HapticManager.selection()
+            withAnimation(.easeInOut(duration: 0.2)) {
+                appState.unitSystem = choice
+            }
+        } label: {
+            VStack(spacing: 4) {
+                Text(choice.label)
+                    .font(Theme.Editorial.Typography.caps(10, weight: selected ? .semibold : .medium))
+                    .tracking(1.8)
+                Text(choice.sublabel)
+                    .font(Theme.Editorial.Typography.caps(8, weight: .regular))
+                    .tracking(1.4)
+                    .opacity(0.65)
+            }
+            .foregroundStyle(Theme.Editorial.onSurface.opacity(selected ? 1.0 : 0.7))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Theme.Editorial.onSurface.opacity(selected ? 0.18 : 0.08))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(
+                        Theme.Editorial.onSurface.opacity(selected ? 0.7 : 0.15),
+                        lineWidth: selected ? 1.0 : 0.5
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(choice.label) units\(selected ? ", selected" : "")")
+    }
+
+    // MARK: - Numbers picker
+
+    private var numbersPicker: some View {
+        @Bindable var appState = appState
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 16) {
+                Image(systemName: "number")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.Editorial.onSurface)
+                    .frame(width: 18)
+                Text("DATES · MARKERS")
+                    .font(Theme.Editorial.Typography.caps(9, weight: .medium))
+                    .tracking(2.8)
+                    .foregroundStyle(Theme.Editorial.onSurfaceMuted)
+            }
+            .padding(.horizontal, 4)
+
+            HStack(spacing: 8) {
+                numbersChip(.roman)
+                numbersChip(.arabic)
+            }
+            .padding(.leading, 38)
+
+            Text("MASTHEAD AND DAY MARKERS")
+                .font(Theme.Editorial.Typography.caps(9, weight: .regular))
+                .tracking(1.8)
+                .foregroundStyle(Theme.Editorial.onSurface.opacity(0.4))
+                .padding(.leading, 38)
+                .padding(.bottom, 12)
+        }
+        .padding(.vertical, 14)
+    }
+
+    @ViewBuilder
+    private func numbersChip(_ choice: NumberStyle) -> some View {
+        let selected = appState.numberStyle == choice
+        Button {
+            HapticManager.selection()
+            withAnimation(.easeInOut(duration: 0.2)) {
+                appState.numberStyle = choice
+            }
+        } label: {
+            VStack(spacing: 4) {
+                Text(choice.label)
+                    .font(Theme.Editorial.Typography.caps(10, weight: selected ? .semibold : .medium))
+                    .tracking(1.8)
+                Text(choice.sublabel)
+                    .font(Theme.Editorial.Typography.caps(8, weight: .regular))
+                    .tracking(1.4)
+                    .opacity(0.65)
+            }
+            .foregroundStyle(Theme.Editorial.onSurface.opacity(selected ? 1.0 : 0.7))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Theme.Editorial.onSurface.opacity(selected ? 0.18 : 0.08))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(
+                        Theme.Editorial.onSurface.opacity(selected ? 0.7 : 0.15),
+                        lineWidth: selected ? 1.0 : 0.5
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(choice.label) numbers\(selected ? ", selected" : "")")
     }
 
     private var currentAppearanceChoice: AppearanceChoice {

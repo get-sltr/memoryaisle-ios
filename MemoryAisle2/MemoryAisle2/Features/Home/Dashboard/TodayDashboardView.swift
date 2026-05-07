@@ -169,8 +169,8 @@ struct TodayDashboardView: View {
 
     private var mastheadTrailing: String {
         switch mode {
-        case .day:   RomanNumeral.dateString(from: Date())
-        case .night: RomanNumeral.eveningString(from: Date())
+        case .day:   EditorialDate.dateString(from: Date(), style: appState.numberStyle)
+        case .night: EditorialDate.eveningString(from: Date(), style: appState.numberStyle)
         }
     }
 

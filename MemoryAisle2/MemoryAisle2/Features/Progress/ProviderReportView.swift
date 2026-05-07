@@ -5,6 +5,7 @@ struct ProviderReportView: View {
     var mode: MAMode = .auto
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppState.self) private var appState
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
     @Query(sort: \SymptomLog.date, order: .reverse) private var symptoms: [SymptomLog]
@@ -72,11 +73,12 @@ struct ProviderReportView: View {
 
                     if let start = weekStartWeight, let end = weekEndWeight {
                         previewSection("WEIGHT") {
-                            previewRow("Start of Week", value: String(format: "%.1f lbs", start))
-                            previewRow("End of Week", value: String(format: "%.1f lbs", end))
-                            let change = end - start
-                            let sign = change >= 0 ? "+" : ""
-                            previewRow("Change", value: "\(sign)\(String(format: "%.1f", change)) lbs")
+                            previewRow("Start of Week", value: WeightFormat.display(start, system: appState.unitSystem))
+                            previewRow("End of Week", value: WeightFormat.display(end, system: appState.unitSystem))
+                            let lbsChange = end - start
+                            let displayChange = appState.unitSystem == .metric ? lbsChange * 0.45359237 : lbsChange
+                            let sign = displayChange >= 0 ? "+" : ""
+                            previewRow("Change", value: "\(sign)\(String(format: "%.1f", displayChange)) \(WeightFormat.unit(system: appState.unitSystem))")
                         }
                         .padding(.top, 12)
                     }

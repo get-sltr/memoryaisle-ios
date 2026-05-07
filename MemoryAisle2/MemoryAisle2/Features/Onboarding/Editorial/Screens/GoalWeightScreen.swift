@@ -7,7 +7,12 @@ struct GoalWeightScreen: View {
     let onContinue: () -> Void
     let onSkip: () -> Void
 
+    @Environment(AppState.self) private var appState
     @State private var draft: String = ""
+
+    private var isMetric: Bool { appState.unitSystem == .metric }
+    private var helperLabel: String { isMetric ? "KILOGRAMS" : "POUNDS" }
+    private var placeholder: String { isMetric ? "61" : "135" }
 
     var body: some View {
         OnboardingScaffold(progress: progress, onSkip: onSkip) {
@@ -23,10 +28,15 @@ struct GoalWeightScreen: View {
 
                 Spacer(minLength: 8)
 
-                OnboardingNumberPill(text: $draft, placeholder: "135", helper: "POUNDS")
+                OnboardingNumberPill(text: $draft, placeholder: placeholder, helper: helperLabel)
 
                 OnboardingPrimaryButton(title: "CONTINUE", action: {
-                    profile.goalWeightLbs = Double(draft.trimmingCharacters(in: .whitespacesAndNewlines))
+                    let trimmed = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if let entered = Double(trimmed) {
+                        profile.goalWeightLbs = WeightFormat.toCanonical(entered, from: appState.unitSystem)
+                    } else {
+                        profile.goalWeightLbs = nil
+                    }
                     onContinue()
                 })
                 .padding(.top, 14)
@@ -39,7 +49,9 @@ struct GoalWeightScreen: View {
             }
         }
         .onAppear {
-            draft = profile.goalWeightLbs.map { String(Int($0)) } ?? ""
+            draft = profile.goalWeightLbs
+                .map { WeightFormat.displayValue($0, system: appState.unitSystem) }
+                .map(String.init) ?? ""
         }
     }
 }

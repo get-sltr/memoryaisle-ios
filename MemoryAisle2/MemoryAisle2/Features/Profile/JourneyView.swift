@@ -285,7 +285,7 @@ struct JourneyView: View {
             ForEach(pair, id: \.label) { photo in
                 VStack(spacing: 8) {
                     photoSquare(data: photo.data, isCurrent: photo.isCurrent)
-                    Text("\(Int(photo.weight)) lbs")
+                    Text(WeightFormat.display(photo.weight, system: appState.unitSystem))
                         .font(.system(size: 14, weight: .regular, design: .serif))
                         .italic(photo.isCurrent)
                         .foregroundStyle(Theme.Editorial.onSurface)

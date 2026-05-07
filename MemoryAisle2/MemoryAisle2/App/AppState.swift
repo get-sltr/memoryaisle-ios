@@ -1,5 +1,70 @@
 import SwiftUI
 
+/// User's measurement-system preference. Storage stays in canonical units
+/// (lbs, inches, liters); this only governs display + onboarding input.
+enum UnitSystem: String, CaseIterable, Sendable {
+    case imperial, metric
+
+    /// Locale-derived default. `Locale.measurementSystem` reports `.metric`
+    /// for most non-US locales (UK, EU, AU, NZ), `.us` for the US, and
+    /// `.uk` for the UK proper which we treat as metric for body weight
+    /// because users there universally use kg/cm in health contexts even
+    /// when shop scales still show stones/pounds.
+    static var localeDefault: UnitSystem {
+        switch Locale.current.measurementSystem {
+        case .us:      return .imperial
+        case .metric:  return .metric
+        case .uk:      return .metric
+        default:       return .imperial
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .imperial: "IMPERIAL"
+        case .metric:   "METRIC"
+        }
+    }
+
+    var sublabel: String {
+        switch self {
+        case .imperial: "LBS · INCHES"
+        case .metric:   "KG · CM"
+        }
+    }
+}
+
+/// Number-rendering choice for editorial mastheads, week markers, and the
+/// day rail. Roman numerals are the editorial default; users outside the
+/// pattern (or who simply find roman illegible) can switch to arabic.
+enum NumberStyle: String, CaseIterable, Sendable {
+    case roman, arabic
+
+    /// Locale-derived default. We default English-language locales to roman
+    /// because the editorial pattern was designed around it; everyone else
+    /// gets arabic so the masthead reads cleanly in their cultural context.
+    static var localeDefault: NumberStyle {
+        switch Locale.current.language.languageCode?.identifier {
+        case "en": return .roman
+        default:   return .arabic
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .roman:  "ROMAN"
+        case .arabic: "REGULAR"
+        }
+    }
+
+    var sublabel: String {
+        switch self {
+        case .roman:  "MMVI · V·VII"
+        case .arabic: "07/05/2026"
+        }
+    }
+}
+
 @Observable
 final class AppState {
 
@@ -73,5 +138,38 @@ final class AppState {
     /// user's explicit choice if set, otherwise the time-of-day default.
     var effectiveAppearanceMode: MAMode {
         appearanceMode ?? MAMode.auto
+    }
+
+    // MARK: - Units + numbers prefs (UserDefaults-backed)
+    //
+    // Display preferences only — storage stays canonical (lbs/inches/liters).
+    // Defaults are locale-derived on first launch (UK/EU/AU → metric; en-locales
+    // → roman editorial dates), and the user can flip them in Settings.
+
+    private static let unitSystemKey = "ma_unit_system_v1"
+    private static let numberStyleKey = "ma_number_style_v1"
+
+    var unitSystem: UnitSystem = {
+        if let raw = UserDefaults.standard.string(forKey: AppState.unitSystemKey),
+           let stored = UnitSystem(rawValue: raw) {
+            return stored
+        }
+        return UnitSystem.localeDefault
+    }() {
+        didSet {
+            UserDefaults.standard.set(unitSystem.rawValue, forKey: AppState.unitSystemKey)
+        }
+    }
+
+    var numberStyle: NumberStyle = {
+        if let raw = UserDefaults.standard.string(forKey: AppState.numberStyleKey),
+           let stored = NumberStyle(rawValue: raw) {
+            return stored
+        }
+        return NumberStyle.localeDefault
+    }() {
+        didSet {
+            UserDefaults.standard.set(numberStyle.rawValue, forKey: AppState.numberStyleKey)
+        }
     }
 }

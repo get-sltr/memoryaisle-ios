@@ -7,6 +7,7 @@ struct PhotoCheckInView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     private let saveService = CheckInSaveService()
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
@@ -148,7 +149,7 @@ struct PhotoCheckInView: View {
                             .keyboardType(.decimalPad)
                             .frame(width: 120)
 
-                        Text("lbs")
+                        Text(WeightFormat.unit(system: appState.unitSystem))
                             .font(.system(size: 16))
                             .foregroundStyle(Theme.Editorial.onSurface.opacity(0.6))
                     }
@@ -297,7 +298,8 @@ struct PhotoCheckInView: View {
     // MARK: - Save
 
     private func saveCheckIn() {
-        guard let weightLbs = Double(weight) else { return }
+        guard let entered = Double(weight) else { return }
+        let weightLbs = WeightFormat.toCanonical(entered, from: appState.unitSystem)
         do {
             try saveService.save(
                 weight: weightLbs,

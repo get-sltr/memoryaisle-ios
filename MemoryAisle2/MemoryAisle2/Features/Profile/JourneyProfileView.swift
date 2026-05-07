@@ -5,6 +5,7 @@ struct JourneyProfileView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @Query private var profiles: [UserProfile]
     @Query(sort: \NutritionLog.date, order: .reverse) private var logs: [NutritionLog]
     @Query(sort: \MealPlan.date, order: .reverse) private var mealPlans: [MealPlan]
@@ -153,20 +154,21 @@ struct JourneyProfileView: View {
                     .rotationEffect(.degrees(-90))
 
                 VStack(spacing: 2) {
-                    Text("\(Int(profile?.weightLbs ?? 0))")
+                    Text("\(WeightFormat.displayValue(profile?.weightLbs ?? 0, system: appState.unitSystem))")
                         .font(Typography.displayMedium)
                         .foregroundStyle(Theme.Text.primary)
-                    Text("of \(Int(profile?.goalWeightLbs ?? 0)) lbs")
+                    Text("of \(WeightFormat.display(profile?.goalWeightLbs ?? 0, system: appState.unitSystem))")
                         .font(Typography.label)
                         .foregroundStyle(Theme.Text.tertiary(for: scheme))
                 }
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("Current weight \(Int(profile?.weightLbs ?? 0)) pounds of \(Int(profile?.goalWeightLbs ?? 0)) pound goal")
+            .accessibilityLabel("Current weight \(WeightFormat.display(profile?.weightLbs ?? 0, system: appState.unitSystem)) of \(WeightFormat.display(profile?.goalWeightLbs ?? 0, system: appState.unitSystem)) goal")
 
             if let current = profile?.weightLbs, let goal = profile?.goalWeightLbs {
-                let diff = abs(Int(current - goal))
-                Text("\(diff) lbs to go")
+                let lbsDiff = abs(current - goal)
+                let displayDiff = appState.unitSystem == .metric ? lbsDiff * 0.45359237 : lbsDiff
+                Text("\(Int(displayDiff.rounded())) \(WeightFormat.unit(system: appState.unitSystem)) to go")
                     .font(Typography.bodySmall)
                     .foregroundStyle(Theme.Text.tertiary(for: scheme))
             }

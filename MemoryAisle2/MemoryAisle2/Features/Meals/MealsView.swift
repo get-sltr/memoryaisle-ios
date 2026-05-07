@@ -8,6 +8,7 @@ struct MealsView: View {
     let onTapWordmark: () -> Void
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @Environment(SubscriptionManager.self) private var subscriptionManager
     @Query private var profiles: [UserProfile]
     @Query(sort: \MealPlan.date, order: .reverse) private var plans: [MealPlan]
@@ -116,7 +117,7 @@ struct MealsView: View {
         VStack(alignment: .leading, spacing: 0) {
             Masthead(
                 wordmark: "MEALS",
-                trailing: RomanNumeral.eveningString(from: Date()),
+                trailing: EditorialDate.eveningString(from: Date(), style: appState.numberStyle),
                 onTapWordmark: onTapWordmark
             )
             .padding(.bottom, 24)
@@ -257,8 +258,7 @@ struct MealsView: View {
     // MARK: - Caps
 
     private var sectionLabel: String {
-        let day = cycleDayNumber
-        let mark = "N° \(RomanNumeral.string(from: day))"
+        let mark = EditorialDate.ordinal(cycleDayNumber, style: appState.numberStyle)
         let isToday = Calendar.current.isDateInToday(selectedDate)
         return isToday ? "\(mark) · TODAY" : "\(mark) · \(selectedDay.label)"
     }
@@ -276,7 +276,7 @@ struct MealsView: View {
     }
 
     private var curatedLine: String {
-        "MIRA · CURATED FOR DAY \(EnglishNumber.word(from: cycleDayNumber).uppercased())"
+        "MIRA · CURATED FOR DAY \(EditorialDate.dayWord(cycleDayNumber, style: appState.numberStyle))"
     }
 
     // MARK: - Meal list
@@ -408,7 +408,7 @@ struct MealsView: View {
                     .foregroundStyle(Theme.Editorial.onSurface)
             }
 
-            Text("DAY \(EnglishNumber.word(from: job.daysCompleted).uppercased()) OF \(EnglishNumber.word(from: job.totalDays).uppercased()) READY")
+            Text("DAY \(EditorialDate.dayWord(job.daysCompleted, style: appState.numberStyle)) OF \(EditorialDate.dayWord(job.totalDays, style: appState.numberStyle)) READY")
                 .font(Theme.Editorial.Typography.caps(9, weight: .semibold))
                 .tracking(1.6)
                 .foregroundStyle(Theme.Editorial.onSurfaceMuted)

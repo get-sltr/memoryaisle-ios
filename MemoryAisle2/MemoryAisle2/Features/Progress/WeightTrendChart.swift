@@ -3,6 +3,7 @@ import SwiftUI
 
 struct WeightTrendChart: View {
     @Environment(\.colorScheme) private var scheme
+    @Environment(AppState.self) private var appState
     let data: [(date: Date, value: Double)]
 
     private var minWeight: Double {
@@ -32,7 +33,9 @@ struct WeightTrendChart: View {
                     HStack(spacing: 4) {
                         Image(systemName: weightChange <= 0 ? "arrow.down.right" : "arrow.up.right")
                             .font(.system(size: 10))
-                        Text(String(format: "%+.1f lbs", weightChange))
+                        Text(String(format: "%+.1f %@",
+                                    appState.unitSystem == .metric ? weightChange * 0.45359237 : weightChange,
+                                    WeightFormat.unit(system: appState.unitSystem)))
                             .font(.system(size: 12, design: .monospaced))
                     }
                     .foregroundStyle(weightChange <= 0

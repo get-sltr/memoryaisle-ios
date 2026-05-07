@@ -8,7 +8,12 @@ struct WeightScreen: View {
     let onContinue: () -> Void
     let onSkip: () -> Void
 
+    @Environment(AppState.self) private var appState
     @State private var draft: String = ""
+
+    private var isMetric: Bool { appState.unitSystem == .metric }
+    private var helperLabel: String { isMetric ? "KILOGRAMS" : "POUNDS" }
+    private var placeholder: String { isMetric ? "70" : "155" }
 
     var body: some View {
         OnboardingScaffold(progress: progress, onSkip: onSkip) {
@@ -26,19 +31,26 @@ struct WeightScreen: View {
 
                 OnboardingNumberPill(
                     text: $draft,
-                    placeholder: "155",
-                    helper: "POUNDS"
+                    placeholder: placeholder,
+                    helper: helperLabel
                 )
 
                 OnboardingPrimaryButton(title: "CONTINUE", action: {
-                    profile.weightLbs = Double(draft.trimmingCharacters(in: .whitespacesAndNewlines))
+                    let trimmed = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if let entered = Double(trimmed) {
+                        profile.weightLbs = WeightFormat.toCanonical(entered, from: appState.unitSystem)
+                    } else {
+                        profile.weightLbs = nil
+                    }
                     onContinue()
                 })
                 .padding(.top, 14)
             }
         }
         .onAppear {
-            draft = profile.weightLbs.map { String(Int($0)) } ?? ""
+            draft = profile.weightLbs
+                .map { WeightFormat.displayValue($0, system: appState.unitSystem) }
+                .map(String.init) ?? ""
         }
     }
 }

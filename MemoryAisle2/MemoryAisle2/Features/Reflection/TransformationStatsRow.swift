@@ -8,13 +8,14 @@ struct TransformationStatsRow: View {
     let stats: TransformationStats
 
     @Environment(\.colorScheme) private var scheme
+    @Environment(AppState.self) private var appState
 
     var body: some View {
         HStack(spacing: 0) {
             if let lbsDelta = stats.lbsDelta {
                 statCell(
-                    value: formatted(lbsDelta),
-                    label: lbsLabel,
+                    value: formatted(convert(lbsDelta)),
+                    label: weightLabel,
                     color: Theme.Text.primary
                 )
                 if shouldShowLean || stats.days != nil {
@@ -23,7 +24,7 @@ struct TransformationStatsRow: View {
             }
             if let leanDelta = stats.leanDelta {
                 statCell(
-                    value: formatted(abs(leanDelta)),
+                    value: formatted(abs(convert(leanDelta))),
                     label: "LEAN",
                     color: Theme.Semantic.onTrack(for: scheme)
                 )
@@ -46,11 +47,16 @@ struct TransformationStatsRow: View {
         stats.leanDelta != nil
     }
 
-    private var lbsLabel: String {
+    private func convert(_ lbs: Double) -> Double {
+        appState.unitSystem == .metric ? lbs * 0.45359237 : lbs
+    }
+
+    private var weightLabel: String {
+        let unit = WeightFormat.unit(system: appState.unitSystem).uppercased()
         switch stats.direction {
-        case .lost: return "LBS LOST"
-        case .gained: return "LBS GAINED"
-        case .none: return "LBS CHANGED"
+        case .lost:   return "\(unit) LOST"
+        case .gained: return "\(unit) GAINED"
+        case .none:   return "\(unit) CHANGED"
         }
     }
 
