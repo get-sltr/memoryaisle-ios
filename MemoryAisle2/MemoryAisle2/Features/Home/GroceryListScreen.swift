@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UIKit
 
 struct GroceryListScreen: View {
     var mode: MAMode = .auto
@@ -13,6 +14,7 @@ struct GroceryListScreen: View {
     ) private var pantryItems: [PantryItem]
     @State private var newItemText = ""
     @State private var duplicateItemName: String?
+    @State private var copiedConfirmation: Bool = false
     @FocusState private var inputFocused: Bool
 
     private var profile: UserProfile? { profiles.first }
@@ -78,19 +80,69 @@ struct GroceryListScreen: View {
 
     private var topBar: some View {
         HStack(spacing: 8) {
-            Spacer()
-            Button { dismiss() } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Theme.Editorial.onSurface)
-                    .frame(width: 36, height: 36)
-                    .overlay(Circle().stroke(Theme.Editorial.hairline, lineWidth: 0.5))
-                    .contentShape(Circle())
+            if !pantryItems.isEmpty {
+                topBarButton(
+                    systemName: copiedConfirmation ? "checkmark" : "doc.on.doc",
+                    accessibility: copiedConfirmation ? "Copied" : "Copy list"
+                ) {
+                    copyListToClipboard()
+                }
+                topBarButton(
+                    systemName: "square.and.arrow.up",
+                    accessibility: "Share list"
+                ) {
+                    shareList()
+                }
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Close grocery list")
+            Spacer()
+            topBarButton(systemName: "xmark", accessibility: "Close grocery list") {
+                dismiss()
+            }
         }
         .padding(.bottom, 14)
+    }
+
+    private func topBarButton(
+        systemName: String,
+        accessibility: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Theme.Editorial.onSurface)
+                .frame(width: 36, height: 36)
+                .overlay(Circle().stroke(Theme.Editorial.hairline, lineWidth: 0.5))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibility)
+    }
+
+    // MARK: - Share / copy
+
+    private func shareList() {
+        HapticManager.light()
+        let text = GroceryAdder.sharePlainText(items: pantryItems)
+        guard !text.isEmpty else { return }
+        ShareSheetPresenter.present(items: [text])
+    }
+
+    private func copyListToClipboard() {
+        let text = GroceryAdder.sharePlainText(items: pantryItems)
+        guard !text.isEmpty else { return }
+        UIPasteboard.general.string = text
+        HapticManager.success()
+        withAnimation(.easeInOut(duration: 0.2)) {
+            copiedConfirmation = true
+        }
+        // Reset the icon after a brief moment so the next tap isn't
+        // ambiguous about whether it copied again.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                copiedConfirmation = false
+            }
+        }
     }
 
     // MARK: - Empty state

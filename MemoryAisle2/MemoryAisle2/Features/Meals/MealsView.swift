@@ -24,6 +24,7 @@ struct MealsView: View {
     @State private var weekOffset: Int = 0
     @State private var expandedMealId: String? = nil
     @State private var localError: String? = nil
+    @State private var groceryFeedback: String? = nil
 
     /// Forward navigation cap. Four weeks is enough for "show me next month
     /// roughly" without inviting the user to plan a quarter ahead — meal
@@ -132,6 +133,23 @@ struct MealsView: View {
     }
 
     var body: some View {
+        layoutForMode
+            .alert(
+                "Grocery list",
+                isPresented: Binding(
+                    get: { groceryFeedback != nil },
+                    set: { if !$0 { groceryFeedback = nil } }
+                ),
+                presenting: groceryFeedback
+            ) { _ in
+                Button("OK", role: .cancel) { groceryFeedback = nil }
+            } message: { text in
+                Text(text)
+            }
+    }
+
+    @ViewBuilder
+    private var layoutForMode: some View {
         switch mode {
         case .day:   dayLayout
         case .night: nightLayout
@@ -298,6 +316,11 @@ struct MealsView: View {
 
             if offset == weekOffset {
                 content
+
+                if weekHasAnyPlans {
+                    weekGroceryButton
+                        .padding(.top, 18)
+                }
             } else {
                 // Off-screen pages: render a placeholder of the same
                 // approximate height so the TabView's page semantics
@@ -307,6 +330,44 @@ struct MealsView: View {
             }
         }
         .padding(.horizontal, Theme.Editorial.Spacing.pad)
+    }
+
+    /// True when at least one active MealPlan exists in the displayed week.
+    /// Gates the "PLAN WEEK'S GROCERIES" CTA so it doesn't appear on a
+    /// week the user hasn't generated yet.
+    private var weekHasAnyPlans: Bool {
+        let cal = Calendar.current
+        let start = displayedWeekStart
+        return plans.contains { plan in
+            plan.isActive
+                && plan.date >= start
+                && plan.date <= cal.date(byAdding: .day, value: 6, to: start) ?? start
+        }
+    }
+
+    private var weekGroceryButton: some View {
+        Button {
+            HapticManager.light()
+            addWeekIngredientsToGrocery()
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "cart.badge.plus")
+                    .font(.system(size: 12, weight: .semibold))
+                Text("PLAN WEEK'S GROCERIES")
+                    .font(Theme.Editorial.Typography.capsBold(11))
+                    .tracking(2.5)
+                Spacer()
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 11, weight: .bold))
+            }
+            .foregroundStyle(Theme.Editorial.onSurface)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity)
+            .overlay(alignment: .top) { HairlineDivider() }
+            .overlay(alignment: .bottom) { HairlineDivider() }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Add this week's ingredients to grocery list")
     }
 
     private var nightLayout: some View {
@@ -577,10 +638,38 @@ struct MealsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            logMealButton(for: meal)
-                .padding(.top, 8)
+            HStack(spacing: 10) {
+                logMealButton(for: meal)
+                addToGroceryButton(for: meal)
+            }
+            .padding(.top, 8)
         }
         .padding(.top, 4)
+    }
+
+    private func addToGroceryButton(for meal: Meal) -> some View {
+        Button {
+            HapticManager.light()
+            addIngredientsToGrocery(meal.ingredients)
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "cart.badge.plus")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("TO GROCERY")
+                    .font(Theme.Editorial.Typography.capsBold(10))
+                    .tracking(2.0)
+            }
+            .foregroundStyle(Theme.Editorial.onSurface)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Theme.Editorial.hairline, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(meal.ingredients.isEmpty)
+        .accessibilityLabel("Add this meal's ingredients to grocery list")
     }
 
     private func logMealButton(for meal: Meal) -> some View {
@@ -757,5 +846,64 @@ struct MealsView: View {
     private func fetchPantryItems() -> [PantryItem] {
         let descriptor = FetchDescriptor<PantryItem>()
         return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    // MARK: - Grocery wiring
+
+    /// Single-meal "ADD INGREDIENTS TO GROCERY". Aggregates the ingredient
+    /// list onto the user's grocery list via the shared GroceryAdder, then
+    /// surfaces a result alert. Reuses the same dedup + categorize as
+    /// SavedRecipeDetailView and Mira's chat tool.
+    private func addIngredientsToGrocery(_ items: [String]) {
+        guard !items.isEmpty else { return }
+        let result = GroceryAdder.add(items, in: modelContext)
+        do {
+            try modelContext.save()
+        } catch {
+            groceryFeedback = "Couldn't save: \(error.localizedDescription)"
+            return
+        }
+        HapticManager.success()
+        groceryFeedback = formatGroceryFeedback(result)
+    }
+
+    /// Cross-week aggregation. Pulls every active MealPlan in the displayed
+    /// week, flattens ingredients, and pipes the whole batch through
+    /// GroceryAdder so dedup runs once across the week instead of once
+    /// per meal. The reverse order matters: Sunday's repeats are skipped
+    /// against Monday's instead of the user seeing them twice.
+    private func addWeekIngredientsToGrocery() {
+        let cal = Calendar.current
+        let start = displayedWeekStart
+        let end = cal.date(byAdding: .day, value: 6, to: start) ?? start
+        let weekPlans = plans
+            .filter { $0.isActive && $0.date >= start && $0.date <= end }
+            .sorted { $0.date < $1.date }
+
+        let allIngredients = weekPlans.flatMap { $0.meals.flatMap(\.ingredients) }
+        guard !allIngredients.isEmpty else {
+            groceryFeedback = "No meals planned this week yet."
+            return
+        }
+        let result = GroceryAdder.add(allIngredients, in: modelContext)
+        do {
+            try modelContext.save()
+        } catch {
+            groceryFeedback = "Couldn't save: \(error.localizedDescription)"
+            return
+        }
+        HapticManager.success()
+        groceryFeedback = formatGroceryFeedback(result)
+    }
+
+    private func formatGroceryFeedback(_ result: GroceryAdder.Result) -> String {
+        if result.added.isEmpty && !result.skipped.isEmpty {
+            return "Already on your list."
+        }
+        if result.skipped.isEmpty {
+            let n = result.added.count
+            return "Added \(n) ingredient\(n == 1 ? "" : "s") to your grocery list."
+        }
+        return "Added \(result.added.count). \(result.skipped.count) already on your list."
     }
 }
