@@ -252,6 +252,136 @@ struct MiraAPIClient: Sendable {
         }
     }
 
+    // MARK: - Meal-plan structured generation (one day at a time)
+
+    /// Decoded shape of the Lambda's `mode: "meal_plan"` response. Mirrors
+    /// the `presentMealPlan` tool input_schema in
+    /// `Infrastructure/lambda/miraGenerate/meal-plan-schema.mjs` exactly.
+    /// Field names use snake_case to match the Bedrock tool contract; the
+    /// SwiftData model conversion happens in MealGenerator.
+    struct MealPlanDayPayload: Decodable, Sendable {
+        let meals: [MealPlanMealPayload]
+    }
+
+    struct MealPlanMealPayload: Decodable, Sendable {
+        let type: String
+        let name: String
+        let protein_g: Double
+        let calories: Double
+        let carbs_g: Double
+        let fat_g: Double
+        let fiber_g: Double
+        let prep_minutes: Int
+        let nausea_safe: Bool
+        let ingredients: [String]
+        let cooking_instructions: [String]
+    }
+
+    /// Why the Lambda rejected a meal-plan call. Drives MealGenerator's
+    /// retry classification: 5xx + transport errors get the existing
+    /// exponential backoff (3 attempts); schemaValidation gets one retry
+    /// max because retrying a schema failure usually wastes spend on the
+    /// same broken state.
+    enum MealPlanError: Error, Sendable {
+        case schemaValidation(details: [String])
+        case noToolUseBlock
+        case server(status: Int, message: String)
+        case transport(Error)
+        case decode(Error)
+
+        var isRetryable: Bool {
+            switch self {
+            case .schemaValidation: return false
+            case .noToolUseBlock:   return true
+            case .server(let status, _): return status >= 500
+            case .transport:        return true
+            case .decode:           return false
+            }
+        }
+    }
+
+    /// Asks Bedrock for ONE day of meals. Routes via `mode: "meal_plan"` —
+    /// no substring match on the user message — so a copy-edit on the
+    /// client prompt template can't silently break the short-circuit.
+    /// Throws `MealPlanError`; caller (MealGenerator) classifies retry.
+    func generateMealPlan(
+        context: MiraContext?,
+        cyclePhase: String?,
+        isTrainingDay: Bool,
+        avoidMealNames: [String],
+        pantryItems: [String]
+    ) async throws -> [MealPlanMealPayload] {
+        guard let url = URL(string: endpoint) else {
+            throw MealPlanError.server(status: 0, message: "Invalid endpoint")
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30
+
+        var body: [String: Any] = [
+            "mode": "meal_plan",
+            "isTrainingDay": isTrainingDay
+        ]
+        if let cyclePhase, !cyclePhase.isEmpty { body["cyclePhase"] = cyclePhase }
+        if !avoidMealNames.isEmpty { body["avoidMealNames"] = avoidMealNames }
+        if !pantryItems.isEmpty { body["pantryItems"] = pantryItems }
+        if let context { body["context"] = encodeContextDict(context) }
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw MealPlanError.transport(error)
+        }
+
+        guard let http = response as? HTTPURLResponse else {
+            throw MealPlanError.server(status: 0, message: "No HTTP response")
+        }
+
+        if http.statusCode == 422 {
+            // Schema validation failure — Lambda rejected the model's
+            // tool input. Surface details so MealGenerator can log and
+            // decide retry policy.
+            let detail = decodeErrorDetails(data: data)
+            throw MealPlanError.schemaValidation(details: detail.details)
+        }
+
+        if http.statusCode == 502 {
+            // No tool_use block came back — model refused or hit max
+            // tokens. Retryable per MealPlanError.isRetryable.
+            throw MealPlanError.noToolUseBlock
+        }
+
+        guard http.statusCode == 200 else {
+            let detail = decodeErrorDetails(data: data)
+            throw MealPlanError.server(status: http.statusCode, message: detail.message)
+        }
+
+        do {
+            let decoded = try JSONDecoder().decode(MealPlanDayPayload.self, from: data)
+            return decoded.meals
+        } catch {
+            throw MealPlanError.decode(error)
+        }
+    }
+
+    private func decodeErrorDetails(data: Data) -> (message: String, details: [String]) {
+        struct ErrorEnvelope: Decodable {
+            let error: String?
+            let kind: String?
+            let details: [String]?
+        }
+        guard let env = try? JSONDecoder().decode(ErrorEnvelope.self, from: data) else {
+            return ("Unknown error", [])
+        }
+        return (env.error ?? "Unknown error", env.details ?? [])
+    }
+
     /// Convert MiraContext to a JSON-serializable dictionary. We can't use
     /// JSONEncoder with [String: Any] mixing, so we hand-build the dict.
     private func encodeContextDict(_ ctx: MiraContext) -> [String: Any] {

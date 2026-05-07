@@ -1,0 +1,13 @@
+{
+  "name": "mira-generate-lambda",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Bedrock proxy + meal plan + recommend short-circuits for the MemoryAisle iOS client.",
+  "scripts": {
+    "test": "node --test test.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.0.0"
+  }
+}

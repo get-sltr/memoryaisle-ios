@@ -2,6 +2,11 @@ import {
   BedrockRuntimeClient,
   InvokeModelCommand,
 } from "@aws-sdk/client-bedrock-runtime";
+import {
+  MEAL_PLAN_TOOL,
+  MEAL_PLAN_SYSTEM_PROMPT,
+  validateMealPlanPayload,
+} from "./meal-plan-schema.mjs";
 
 const client = new BedrockRuntimeClient({ region: "us-east-1" });
 
@@ -342,6 +347,20 @@ export const handler = async (event) => {
     });
   }
 
+  // Meal-plan mode: structured-output generation of a single day's meals.
+  // Routes here on the explicit `mode: "meal_plan"` field — no substring
+  // match on the user message — so client prompt edits can't silently
+  // break the short-circuit and fall back to the free-text path.
+  if (mode === "meal_plan") {
+    return await handleMealPlan({
+      context,
+      cyclePhase: body.cyclePhase,
+      isTrainingDay: body.isTrainingDay,
+      avoidMealNames: body.avoidMealNames,
+      pantryItems,
+    });
+  }
+
   // Backward-compatible request shape: accept either
   //   { message, context, imageBase64 }   — legacy single-message mode
   //   { messages, context, useTools }     — multi-turn tool-use mode
@@ -442,6 +461,178 @@ export const handler = async (event) => {
     };
   }
 };
+
+// ---------------------------------------------------------------------------
+// Meal-plan structured-output mode (one day at a time).
+//
+// Replaces the old free-text "MEAL|..." pipe contract that the iOS parser used
+// to read. The pipe parser silently dropped malformed lines and silently
+// substituted hardcoded fallback meals when the model returned prose, which
+// hid both refusals and partial breakages — the same fall-through pathology
+// the photo analyzer had. tool_use forces the model to call presentMealPlan
+// exactly once with a meals array, and the schema enforces minimums + minItems
+// at the Bedrock level so a refusal returns no tool_use block (caller handles
+// 502) instead of a meal with 0g protein and no ingredients.
+//
+// Tool definition + validator live in meal-plan-schema.mjs so they can be
+// unit-tested without booting the AWS SDK. Same checks run server-side here
+// (suspenders) as run in the test suite (belt) — a regression in either
+// layer fails CI before it can ship.
+// ---------------------------------------------------------------------------
+
+async function handleMealPlan({
+  context,
+  cyclePhase,
+  isTrainingDay,
+  avoidMealNames,
+  pantryItems,
+}) {
+  const userContext = context ? buildAnonymizedContext(context) : "";
+
+  const lines = [];
+  const trainingFlag = isTrainingDay === true;
+  const mealCount = trainingFlag ? 5 : 4;
+  lines.push(
+    `Generate ${mealCount} meals for ONE day. ${
+      trainingFlag
+        ? "Include a pre-workout and a post-workout slot."
+        : "Use breakfast, lunch, dinner, and a snack."
+    }`
+  );
+  if (cyclePhase) {
+    lines.push(`Cycle phase: ${cyclePhase}.`);
+  }
+  if (Array.isArray(pantryItems) && pantryItems.length) {
+    lines.push(
+      `Pantry on hand (prefer when relevant): ${pantryItems
+        .slice(0, 20)
+        .join(", ")}.`
+    );
+  }
+  if (Array.isArray(avoidMealNames) && avoidMealNames.length) {
+    lines.push(
+      `Already planned earlier this week, do NOT repeat or close-variant: ${avoidMealNames
+        .slice(-20)
+        .join(", ")}.`
+    );
+  }
+  lines.push("Call presentMealPlan exactly once with the day's meals.");
+  const userMessage = lines.join("\n");
+
+  const requestBody = {
+    anthropic_version: "bedrock-2023-05-31",
+    max_tokens: 3500,
+    system: MEAL_PLAN_SYSTEM_PROMPT + userContext,
+    messages: [{ role: "user", content: userMessage }],
+    tools: [MEAL_PLAN_TOOL],
+    tool_choice: { type: "tool", name: "presentMealPlan" },
+  };
+
+  try {
+    const command = new InvokeModelCommand({
+      modelId: "us.anthropic.claude-sonnet-4-20250514-v1:0",
+      contentType: "application/json",
+      accept: "application/json",
+      body: JSON.stringify(requestBody),
+    });
+
+    const response = await client.send(command);
+    const result = JSON.parse(new TextDecoder().decode(response.body));
+
+    const contentBlocks = Array.isArray(result.content) ? result.content : [];
+    const toolBlock = contentBlocks.find((b) => b.type === "tool_use");
+
+    if (!toolBlock || !toolBlock.input || !Array.isArray(toolBlock.input.meals)) {
+      // No tool_use block at all — model refused or hit max_tokens before
+      // it could call the tool. CloudWatch picks this up via the EMF log
+      // line below; iOS treats 502 as retryable with exp backoff.
+      emitMetric({
+        metric: "tool_use_parse_failure",
+        kind: "no_tool_use_block",
+        stop_reason: result.stop_reason || "unknown",
+      });
+      return {
+        statusCode: 502,
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          error:
+            "Mira didn't return a meal plan in the expected shape. Try again in a moment.",
+          kind: "no_tool_use",
+        }),
+      };
+    }
+
+    const validation = validateMealPlanPayload(toolBlock.input);
+    if (!validation.ok) {
+      // The schema rejected something the model produced — usually a zero
+      // macro or empty ingredients list. iOS should retry once and then
+      // fail; further retries waste spend on the same broken state.
+      emitMetric({
+        metric: "tool_use_parse_failure",
+        kind: "schema_validation",
+        errors: validation.errors,
+      });
+      console.error(
+        "Meal plan validation failed",
+        JSON.stringify({ errors: validation.errors, payload: toolBlock.input })
+      );
+      return {
+        statusCode: 422,
+        headers: corsHeaders(),
+        body: JSON.stringify({
+          error: "Mira's meal plan didn't pass validation.",
+          kind: "schema_validation",
+          details: validation.errors,
+        }),
+      };
+    }
+
+    emitMetric({
+      metric: "tool_use_parse_success",
+      meal_count: toolBlock.input.meals.length,
+    });
+
+    return {
+      statusCode: 200,
+      headers: corsHeaders(),
+      body: JSON.stringify({ meals: toolBlock.input.meals }),
+    };
+  } catch (error) {
+    emitMetric({ metric: "tool_use_bedrock_error", message: error.message });
+    console.error("Meal plan Bedrock error:", error);
+    return {
+      statusCode: 500,
+      headers: corsHeaders(),
+      body: JSON.stringify({
+        error: "Mira is temporarily unavailable. Please try again.",
+      }),
+    };
+  }
+}
+
+// Emits a CloudWatch metric line in Embedded Metric Format. AWS picks up
+// the JSON automatically when the log line includes the _aws envelope —
+// no SDK call required, no extra IAM permissions, no cost beyond the
+// existing log ingestion.
+function emitMetric(payload) {
+  const timestamp = Date.now();
+  console.log(
+    JSON.stringify({
+      _aws: {
+        Timestamp: timestamp,
+        CloudWatchMetrics: [
+          {
+            Namespace: "MemoryAisle/MealPlan",
+            Dimensions: [["metric"]],
+            Metrics: [{ Name: "Count", Unit: "Count" }],
+          },
+        ],
+      },
+      Count: 1,
+      ...payload,
+    })
+  );
+}
 
 async function handleRecommend({ context, mealWindow, recentMeals, pantryItems }) {
   // Build the same anonymized user-context block the chat path uses, so

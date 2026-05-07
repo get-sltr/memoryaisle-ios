@@ -20,10 +20,15 @@ final class MealGenerator {
 
     // MARK: - Single day
 
-    /// Generate one day's meal plan. The optional `date` lets callers schedule
-    /// future days; `avoidMealNames` is the cumulative list of meal names already
-    /// planned earlier in the week, so Mira varies the protein source and meal
-    /// style across the seven days.
+    /// Generate one day's meal plan via the structured-output Lambda path.
+    /// Calls `mode: "meal_plan"` on the Mira endpoint, which forces a
+    /// `presentMealPlan` tool_use call and validates the result before
+    /// returning. `avoidMealNames` is the cumulative list of meal names
+    /// already planned earlier in the week, so Mira varies the protein
+    /// source and meal style across the seven days.
+    ///
+    /// Throws `MiraAPIClient.MealPlanError`; the weekly loop classifies
+    /// retry policy from `isRetryable`.
     func generateDailyPlan(
         profile: UserProfile,
         cyclePhase: CyclePhase?,
@@ -36,21 +41,6 @@ final class MealGenerator {
     ) async throws -> MealPlan {
         let started = Date()
         logger.info("Generating plan for \(date.ISO8601Format(), privacy: .public), avoid=\(avoidMealNames.count, privacy: .public)")
-
-        let systemPrompt = MiraEngine.buildSystemPrompt(
-            profile: profile,
-            cyclePhase: cyclePhase,
-            giTriggers: giTriggers,
-            pantryItems: pantryItems
-        )
-
-        let mealRequest = buildMealRequest(
-            profile: profile,
-            cyclePhase: cyclePhase,
-            isTrainingDay: isTrainingDay,
-            pantry: pantryItems,
-            avoidMealNames: avoidMealNames
-        )
 
         let anon = MedicationAnonymizer.anonymize(
             profile: profile,
@@ -76,12 +66,17 @@ final class MealGenerator {
             dietaryRestrictions: anon.dietaryRestrictions
         )
 
-        let response = try await apiClient.send(
-            message: "\(systemPrompt)\n\n\(mealRequest)",
-            context: miraContext
+        let pantryNames = pantryItems.prefix(20).map(\.name).filter { !$0.isEmpty }
+
+        let payloads = try await apiClient.generateMealPlan(
+            context: miraContext,
+            cyclePhase: cyclePhase?.rawValue,
+            isTrainingDay: isTrainingDay,
+            avoidMealNames: avoidMealNames,
+            pantryItems: pantryNames
         )
 
-        let meals = parseMeals(from: response, profile: profile)
+        let meals = payloads.map(meal(from:))
 
         let plan = MealPlan(
             date: date,
@@ -100,6 +95,30 @@ final class MealGenerator {
         return plan
     }
 
+    /// Maps a Lambda meal payload onto the SwiftData Meal model. The Lambda
+    /// joins cooking_instructions back into a single string with `; ` so the
+    /// existing UI (which renders instructions as one paragraph) doesn't
+    /// need rework — Task 1 is a contract migration, not a UI refactor.
+    /// Internal so MealGeneratorParserTests can pin the mapping contract.
+    func meal(from payload: MiraAPIClient.MealPlanMealPayload) -> Meal {
+        let mealType = parseMealType(payload.type)
+        let instructions = payload.cooking_instructions.joined(separator: "; ")
+        return Meal(
+            name: payload.name,
+            mealType: mealType,
+            proteinGrams: payload.protein_g,
+            caloriesTotal: payload.calories,
+            carbsGrams: payload.carbs_g,
+            fatGrams: payload.fat_g,
+            fiberGrams: payload.fiber_g,
+            prepTimeMinutes: payload.prep_minutes,
+            cookingInstructions: instructions.isEmpty ? nil : instructions,
+            ingredients: payload.ingredients,
+            isNauseaSafe: payload.nausea_safe,
+            isHighProtein: payload.protein_g >= 25
+        )
+    }
+
     // MARK: - Weekly (sequential, with retry + cross-day dedup)
 
     /// Generate `days` consecutive plans starting at `startDate`. Sequential
@@ -107,13 +126,21 @@ final class MealGenerator {
     /// 7-day prompt would exceed that. Each call after the first includes the
     /// cumulative list of meal names from prior days so Mira varies sources.
     ///
-    /// Per-day retries with exponential backoff (2s, 4s, 8s) up to `maxAttempts`.
-    /// Days that exhaust retries are recorded in `failures` and the loop
-    /// continues — partial success is the expected outcome under network or
-    /// rate-limit pressure.
+    /// Retry classification (per `MealPlanError.isRetryable`):
+    /// - 5xx, transport, missing tool_use → exponential backoff (2s, 4s, 8s)
+    ///   up to `maxAttempts` (default 3).
+    /// - 422 schema validation, decode errors, 4xx → fail fast after one
+    ///   retry. The model returned a tool_use payload that violated the
+    ///   schema (e.g., zero macros); retrying usually wastes spend on the
+    ///   same broken state. The malformed payload is logged from the
+    ///   Lambda side via the `tool_use_parse_failure` CloudWatch metric.
     ///
-    /// `onDayCompleted` fires after each day (success or terminal failure) so
-    /// a UI orchestrator can update progress without polling.
+    /// Days that exhaust retries are recorded in `failures` and the loop
+    /// continues — partial success is still the expected outcome under
+    /// network or rate-limit pressure.
+    ///
+    /// `onDayCompleted` fires after each day (success or terminal failure)
+    /// so a UI orchestrator can update progress without polling.
     func generateWeeklyPlan(
         profile: UserProfile,
         giTriggers: [String],
@@ -140,7 +167,12 @@ final class MealGenerator {
             let trainingForDay = isTrainingDay(date, profile: profile)
 
             var lastError: Error?
-            for attempt in 1...maxAttempts {
+            // Schema-validation errors get one retry max; everything else
+            // gets the configured maxAttempts.
+            let attemptCap = maxAttempts
+            var attempt = 0
+            while attempt < attemptCap {
+                attempt += 1
                 do {
                     let plan = try await generateDailyPlan(
                         profile: profile,
@@ -157,10 +189,26 @@ final class MealGenerator {
                     onDayCompleted?(offset, .success(plan))
                     lastError = nil
                     break
+                } catch let mpError as MiraAPIClient.MealPlanError {
+                    lastError = mpError
+                    logger.warning("Day \(offset, privacy: .public) attempt \(attempt, privacy: .public) failed: \(mpError.localizedDescription, privacy: .public)")
+                    if !mpError.isRetryable {
+                        // Schema validation / decode / 4xx — log the
+                        // failure and give up after at most one retry.
+                        // The Lambda side already logged the malformed
+                        // payload to CloudWatch; further attempts on the
+                        // same broken state aren't free.
+                        if attempt >= 2 { break }
+                    }
+                    if attempt < attemptCap {
+                        let delay = pow(2.0, Double(attempt))
+                        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                    }
                 } catch {
+                    // Unknown error type — treat as retryable transport.
                     lastError = error
                     logger.warning("Day \(offset, privacy: .public) attempt \(attempt, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
-                    if attempt < maxAttempts {
+                    if attempt < attemptCap {
                         let delay = pow(2.0, Double(attempt))
                         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                     }
@@ -201,133 +249,12 @@ final class MealGenerator {
         }
     }
 
-    // MARK: - Prompt construction
+    // MARK: - Type mapping
 
-    private func buildMealRequest(
-        profile: UserProfile,
-        cyclePhase: CyclePhase?,
-        isTrainingDay: Bool,
-        pantry: [PantryItem],
-        avoidMealNames: [String]
-    ) -> String {
-        let mealCount = isTrainingDay ? 5 : 4
-        let restrictions = profile.dietaryRestrictions
-            .map(\.rawValue).joined(separator: ", ")
-
-        var request = """
-        Generate \(mealCount) meals for today. \
-        Protein target: \(profile.proteinTargetGrams)g total. \
-        Calorie target: \(profile.calorieTarget) total.
-        """
-
-        if isTrainingDay {
-            request += " Include pre-workout and post-workout meals."
-        }
-
-        if let phase = cyclePhase {
-            request += " Cycle phase: \(phase.rawValue). \(phase.proteinStrategy)"
-        }
-
-        if !restrictions.isEmpty {
-            request += " Dietary restrictions: \(restrictions)."
-        }
-
-        if !pantry.isEmpty {
-            let available = pantry.prefix(15)
-                .map(\.name).joined(separator: ", ")
-            request += " Available in pantry: \(available)."
-        }
-
-        if !avoidMealNames.isEmpty {
-            // Cap at 20 names so the prompt stays bounded; the most recent are
-            // the most likely repeats so we keep the tail.
-            let recentNames = avoidMealNames.suffix(20)
-            let avoid = recentNames.joined(separator: ", ")
-            request += " Already planned earlier this week, vary protein source and meal style and do NOT repeat exactly: \(avoid)."
-        }
-
-        request += """
-
-        For each meal, provide a COMPLETE cookbook-style recipe.
-        Respond in this exact format for each meal:
-        MEAL|type|name|protein_g|calories|carbs_g|fat_g|fiber_g|\
-        prep_minutes|nausea_safe|ingredients(semicolon-separated with amounts)|\
-        cooking_instructions(numbered steps separated by semicolons)
-        Types: breakfast, lunch, dinner, snack, pre-workout, post-workout
-
-        For ingredients, include exact measurements (e.g., "8oz chicken breast;1 cup brown rice;2 cups broccoli florets;1 tbsp olive oil;salt and pepper to taste").
-        For instructions, write detailed numbered steps (e.g., "1. Preheat oven to 400F;2. Season chicken with salt and pepper;3. Sear 3 min per side;4. Bake 15 min at 400F;5. Rest 5 min before slicing").
-        Include a GLP-1 tip at the end of instructions if relevant.
-        """
-
-        return request
-    }
-
-    // MARK: - Parsing (kept package-internal so tests can hit it)
-
-    func parseMeals(
-        from response: String,
-        profile: UserProfile
-    ) -> [Meal] {
-        let lines = response.components(separatedBy: "\n")
-            .filter { $0.hasPrefix("MEAL|") }
-
-        var meals: [Meal] = []
-
-        for line in lines {
-            let parts = line.components(separatedBy: "|")
-            guard parts.count >= 10 else { continue }
-
-            let mealType = parseMealType(parts[1].trimmingCharacters(in: .whitespaces))
-            let name = parts[2].trimmingCharacters(in: .whitespaces)
-            let protein = Double(parts[3].trimmingCharacters(in: .whitespaces)) ?? 0
-            let calories = Double(parts[4].trimmingCharacters(in: .whitespaces)) ?? 0
-            let carbs = Double(parts[5].trimmingCharacters(in: .whitespaces)) ?? 0
-            let fat = Double(parts[6].trimmingCharacters(in: .whitespaces)) ?? 0
-            let fiber = Double(parts[7].trimmingCharacters(in: .whitespaces)) ?? 0
-            let prep = Int(parts[8].trimmingCharacters(in: .whitespaces)) ?? 15
-            let nauseaSafe = parts[9].trimmingCharacters(in: .whitespaces).lowercased() == "true"
-
-            let ingredients: [String]
-            if parts.count > 10 {
-                ingredients = parts[10].components(separatedBy: ";")
-                    .map { $0.trimmingCharacters(in: .whitespaces) }
-                    .filter { !$0.isEmpty }
-            } else {
-                ingredients = []
-            }
-
-            let instructions: String?
-            if parts.count > 11 {
-                instructions = parts[11].trimmingCharacters(in: .whitespaces)
-            } else {
-                instructions = nil
-            }
-
-            let meal = Meal(
-                name: name,
-                mealType: mealType,
-                proteinGrams: protein,
-                caloriesTotal: calories,
-                carbsGrams: carbs,
-                fatGrams: fat,
-                fiberGrams: fiber,
-                prepTimeMinutes: prep,
-                cookingInstructions: instructions,
-                ingredients: ingredients,
-                isNauseaSafe: nauseaSafe,
-                isHighProtein: protein >= 25
-            )
-            meals.append(meal)
-        }
-
-        if meals.isEmpty {
-            return fallbackMeals(profile: profile)
-        }
-
-        return meals
-    }
-
+    /// Maps the Lambda's enum-constrained `type` string onto SwiftData's
+    /// `MealType`. The Bedrock schema's enum guarantees one of the listed
+    /// strings, but we keep the mapping defensive so a tool-spec drift
+    /// doesn't silently mis-categorize meals.
     private func parseMealType(_ raw: String) -> MealType {
         switch raw.lowercased() {
         case "breakfast": .breakfast
@@ -338,43 +265,5 @@ final class MealGenerator {
         case "post-workout", "postworkout": .postWorkout
         default: .snack
         }
-    }
-
-    private func fallbackMeals(profile: UserProfile) -> [Meal] {
-        let perMeal = Double(profile.proteinTargetGrams) / 4.0
-        let calPerMeal = Double(profile.calorieTarget) / 4.0
-
-        return [
-            Meal(
-                name: "Protein-packed breakfast",
-                mealType: .breakfast,
-                proteinGrams: perMeal * 1.1,
-                caloriesTotal: calPerMeal,
-                isNauseaSafe: true,
-                isHighProtein: true
-            ),
-            Meal(
-                name: "Lean lunch bowl",
-                mealType: .lunch,
-                proteinGrams: perMeal * 1.1,
-                caloriesTotal: calPerMeal * 1.1,
-                isHighProtein: true
-            ),
-            Meal(
-                name: "Protein snack",
-                mealType: .snack,
-                proteinGrams: perMeal * 0.6,
-                caloriesTotal: calPerMeal * 0.5,
-                isNauseaSafe: true,
-                isHighProtein: true
-            ),
-            Meal(
-                name: "Balanced dinner",
-                mealType: .dinner,
-                proteinGrams: perMeal * 1.2,
-                caloriesTotal: calPerMeal * 1.4,
-                isHighProtein: true
-            )
-        ]
     }
 }
