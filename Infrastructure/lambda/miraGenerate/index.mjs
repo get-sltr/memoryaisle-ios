@@ -358,6 +358,7 @@ export const handler = async (event) => {
       isTrainingDay: body.isTrainingDay,
       avoidMealNames: body.avoidMealNames,
       pantryItems,
+      adherenceContext: body.adherenceContext,
     });
   }
 
@@ -486,6 +487,7 @@ async function handleMealPlan({
   isTrainingDay,
   avoidMealNames,
   pantryItems,
+  adherenceContext,
 }) {
   const userContext = context ? buildAnonymizedContext(context) : "";
 
@@ -519,10 +521,36 @@ async function handleMealPlan({
   lines.push("Call presentMealPlan exactly once with the day's meals.");
   const userMessage = lines.join("\n");
 
+  // System prompt is split into a static cacheable prefix and a dynamic
+  // suffix (user context + adherence). Anthropic prompt caching keys on
+  // the cache_control marker — everything up to and including that block
+  // gets cached for ~5 minutes, so the 7 sequential daily generations in
+  // a weekly run only pay the cache-write cost once. The dynamic suffix
+  // (which differs per user / per week) cannot be cached and lives in a
+  // second content block without cache_control.
+  const systemBlocks = [
+    {
+      type: "text",
+      text: MEAL_PLAN_SYSTEM_PROMPT,
+      cache_control: { type: "ephemeral" },
+    },
+  ];
+  const dynamicSystemParts = [];
+  if (userContext) dynamicSystemParts.push(userContext);
+  if (adherenceContext && typeof adherenceContext === "string") {
+    dynamicSystemParts.push(adherenceContext);
+  }
+  if (dynamicSystemParts.length) {
+    systemBlocks.push({
+      type: "text",
+      text: dynamicSystemParts.join("\n"),
+    });
+  }
+
   const requestBody = {
     anthropic_version: "bedrock-2023-05-31",
     max_tokens: 3500,
-    system: MEAL_PLAN_SYSTEM_PROMPT + userContext,
+    system: systemBlocks,
     messages: [{ role: "user", content: userMessage }],
     tools: [MEAL_PLAN_TOOL],
     tool_choice: { type: "tool", name: "presentMealPlan" },

@@ -24,13 +24,23 @@ final class FeatureFlags {
     enum Flag: String, CaseIterable, Sendable {
         case weeklyMealPlan = "weekly_meal_plan_enabled"
         case weeklyMealBackfill = "weekly_meal_backfill_enabled"
+        /// Task 5: when ON, MealGenerator appends an AdherenceContext
+        /// fragment (last 7 days hit/miss/swap log) to the system prompt
+        /// so Mira can adapt the next plan to what the user actually ate.
+        /// Ships OFF by default — adherence context changes the prompt
+        /// shape and adds tokens, so we want a kill switch we can flip
+        /// from a debug build (or a future RemoteFlagSync) without
+        /// redeploying the Lambda or shipping a new IPA.
+        case adherenceContext = "adherence_context_enabled"
     }
 
     private static let defaultValues: [Flag: Bool] = [
-        // Both flags ship ON. Flip OFF via `FeatureFlags.shared.set` if a
-        // future kill-switch is needed.
+        // weeklyMealPlan + weeklyMealBackfill ship ON. adherenceContext
+        // ships OFF until we've validated the prompt language doesn't
+        // confuse Mira on accounts with sparse adherence data.
         .weeklyMealPlan: true,
-        .weeklyMealBackfill: true
+        .weeklyMealBackfill: true,
+        .adherenceContext: false
     ]
 
     func isEnabled(_ flag: Flag) -> Bool {

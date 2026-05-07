@@ -304,12 +304,19 @@ struct MiraAPIClient: Sendable {
     /// no substring match on the user message — so a copy-edit on the
     /// client prompt template can't silently break the short-circuit.
     /// Throws `MealPlanError`; caller (MealGenerator) classifies retry.
+    ///
+    /// `adherenceContext` (optional, Task 5) is appended to the dynamic
+    /// portion of the system prompt server-side so prompt caching still
+    /// covers the static base. Nil means "no adherence signal worth
+    /// including" — safer than sending an empty string that could read
+    /// to the model as a failure signal.
     func generateMealPlan(
         context: MiraContext?,
         cyclePhase: String?,
         isTrainingDay: Bool,
         avoidMealNames: [String],
-        pantryItems: [String]
+        pantryItems: [String],
+        adherenceContext: String? = nil
     ) async throws -> [MealPlanMealPayload] {
         guard let url = URL(string: endpoint) else {
             throw MealPlanError.server(status: 0, message: "Invalid endpoint")
@@ -328,6 +335,9 @@ struct MiraAPIClient: Sendable {
         if !avoidMealNames.isEmpty { body["avoidMealNames"] = avoidMealNames }
         if !pantryItems.isEmpty { body["pantryItems"] = pantryItems }
         if let context { body["context"] = encodeContextDict(context) }
+        if let adherenceContext, !adherenceContext.isEmpty {
+            body["adherenceContext"] = adherenceContext
+        }
 
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 

@@ -67,13 +67,15 @@ final class MealGenerator {
         )
 
         let pantryNames = pantryItems.prefix(20).map(\.name).filter { !$0.isEmpty }
+        let adherence = adherenceContextString(profile: profile, anchor: date, in: context)
 
         let payloads = try await apiClient.generateMealPlan(
             context: miraContext,
             cyclePhase: cyclePhase?.rawValue,
             isTrainingDay: isTrainingDay,
             avoidMealNames: avoidMealNames,
-            pantryItems: pantryNames
+            pantryItems: pantryNames,
+            adherenceContext: adherence
         )
 
         let meals = payloads.map(meal(from:))
@@ -247,6 +249,43 @@ final class MealGenerator {
         for plan in plans where plan.isActive && cal.isDate(plan.date, inSameDayAs: date) {
             plan.isActive = false
         }
+    }
+
+    // MARK: - Adherence context (Task 5)
+
+    /// When the adherenceContext feature flag is on, builds a 7-day
+    /// adherence summary from the user's MealPlan + NutritionLog rows
+    /// and renders it as a prompt fragment. Returns nil when:
+    ///   - the flag is off (default)
+    ///   - the user has no signal (every day untouched, no swaps)
+    ///
+    /// Nil short-circuits the Lambda's adherence block so we don't waste
+    /// tokens on a "no data" line in the prompt for fresh users. Pure
+    /// compute split between AdherenceSummary.build (data shape) and
+    /// AdherenceContextFormatter.format (prompt language) so each layer
+    /// is independently unit-testable.
+    private func adherenceContextString(
+        profile: UserProfile,
+        anchor: Date,
+        in context: ModelContext
+    ) -> String? {
+        guard FeatureFlags.shared.isEnabled(.adherenceContext) else { return nil }
+
+        let plansDescriptor = FetchDescriptor<MealPlan>()
+        let plans = (try? context.fetch(plansDescriptor)) ?? []
+
+        let logsDescriptor = FetchDescriptor<NutritionLog>()
+        let logs = (try? context.fetch(logsDescriptor)) ?? []
+
+        let summary = AdherenceSummary.build(
+            windowDays: 7,
+            anchor: anchor,
+            plans: plans,
+            nutritionLogs: logs,
+            proteinTargetGrams: profile.proteinTargetGrams
+        )
+        let formatted = AdherenceContextFormatter.format(summary)
+        return formatted.isEmpty ? nil : formatted
     }
 
     // MARK: - Type mapping
