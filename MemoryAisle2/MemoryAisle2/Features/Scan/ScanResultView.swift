@@ -124,20 +124,31 @@ struct ScanResultView: View {
                     }
                     .padding(.horizontal, 20)
 
-                    GlowButton("Add to pantry", icon: "plus") {
-                        addToPantry()
-                        HapticManager.success()
-                        dismiss()
-                    }
-                    .padding(.horizontal, 32)
+                    VStack(spacing: 12) {
+                        GlowButton("Log this meal", icon: "checkmark.circle.fill") {
+                            logAsMeal()
+                        }
 
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Scan another")
-                            .font(Typography.bodyMedium)
-                            .foregroundStyle(Theme.Text.secondary(for: scheme))
+                        GhostButton("Add to pantry", icon: "plus") {
+                            addToPantry()
+                            HapticManager.success()
+                            dismiss()
+                        }
+                        .section(.scanner)
+
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("Scan another")
+                                .font(Typography.bodyMediumBold)
+                                .tracking(0.4)
+                                .foregroundStyle(Theme.Text.secondary(for: scheme))
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 4)
 
                     Spacer(minLength: 40)
                 }
@@ -145,6 +156,25 @@ struct ScanResultView: View {
         }
         .section(.scanner)
         .themeBackground()
+    }
+
+    /// Persists the scanned product as a meal entry. Mirrors MealLogger paths
+    /// from the dashboard log card / recipe detail / meal-plan rows so the
+    /// scanner shares the same "log without a photo" affordance the rest of
+    /// the app does.
+    private func logAsMeal() {
+        let label = product.brand.isEmpty
+            ? product.name
+            : "\(product.name) (\(product.brand))"
+        MealLogger.log(
+            name: label,
+            proteinGrams: Double(product.protein),
+            caloriesConsumed: Double(product.calories),
+            fiberGrams: Double(product.fiber),
+            in: modelContext
+        )
+        HapticManager.success()
+        dismiss()
     }
 
     private var nauseaWarning: some View {
